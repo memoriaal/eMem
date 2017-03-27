@@ -1,18 +1,18 @@
 {
   "private": false,
-  "name": "termconv",
-  "version": "0.0.1",
+  "name": "eMemoriaal",
+  "version": "1.0.0",
   "license": "MIT",
-  "description": "convert xml 2 json",
-  "homepage": "https://github.com/mitselek/termconv",
+  "description": "Public database of the victims of communist terror",
+  "homepage": "memoriaal.ee",
   "author": "Mihkel Putrinš <mihkel.putrinsh@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mitselek/termconv"
+    "url": "https://github.com/memoriaal/eMem"
   },
   "bugs": {
     "email": "mihkel.putrinsh@gmail.com",
-    "url": "https://github.com/mitselek/termconv/issues"
+    "url": "https://github.com/memoriaal/eMem/issues"
   },
   "dependencies": {
     "angular": "^1.5.5",
