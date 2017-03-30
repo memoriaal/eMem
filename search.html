@@ -72,7 +72,7 @@
     <script>
         function setFeedback() {
           document.getElementById('feedback0')
-            .setAttribute('href', 'mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com&subject=Tagasiside e-memoriaalilt '
+            .setAttribute('href', 'mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt '
                                 + '"' + document.getElementById('query').value + '"'
                                 + '&body='
                                 + document.getElementById('comment').value.replace(/\n/g,'%0D%0A')
@@ -146,8 +146,11 @@
                 <div class="intro">Antud andmestik ei sisalda veel isikuid, kes olid represseeritud, kuid kes vabanesid
                 kinnipidamiskohast või asumiselt. Nende isikute andmed avatakse tutvumiseks 2017. aasta juunis.</div>
 
+                <div class="intro">Tagasiside tõrgete korral kirjutage palun aadressil: info@mnemosyne.ee</div>
+
                 <p><hr>SA Eesti Mälu Instituut<br>
                 Suur-Ameerika 12, 10119, Tallinn<br>
+                E-mail: info@mnemosyne.ee<br>
                 Telefon: 6645039</pre>
             </div>
             <div class="col-xs-9 col-xs-offset-3 col-lg-10 col-lg-offset-2 main" ng-if="indexVM.query == null ? false : true">
@@ -172,7 +175,7 @@
                           <br/>
                           <a href="{{allikas.allikas.href}}">{{ allikas.allikas.text }}</a>
                         </p>
-                        <a class="button" href="mailto:mihkel.putrinsh@gmail.com?subject=Tagasiside e-memoriaalilt {{doc._source.perenimi}}, {{doc._source.eesnimi}}, {{doc._source.isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}">Tagasiside selle kirje kohta</a>
+                        <a class="button" href="mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.perenimi}}, {{doc._source.eesnimi}}, {{doc._source.isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}">Tagasiside selle kirje kohta</a>
                       </div>
                     </div>
                     <hr/>
