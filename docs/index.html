@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <script src="https://cdn.rawgit.com/memoriaal/eMem/master/node_modules/angular/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.23/angular-sanitize.min.js"></script>
     <script src="https://cdn.rawgit.com/memoriaal/eMem/master/node_modules/elasticsearch-browser/elasticsearch.angular.min.js"></script>
     <script src="https://cdn.rawgit.com/memoriaal/eMem/master/lib/elastic.js"></script>
     <script src="https://cdn.rawgit.com/memoriaal/eMem/master/lib/elasticui.min.js"></script>
@@ -33,11 +34,19 @@
           padding:0.5em;
           margin:0.5em;
           margin-right:0.5em;
-          border-right:black 1px dashed;
+          border:black 1px dashed;
         }
         .isikukaart > p {
           padding: 0px;
           margin: 0px;
+        }
+        .isikukaart.must {
+          color: white;
+          background-color: black;
+        }
+        .isikukaart.valge {
+          color: dark-gray;
+          background-color: white;
         }
         pre {
           white-space:  pre-wrap;       /* css-3 */
@@ -65,22 +74,24 @@
     </style>
     <script>
         angular
-            .module('tutorial', ['elasticui'])
+            .module('tutorial', ['elasticui','ngSanitize'])
             // .constant('euiHost', 'http://localhost:9200'); // ACTION: change to cluster address
             .constant('euiHost', 'https://reader:reader@94abc9318c712977e8c684628aa5ea0f.us-east-1.aws.found.io:9243'); // ACTION: change to cluster address
     </script>
     <script>
         function setFeedback() {
           document.getElementById('feedback0')
-            .setAttribute('href', 'mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com&subject=Tagasiside e-memoriaalilt '
+            .setAttribute('onclick', 'location.href = \'mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt '
                                 + '"' + document.getElementById('query').value + '"'
                                 + '&body='
                                 + document.getElementById('comment').value.replace(/\n/g,'%0D%0A')
+                                + '\''
             )
         }
     </script>
+
 </head>
-<body ng-app="tutorial" eui-index="'isikud'" ng-init="indexVM.pageSize=50"
+<body ng-app="tutorial" eui-index="'isikud1'" eui-highlight="ejs.Highlight('eesnimi','perenimi','isanimi','sünniaasta','allikad.kirje').preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
       eui-highlight="ejs.Highlight(allikad.kirje).preTags('<b>').postTags('</b>')"
       eui-enabled="true">
 
@@ -94,7 +105,8 @@
                     ng-model="querystring" eui-enabled="querystring.length"
                     ng-click="indexVM.page=1"
                     placeholder="Otsi"
-                    onchange="setFeedback()" />
+                    onchange="setFeedback()"
+                    autofocus />
                   <!-- <div>Perenimi:<br/><eui-searchbox field="'perenimi'" ng-click="indexVM.page=1"></eui-searchbox> </div> -->
                 </div>
 
@@ -111,7 +123,8 @@
                     label="Palun lisage siia puuduva isiku ees-, pere- ja isanimi ning võimalusel ka sünni- ja surmadaatumid"
                     placeholder="Palun lisage siia puuduva isiku ees-, pere- ja isanimi ning võimalusel ka sünni- ja surmadaatumid."
                     onChange="setFeedback()"></textarea>
-                  <a id="feedback0" href="">Tagasiside puuduva kirje kohta</a>
+                  <!-- <a id="feedback0" href="">Tagasiside puuduva kirje kohta</a> -->
+                  <input id="feedback0" type="button" class="btn btn-info" value="Tagasiside puuduva kirje kohta" onclick="location.href = 'www.google.com';">
                 </div>
 
                 <!-- <select ng-model="indexVM.pageSize">
@@ -146,8 +159,11 @@
                 <div class="intro">Antud andmestik ei sisalda veel isikuid, kes olid represseeritud, kuid kes vabanesid
                 kinnipidamiskohast või asumiselt. Nende isikute andmed avatakse tutvumiseks 2017. aasta juunis.</div>
 
+                <div class="intro">Tagasiside tõrgete korral kirjutage palun aadressil: info@mnemosyne.ee</div>
+
                 <p><hr>SA Eesti Mälu Instituut<br>
                 Suur-Ameerika 12, 10119, Tallinn<br>
+                E-mail: info@mnemosyne.ee<br>
                 Telefon: 6645039</pre>
             </div>
             <div class="col-xs-9 col-xs-offset-3 col-lg-10 col-lg-offset-2 main" ng-if="indexVM.query == null ? false : true">
@@ -160,19 +176,23 @@
 
                 <div ng-repeat="doc in indexVM.results.hits.hits">
                     <div class="row">
-                      <div class="isikukaart">
+                      <div class="isikukaart {{doc._source.kasHukkunud === '1' ? 'must' : 'valge'}}">
                         <p>p: {{doc._source.perenimi}}</p>
                         <p>e: {{doc._source.eesnimi}}</p>
-                        <p>i: {{doc._source.isanimi}}</p>
-                        <p>s: {{doc._source['sünniaasta']}}</p>
+                        <p>i: {{doc._source['isanimi'] === 'NULL' ? '???' : doc._source['isanimi']}}</p>
+                        <p>{{doc._source['sünniaasta'] === 'NULL' ? '???' : doc._source['sünniaasta']}}
+                         - {{doc._source['surmaaasta'] === 'NULL' ? '???' : doc._source['surmaaasta']}}</p>
+                        <!-- <p>h: {{doc._source['kasHukkunud']}}</p> -->
+                        <div class="btn-group">
+                          <a class="btn btn-sm active {{doc._source.kasHukkunud === '1' ? 'btn-info' : 'btn-primary'}}" href="mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.perenimi}}, {{doc._source.eesnimi}}, {{doc._source.isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}">Tagasiside selle kirje kohta</a>
+                        </div>
                       </div>
                       <div style="overflow: auto;">
-                        <p ng-repeat="allikas in doc._source.allikad">
-                          {{allikas.kirje}}
-                          <br/>
+                        <li ng-repeat="allikas in doc._source.allikad">
+                          <span ng-bind-html="allikas.kirje"></span><br/>
                           <a href="{{allikas.allikas.href}}">{{ allikas.allikas.text }}</a>
-                        </p>
-                        <a class="button" href="mailto:mihkel.putrinsh@gmail.com?subject=Tagasiside e-memoriaalilt {{doc._source.perenimi}}, {{doc._source.eesnimi}}, {{doc._source.isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}">Tagasiside selle kirje kohta</a>
+                        </li>
+                        <!-- <input type="button" class="btn btn-info" value="Tagasiside selle kirje kohta" onclick="location.href = 'mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.perenimi}}, {{doc._source.eesnimi}}, {{doc._source.isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}';"> -->
                       </div>
                     </div>
                     <hr/>
