@@ -182,7 +182,7 @@
                         <p>i: {{doc._source['isanimi'] === 'NULL' ? '???' : doc._source['isanimi']}}</p>
                         <p>{{doc._source['sünniaasta'] === 'NULL' ? '???' : doc._source['sünniaasta']}}
                          - {{doc._source['surmaaasta'] === 'NULL' ? '???' : doc._source['surmaaasta']}}</p>
-                        <!-- <p>h: {{doc._source['kasHukkunud']}}</p> -->
+                        <p>id: {{doc._id}}</p>
                         <div class="btn-group">
                           <a class="btn btn-sm active {{doc._source.kasHukkunud === '1' ? 'btn-info' : 'btn-primary'}}" href="mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.perenimi}}, {{doc._source.eesnimi}}, {{doc._source.isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}">Tagasiside selle kirje kohta</a>
                         </div>
