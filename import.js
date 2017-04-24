@@ -10,17 +10,18 @@ const INDEX = process.env.INDEX
 const SOURCE = process.env.SOURCE
 
 const allikalingid = {
-  'r1':     { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_1.pdf',  'text':'Memento "POLIITILISED ARRETEERIMISED EESTIS 1940-1988' },
-  'r2':     { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_2.pdf',  'text':'Memento "NÕUKOGUDE OKUPATSIOONIVÕIMU POLIITILISED ARRETEERIMISED EESTIS 1940-1988' },
-  'r3':     { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_3.pdf',  'text':'Memento "NÕUKOGUDE OKUPATSIOONIVÕIMU POLIITILISED ARRETEERIMISED EESTIS 1940-1988' },
-  'r4':     { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_4.pdf',  'text':'Memento "KÜÜDITAMINE EESTIST VENEMAALE MÄRTSIKÜÜDITAMINE 1949 1. osa' },
-  'r5':     { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_5.pdf',  'text':'Memento "KÜÜDITAMINE EESTIST VENEMAALE MÄRTSIKÜÜDITAMINE 1949 2. osa' },
-  'r6':     { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_6.pdf',  'text':'Memento "KÜÜDITAMINE  EESTIST VENEMAALE JUUNIKÜÜDITAMINE 1941 & KÜÜDITAMISED 1940-1953' },
-  'r7':     { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_7.pdf',  'text':'Memento "NÕUKOGUDE OKUPATSIOONIVÕIMUDE KURITEOD EESTIS KÜÜDITATUD, ARRETEERITUD, TAPETUD 1940-1990 NIMEDE KOONDREGISTER R1 – R6' },
-  'r81':    { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_81.pdf', 'text':'Memento "KOMMUNISMI KURITEOD EESTIS, Lisanimestik 1940–1990, raamatute R1–R7 täiendamiseks' },
-  'r81_20': { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_81.pdf', 'text':'Memento "KOMMUNISMI KURITEOD EESTIS, Lisanimestik 1940–1990, raamatute R1–R7 täiendamiseks' },
-  'mnm':    { 'href':'www.arborit.eu/memento/kommunismiohvrite-memoriaal/Kommunismiohvrite%20memoriaali%20nime%20kirjed%20%2820-03-2017%29%20-%20Stat-Nimek.pdf', 'text':'Memento "KOMMUNISMIOHVRITE MEMORIAALI NIME KIRJETE STATISTIKA' },
-  'okumus': { 'href':'https://okupatsioon.entu.ee', 'text':'Okupatsioonide Muuseumi avalik vaade' },
+  'r1':          { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_1.pdf',  'text':'Memento "POLIITILISED ARRETEERIMISED EESTIS 1940-1988' },
+  'r2':          { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_2.pdf',  'text':'Memento "NÕUKOGUDE OKUPATSIOONIVÕIMU POLIITILISED ARRETEERIMISED EESTIS 1940-1988' },
+  'r3':          { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_3.pdf',  'text':'Memento "NÕUKOGUDE OKUPATSIOONIVÕIMU POLIITILISED ARRETEERIMISED EESTIS 1940-1988' },
+  'r4':          { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_4.pdf',  'text':'Memento "KÜÜDITAMINE EESTIST VENEMAALE MÄRTSIKÜÜDITAMINE 1949 1. osa' },
+  'r5':          { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_5.pdf',  'text':'Memento "KÜÜDITAMINE EESTIST VENEMAALE MÄRTSIKÜÜDITAMINE 1949 2. osa' },
+  'r6':          { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_6.pdf',  'text':'Memento "KÜÜDITAMINE  EESTIST VENEMAALE JUUNIKÜÜDITAMINE 1941 & KÜÜDITAMISED 1940-1953' },
+  'r7':          { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_7.pdf',  'text':'Memento "NÕUKOGUDE OKUPATSIOONIVÕIMUDE KURITEOD EESTIS KÜÜDITATUD, ARRETEERITUD, TAPETUD 1940-1990 NIMEDE KOONDREGISTER R1 – R6' },
+  'r81':         { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_81.pdf', 'text':'Memento "KOMMUNISMI KURITEOD EESTIS, Lisanimestik 1940–1990, raamatute R1–R7 täiendamiseks' },
+  'r81_20':      { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_81.pdf', 'text':'Memento "KOMMUNISMI KURITEOD EESTIS, Lisanimestik 1940–1990, raamatute R1–R7 täiendamiseks' },
+  'mnm':         { 'href':'www.arborit.eu/memento/kommunismiohvrite-memoriaal/Kommunismiohvrite%20memoriaali%20nime%20kirjed%20%2820-03-2017%29%20-%20Stat-Nimek.pdf', 'text':'Memento "KOMMUNISMIOHVRITE MEMORIAALI NIME KIRJETE STATISTIKA' },
+  'okumus':      { 'href':'https://okupatsioon.entu.ee', 'text':'Okupatsioonide Muuseumi avalik vaade' },
+  'metsavennad': { 'href':'', 'text':'Martin Andreller "Metsavendade nimekiri"' },
 }
 
 const convertLinks = function convertLinks(text) {
@@ -75,10 +76,12 @@ var esClient = new elasticsearch.Client({
 })
 
 const queue = require('async/queue')
+let rec_no = 1
 var q = queue(function(task, callback) {
   // console.log('Start ' + task.id)
   esClient.create(task, function(error, response) {
     if (error) {
+      console.log('Failed ' + task.id)
       if (error.status === 409) {
         console.log('Skip allready imported ' + task.id)
         return callback(null)
@@ -88,10 +91,9 @@ var q = queue(function(task, callback) {
         q.push(task, callback)
         return // callback next time
       }
-      console.log('Failed ' + task.id)
       return callback(error)
     }
-    console.log('Inserted ' + task.id)
+    console.log((rec_no++) + ' Inserted ' + task.id)
     return callback(null)
   })
 }, 5)
