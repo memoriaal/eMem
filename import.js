@@ -8,6 +8,7 @@ var first_line_is_for_labels = true
 const ES_CREDENTIALS = process.env.ES_CREDENTIALS
 const INDEX = process.env.INDEX
 const SOURCE = process.env.SOURCE
+const QUEUE_LENGTH = 50
 
 const allikalingid = {
   'r1':          { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_1.pdf',  'text':'Memento "POLIITILISED ARRETEERIMISED EESTIS 1940-1988' },
@@ -96,7 +97,7 @@ var q = queue(function(task, callback) {
     console.log((rec_no++) + ' Inserted ' + task.id)
     return callback(null)
   })
-}, 5)
+}, QUEUE_LENGTH)
 q.drain = function() {
   console.log('all items have been processed')
 }
