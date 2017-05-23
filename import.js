@@ -8,7 +8,9 @@ var first_line_is_for_labels = true
 const ES_CREDENTIALS = process.env.ES_CREDENTIALS
 const INDEX = process.env.INDEX
 const SOURCE = process.env.SOURCE
-const QUEUE_LENGTH = 50
+const QUEUE_LENGTH = 10
+const BULK_SIZE = 1000
+const START_TIME = Date.now()
 
 const allikalingid = {
   'r1':          { 'href':'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_1.pdf',  'text':'Memento "POLIITILISED ARRETEERIMISED EESTIS 1940-1988' },
@@ -66,54 +68,94 @@ csv
     })
  } )
  .on("end", function(){
-     console.log("done");
+     console.log("done with reading");
  });
 
 
 const elasticsearch = require('elasticsearch')
-var esClient = new elasticsearch.Client({
+const esClient = new elasticsearch.Client({
   host: 'https://' + process.env.ES_CREDENTIALS + '@94abc9318c712977e8c684628aa5ea0f.us-east-1.aws.found.io:9243'
   // log: 'trace'
 })
 
 const queue = require('async/queue')
 let rec_no = 1
-var q = queue(function(task, callback) {
-  // console.log('Start ' + task.id)
-  esClient.create(task, function(error, response) {
+var q = queue(function(tasks, callback) {
+  esClient.bulk({
+    body: tasks
+  }, function (error, response) {
     if (error) {
-      console.log('Failed ' + task.id)
-      if (error.status === 409) {
-        console.log('Skip allready imported ' + task.id)
-        return callback(null)
-      }
       if (error.status === 408) {
-        console.log('Timed out for ' + task.id)
-        q.push(task, callback)
+        console.log('Timed out')
+        q.push(tasks, callback)
         return // callback next time
       }
       return callback(error)
     }
-    console.log((rec_no++) + ' Inserted ' + task.id)
+    console.log((rec_no * BULK_SIZE) + ' inserted, speed: ' + Math.floor((rec_no * BULK_SIZE)/(Date.now()-START_TIME)*1000) + '/sec')
+    rec_no = rec_no + 1
     return callback(null)
   })
 }, QUEUE_LENGTH)
+
 q.drain = function() {
-  console.log('all items have been processed')
+
+  save2db(false, function(error) {
+    if (error) {
+      console.log(error)
+      process.exit(1)
+    } else {
+      console.log('all items have been processed 2')
+      
+      esClient.count({
+        index: INDEX
+      }, function (error, response) {
+        var count = response.count
+        console.log('Count: ' + count + ' speed: ' + Math.floor(count/(Date.now()-START_TIME)*1000) + '/sec')
+        let create = {}
+        create.index = 'imports'
+        create.type = 'import'
+        create.id = Date.now()
+        create.body = {'INDEX': INDEX, 'records': count, 'ISODate': new Date().toISOString() }
+        esClient.create(create, function(error, response) {
+          if (error) {
+            console.error(error)
+            console.log(response)
+          }
+          console.log('bye')
+        })
+      })
+    }
+  })
+
+  console.log('all items have been processed 1')
 }
 
+var bulk = []
 const save2db = function save2db(isik, callback) {
-  let create = {}
-  create.index = INDEX
-  create.type = 'isik'
-  create.id = isik.id
-  create.body = isik
 
-  // console.log('enqueue ', isik.id);
-  q.push(create, function(error) {
-    if (error) {
-      return callback(error)
-    }
-    return callback(null)
-  })
+  if (isik !== false) {
+    bulk.push(JSON.stringify({'index':{'_index':INDEX,'_type':'isik','_id':isik.id}}))
+    bulk.push(JSON.stringify(isik))
+  }
+  if (bulk.length/2 >= BULK_SIZE) {
+    q.push(bulk.join('\n'), function(error) {
+      if (error) {
+        return callback(error)
+      }
+      return callback(null)
+    })
+    bulk = []
+  }
+  else if (isik === false) {
+    esClient.bulk({
+      body: bulk.join('\n'),
+      refresh: 'wait_for'
+    }, function (error, response) {
+      if (error) {
+        return callback(error)
+      }
+      return callback(null)
+    })
+  }
 }
