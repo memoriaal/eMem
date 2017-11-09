@@ -3,8 +3,6 @@ const util = require('util')
 const async = require('async')
 const fs = require('fs')
 
-var first_line_is_for_labels = true
-
 const ES_CREDENTIALS = process.env.ES_CREDENTIALS
 const INDEX = process.env.INDEX
 const SOURCE = process.env.SOURCE
@@ -28,13 +26,16 @@ const allikalingid = {
 }
 
 const convertLinks = function convertLinks(text) {
-  var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-  var text1 = text.replace(exp, "<a href='$1'>$1</a>");
-  var exp2 =/(^|[^\/])(www\.[\S]+(\b|$))/gim;
-  return text1.replace(exp2, '$1<a target="_blank" href="http://$2">$2</a>');
+  var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig
+  var text1 = text.replace(exp, "<a href='$1'>$1</a>")
+  var exp2 =/(^|[^\/])(www\.[\S]+(\b|$))/gim
+  var text2 = text1.replace(exp2, '$1<a target="_blank" href="http://$2">$2</a>')
+  return text2
 }
 
-var csv = require("fast-csv");
+var csv = require("fast-csv")
+var first_line_is_for_labels = true
+
 var labels = []
 csv
   .fromPath(SOURCE)
