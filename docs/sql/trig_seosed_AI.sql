@@ -1,0 +1,9 @@
+DELIMITER ;;
+CREATE OR REPLACE TRIGGER seosed_AI AFTER INSERT ON seosed FOR EACH ROW BEGIN
+
+    DECLARE msg VARCHAR(200);
+
+    call process_connection(NEW.id);
+
+END;;
+DELIMITER ;

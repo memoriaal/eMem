@@ -42,18 +42,18 @@ CREATE OR REPLACE TRIGGER kirjed_BU BEFORE UPDATE ON kirjed FOR EACH ROW BEGIN
         SELECT group_concat(foo.seos separator '\n')
         FROM (
             SELECT concat(
-                s1.isikukood2, ' --> ',
-                CASE WHEN s1.seos = '' THEN 'N/A' ELSE s1.seos END, ' --> ',
-                s1.isikukood1) as seos
-            FROM seosed s1
-            WHERE s1.isikukood1 = OLD.isikukood
-            UNION ALL
-            SELECT concat(
                 s2.isikukood2, ' --> ',
                 CASE WHEN s2.seos = '' THEN 'N/A' ELSE s2.seos END, ' --> ',
                 s2.isikukood1) as seos
             FROM seosed s2
             WHERE s2.isikukood2 = OLD.isikukood
+            UNION ALL
+            SELECT concat(
+                s1.isikukood1, ' <-- ',
+                CASE WHEN s1.seos = '' THEN 'N/A' ELSE s1.seos END, ' <-- ',
+                s1.isikukood2) as seos
+            FROM seosed s1
+            WHERE s1.isikukood1 = OLD.isikukood
         ) foo INTO @seosedCSV;
         SET NEW.seosedCSV = @seosedCSV;
         IF NEW.seosedCSV = ''

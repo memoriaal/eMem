@@ -77,7 +77,7 @@ BEGIN
     END IF;
     
     IF @sl2 IS NULL THEN
-        IF @ssugu1_1 = 'M' OR @ksugu2 = 'M' THEN
+        IF     @ssugu1_1 = 'M' OR @ksugu2 = 'M' THEN
             UPDATE seosed SET vastasseos = @sl1M WHERE id = _id;
         ELSEIF @ssugu1_1 = 'N' OR @ksugu2 = 'N' THEN
             UPDATE seosed SET vastasseos = @sl1N WHERE id = _id;
@@ -101,25 +101,25 @@ BEGIN
     END IF;
 
     IF @sl1 IS NULL THEN
-        IF @ssugu2_1 = 'M' OR @ksugu1 = 'M' THEN
-            UPDATE seosed SET seos = @sl1M WHERE id = _id;
+        IF     @ssugu2_1 = 'M' OR @ksugu1 = 'M' THEN
+            UPDATE seosed SET seos = @sl2M WHERE id = _id;
         ELSEIF @ssugu2_1 = 'N' OR @ksugu1 = 'N' THEN
-            UPDATE seosed SET seos = @sl1N WHERE id = _id;
+            UPDATE seosed SET seos = @sl2N WHERE id = _id;
         ELSEIF @ssugu2_1 = '=' AND @ksugu1 = 'M' THEN
-            UPDATE seosed SET seos = @sl1M WHERE id = _id;
+            UPDATE seosed SET seos = @sl2M WHERE id = _id;
         ELSEIF @ssugu2_1 = '=' AND @ksugu1 = 'N' THEN
-            UPDATE seosed SET seos = @sl1N WHERE id = _id;
+            UPDATE seosed SET seos = @sl2N WHERE id = _id;
         ELSEIF @ssugu2_1 = 'X' AND @ksugu1 = 'M' THEN
-            UPDATE seosed SET seos = @sl1N WHERE id = _id;
+            UPDATE seosed SET seos = @sl2N WHERE id = _id;
         ELSEIF @ssugu2_1 = 'X' AND @ksugu1 = 'N' THEN
-            UPDATE seosed SET seos = @sl1M WHERE id = _id;
+            UPDATE seosed SET seos = @sl2M WHERE id = _id;
         ELSEIF @ssugu2_1 IS NULL THEN
             IF     @ksugu1 = 'M' THEN
-                UPDATE seosed SET seos = @sl1M WHERE id = _id;
+                UPDATE seosed SET seos = @sl2M WHERE id = _id;
             ELSEIF @ksugu1 = 'N' THEN
-                UPDATE seosed SET seos = @sl1N WHERE id = _id;
+                UPDATE seosed SET seos = @sl2N WHERE id = _id;
             ELSEIF @ksugu1 = '' THEN
-                UPDATE seosed SET seos = @sl1X WHERE id = _id;
+                UPDATE seosed SET seos = @sl2X WHERE id = _id;
             END IF;
         END IF;
     END IF;
