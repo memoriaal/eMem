@@ -1,4 +1,22 @@
 DELIMITER ;;
+CREATE OR REPLACE FUNCTION connection2string(
+    _ik1 CHAR(10),
+    _seos VARCHAR(50),
+    _ik2 CHAR(10),
+    _direction CHAR(6)
+) RETURNS varchar(100) CHARSET utf8
+BEGIN
+    SELECT count(1) INTO @cnt
+    FROM seoseliigid
+    WHERE seoseliik = _seos AND seoseliik_1X = _seos;
+    IF @cnt = 1 THEN
+        RETURN CONCAT(_ik1, ' <=> ', _ik2);
+    ELSE
+        RETURN CONCAT( _ik1, _direction, IFNULL(_seos, 'N/A'), _direction, _ik2);
+    END IF;
+END;;
+
+
 CREATE OR REPLACE TRIGGER kirjed_BU BEFORE UPDATE ON kirjed FOR EACH ROW BEGIN
 
     DECLARE msg VARCHAR(200);
@@ -41,17 +59,11 @@ CREATE OR REPLACE TRIGGER kirjed_BU BEFORE UPDATE ON kirjed FOR EACH ROW BEGIN
     THEN
         SELECT group_concat(foo.seos separator '\n')
         FROM (
-            SELECT concat(
-                s2.isikukood2, ' --> ',
-                CASE WHEN s2.seos = '' THEN 'N/A' ELSE s2.seos END, ' --> ',
-                s2.isikukood1) as seos
+            SELECT connection2string( s2.isikukood2, s2.seos, s2.isikukood1, ' --> ') AS seos
             FROM seosed s2
             WHERE s2.isikukood2 = OLD.isikukood
-            UNION ALL
-            SELECT concat(
-                s1.isikukood1, ' <-- ',
-                CASE WHEN s1.seos = '' THEN 'N/A' ELSE s1.seos END, ' <-- ',
-                s1.isikukood2) as seos
+            UNION
+            SELECT connection2string( s1.isikukood1, s1.seos, s1.isikukood2, ' <-- ') AS seos
             FROM seosed s1
             WHERE s1.isikukood1 = OLD.isikukood
         ) foo INTO @seosedCSV;
