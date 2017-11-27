@@ -13,7 +13,7 @@ BEGIN
     DECLARE cur1 CURSOR FOR
         SELECT id, isikukood1, isikukood2, task, params, created
         FROM z_queue WHERE rdy = 0
-        LIMIT 50;
+        LIMIT 30;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
 
     OPEN cur1;
@@ -34,6 +34,9 @@ BEGIN
         END IF;
         IF _task = 'process connection' THEN
             CALL process_connection(_params);
+        END IF;
+        IF _task = 'update seosedCSV' THEN
+            UPDATE kirjed SET seosedCSV = '' WHERE isikukood = _params;
         END IF;
 
         -- SELECT concat('foo:', ifnull(_id, 'NA'), ' ', ifnull(_created, 'NA'), ' ', ifnull(_ik1, 'NA'), ' ', ifnull(_ik2, 'NA')) INTO msg;

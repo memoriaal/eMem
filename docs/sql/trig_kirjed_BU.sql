@@ -10,9 +10,9 @@ BEGIN
     FROM seoseliigid
     WHERE seoseliik = _seos AND seoseliik_1X = _seos;
     IF @cnt = 1 THEN
-        RETURN CONCAT(_ik1, ' <=> ', _ik2);
+        RETURN CONCAT(IFNULL(_ik1, ''), ' <= ', _seos, ' => ', _ik2);
     ELSE
-        RETURN CONCAT( _ik1, _direction, IFNULL(_seos, 'N/A'), _direction, _ik2);
+        RETURN CONCAT(IFNULL(_ik1, ''), _direction, IFNULL(_seos, 'N/A'), _direction, _ik2);
     END IF;
 END;;
 
