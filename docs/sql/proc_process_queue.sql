@@ -45,7 +45,8 @@ BEGIN
             CALL EMI_check_record(_ik1);
         END IF;
         IF _task = 'update seosedCSV' THEN
-            UPDATE kirjed SET seosedCSV = '' WHERE isikukood = _params;
+            -- UPDATE kirjed SET seosedCSV = '' WHERE isikukood = _params;
+            CALL update_seosedCSV(_ik1);
         END IF;
 
         -- SELECT concat('foo:', ifnull(_id, 'NA'), ' ', ifnull(_created, 'NA'), ' ', ifnull(_ik1, 'NA'), ' ', ifnull(_ik2, 'NA')) INTO msg;
