@@ -29,11 +29,20 @@ BEGIN
         IF _task = 'propagate checklist' THEN
             CALL propagate_checklist(_ik1, _ik2);
         END IF;
+        IF _task = 'sunchronize checklist' THEN
+            CALL synchronize_checklist(_ik1, _ik2);
+        END IF;
         IF _task = 'propagate checklists' THEN
             CALL propagate_checklists(_ik1);
         END IF;
         IF _task = 'process connection' THEN
             CALL process_connection(_params);
+        END IF;
+        IF _task = 'create connections' THEN
+            CALL create_connections(_ik1, _params, _ik2);
+        END IF;
+        IF _task = 'Check EMI record' THEN
+            CALL EMI_check_record(_ik1);
         END IF;
         IF _task = 'update seosedCSV' THEN
             UPDATE kirjed SET seosedCSV = '' WHERE isikukood = _params;

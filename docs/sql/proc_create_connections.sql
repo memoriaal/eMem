@@ -59,7 +59,7 @@ proc_label:BEGIN
 
         IF seoseliik = 'sama isik' THEN
             INSERT INTO z_queue (isikukood1, isikukood2, task, params, user)
-            VALUES (_ik1, _ik2, 'propagate checklist', '', user());
+            VALUES (_ik1, _ik2, 'synchronize checklist', '', user());
         END IF;
 
         INSERT IGNORE INTO seosed

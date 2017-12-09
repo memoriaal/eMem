@@ -1,23 +1,8 @@
 DELIMITER ;;
-CREATE OR REPLACE FUNCTION connection2string(
-    _ik1 CHAR(10),
-    _seos VARCHAR(50),
-    _ik2 CHAR(10),
-    _direction CHAR(6)
-) RETURNS varchar(100) CHARSET utf8
-BEGIN
-    SELECT count(1) INTO @cnt
-    FROM seoseliigid
-    WHERE seoseliik = _seos AND seoseliik_1X = _seos;
-    IF @cnt = 1 THEN
-        RETURN CONCAT(IFNULL(_ik1, ''), ' <= ', _seos, ' => ', _ik2);
-    ELSE
-        RETURN CONCAT(IFNULL(_ik1, ''), _direction, IFNULL(_seos, 'N/A'), _direction, _ik2);
-    END IF;
-END;;
-
 
 CREATE OR REPLACE TRIGGER kirjed_BU BEFORE UPDATE ON kirjed FOR EACH ROW BEGIN
+
+BEGIN
 
     DECLARE msg VARCHAR(200);
 
@@ -34,7 +19,9 @@ CREATE OR REPLACE TRIGGER kirjed_BU BEFORE UPDATE ON kirjed FOR EACH ROW BEGIN
         THEN
             SET NEW.seoseliik = '';
             CALL validate_checklist(NEW.isikukood, NEW.seos);
-            CALL create_connections(NEW.isikukood, NEW.seoseliik, NEW.seos);
+            -- CALL create_connections(NEW.isikukood, NEW.seoseliik, NEW.seos);
+            INSERT INTO z_queue (isikukood1, isikukood2, task, params, user)
+            VALUES (NEW.isikukood, NEW.seos, 'create connections', NEW.seoseliik, user());
 
         ELSEIF NEW.seoseliik = '-'
         THEN
@@ -44,7 +31,10 @@ CREATE OR REPLACE TRIGGER kirjed_BU BEFORE UPDATE ON kirjed FOR EACH ROW BEGIN
         ELSEIF NEW.seoseliik = '!'
         THEN
             SET NEW.seoseliik = '';
-            CALL create_connections(NEW.isikukood, NEW.seoseliik, NEW.seos);
+            -- CALL create_connections(NEW.isikukood, NEW.seoseliik, NEW.seos);
+            INSERT INTO z_queue (isikukood1, isikukood2, task, params, user)
+            VALUES (NEW.isikukood, NEW.seos, 'create connections', NEW.seoseliik, user());
+
 
         ELSE
             CALL create_connections(NEW.isikukood, NEW.seoseliik, NEW.seos);
@@ -129,5 +119,58 @@ CREATE OR REPLACE TRIGGER kirjed_BU BEFORE UPDATE ON kirjed FOR EACH ROW BEGIN
     END IF;
 
     SET NEW.user = user();
+END;;
+
+DELIMITER ;
+
+
+
+DELIMITER ;;
+CREATE OR REPLACE TRIGGER kirjed_AU AFTER UPDATE ON kirjed FOR EACH ROW BEGIN
+
+begin
+
+  INSERT INTO kirjed_audit_log 
+     (isikukood, Attn, Kirje
+     , Huk, REL, MR, Kivi, Mittekivi
+     , Perenimi, Eesnimi, Isanimi, Sünd, Surm
+     , Märksõna, Kommentaar
+     , Rahvus, Perekood, Allikas, sugu, Nimekiri, EkslikKanne
+     , created, updated, user)
+  VALUES
+    (NEW.isikukood, NEW.Attn, NEW.Kirje
+    , NEW.Huk, NEW.REL, NEW.MR, NEW.Kivi, NEW.Mittekivi
+    , NEW.Perenimi, NEW.Eesnimi, NEW.Isanimi, NEW.Sünd, NEW.Surm
+    , NEW.Märksõna, NEW.Kommentaar
+    , NEW.Rahvus, NEW.Perekood, NEW.Allikas, NEW.sugu, NEW.Nimekiri, NEW.EkslikKanne
+    , NEW.created, NEW.updated, NEW.user);
+
+  INSERT INTO z_queue (isikukood1, isikukood2, task, params, user)
+  VALUES (NEW.isikukood, NULL, 'Check EMI record', '', user());
+
+end;;
+
+DELIMITER ;
+  
+  
+DELIMITER ;;
+CREATE OR REPLACE TRIGGER kirjed_AI AFTER INSERT ON kirjed FOR EACH ROW BEGIN
+BEGIN
+
+INSERT INTO kirjed_audit_log 
+     (isikukood, Attn, Kirje
+     , Huk, REL, MR, Kivi, Mittekivi
+     , Perenimi, Eesnimi, Isanimi, Sünd, Surm
+     , Märksõna, Kommentaar
+     , Rahvus, Perekood, Allikas, sugu, Nimekiri, EkslikKanne
+     , created, updated, user)
+  VALUES
+    (NEW.isikukood, NEW.Attn, NEW.Kirje
+    , NEW.Huk, NEW.REL, NEW.MR, NEW.Kivi, NEW.Mittekivi
+    , NEW.Perenimi, NEW.Eesnimi, NEW.Isanimi, NEW.Sünd, NEW.Surm
+    , NEW.Märksõna, NEW.Kommentaar
+    , NEW.Rahvus, NEW.Perekood, NEW.Allikas, NEW.sugu, NEW.Nimekiri, NEW.EkslikKanne
+    , NEW.created, NEW.updated, NEW.user);
+
 END;;
 DELIMITER ;
