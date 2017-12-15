@@ -2,23 +2,24 @@ DELIMITER ;;
 CREATE OR REPLACE PROCEDURE process_queue()
 BEGIN
     DECLARE _id INT(11) UNSIGNED;
+    DECLARE _emi_id INT(11) UNSIGNED;
     DECLARE _ik1 CHAR(10);
     DECLARE _ik2 CHAR(10);
-    DECLARE _task VARCHAR(20);
+    DECLARE _task VARCHAR(30);
     DECLARE _params VARCHAR(200);
     DECLARE _created TIMESTAMP;
     DECLARE finished INTEGER DEFAULT 0;
     DECLARE msg VARCHAR(200);
 
     DECLARE cur1 CURSOR FOR
-        SELECT id, isikukood1, isikukood2, task, params, created
+        SELECT id, emi_id, isikukood1, isikukood2, task, params, created
         FROM z_queue WHERE rdy = 0
         LIMIT 30;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
 
     OPEN cur1;
     read_loop: LOOP
-        FETCH cur1 INTO _id, _ik1, _ik2, _task, _params, _created;
+        FETCH cur1 INTO _id, _emi_id, _ik1, _ik2, _task, _params, _created;
         IF finished = 1 THEN
             LEAVE read_loop;
         END IF;
@@ -46,6 +47,9 @@ BEGIN
         END IF;
         IF _task = 'Check EMI record' THEN
             CALL EMI_check_record(_ik1);
+        END IF;
+        IF _task = 'Consolidate EMI records' THEN
+        call EMI_consolidate_records(_emi_id);
         END IF;
         IF _task = 'update seosedCSV' THEN
             CALL update_seosedCSV(_ik1);

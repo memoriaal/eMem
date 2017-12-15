@@ -10,8 +10,9 @@ CREATE TABLE `EMIR` (
   `EmiSünd` varchar(10)               DEFAULT NULL,
   `Surm` varchar(100)        NOT NULL DEFAULT '',
   `EmiSurm` varchar(10)               DEFAULT NULL,
-  `Kommentaar` varchar(100)  NOT NULL DEFAULT '',
+  `Kommentaarid` varchar(100)  NOT NULL DEFAULT '',
   `Kirjed` text                       DEFAULT NULL,
+  `Välisviide` varchar(1000)          DEFAULT NULL,
   `ref` int(11) unsigned              DEFAULT NULL,
   `user` varchar(50)         NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
