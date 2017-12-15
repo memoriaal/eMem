@@ -2,11 +2,14 @@ DELIMITER ;;
 CREATE or replace PROCEDURE `EMI_update_id_for`(IN _ik CHAR(10), IN _emi_id INTEGER(11) UNSIGNED)
 BEGIN
     UPDATE kirjed k 
-    RIGHT JOIN seosed s ON s.isikukood1 = k.isikukood
+    LEFT JOIN seosed s ON s.isikukood2 = k.isikukood
                        AND s.seos = 'sama isik'
     SET k.emi_id = _emi_id
     WHERE s.isikukood1 = _ik
-       OR s.isikukood2 = _ik
+    ;
+    UPDATE kirjed k 
+    SET k.emi_id = _emi_id
+    WHERE k.isikukood = _ik
     ;
 END;;
 
@@ -22,12 +25,13 @@ BEGIN
     UPDATE EMIR AS e 
     LEFT JOIN (
         select k.emi_id
-        , group_concat(k.perenimi SEPARATOR ';') as perenimi
-        , group_concat(k.eesnimi SEPARATOR ';') as eesnimi
-        , group_concat(k.isanimi SEPARATOR ';') as isanimi
-        , group_concat(k.sünd SEPARATOR ';') as sünd
-        , group_concat(k.surm SEPARATOR ';') as surm
-        , group_concat(k.kommentaar SEPARATOR ';\n') as kommentaar
+        , group_concat(DISTINCT upper(k.perenimi) SEPARATOR ';') as perenimi
+        , group_concat(DISTINCT upper(k.eesnimi) SEPARATOR ';') as eesnimi
+        , group_concat(DISTINCT upper(k.isanimi) SEPARATOR ';') as isanimi
+        , group_concat(DISTINCT k.sünd SEPARATOR ';') as sünd
+        , group_concat(DISTINCT k.surm SEPARATOR ';') as surm
+        , group_concat(DISTINCT k.kommentaar SEPARATOR ';\n') as kommentaarid
+        , group_concat(DISTINCT concat(k.isikukood, ': ', k.kirje) SEPARATOR ';\n') as kirjed
         from kirjed k
         where k.emi_id = _emi_id
         group by k.emi_id
@@ -37,7 +41,8 @@ BEGIN
       , e.isanimi = krj.isanimi
       , e.sünd = krj.sünd
       , e.surm = krj.surm
-      , e.kommentaar = krj.kommentaar
+      , e.kommentaarid = krj.kommentaarid
+      , e.kirjed = krj.kirjed
     WHERE e.id = _emi_id;
 END;;
 

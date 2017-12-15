@@ -37,7 +37,7 @@ proc_label:BEGIN
     -- Iseendaga seoseid pole tarvis lasta teha
     IF ik1 = ik2 THEN
         SELECT CONCAT( 'Ei hakka iseenda vahel seost looma, nuh.' ) INTO msg;
-        SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
+        SIGNAL SQLSTATE '02100' SET MESSAGE_TEXT = msg;
     END IF;
 
     -- Sümmeetrilised seosed
@@ -66,6 +66,11 @@ proc_label:BEGIN
             SET isikukood1 = _ik1, seos = seoseliik, vastasseos = @vastasseos, isikukood2 = _ik2;
         INSERT IGNORE INTO seosed
             SET isikukood1 = _ik2, seos = @vastasseos, vastasseos = seoseliik, isikukood2 = _ik1;
+
+        INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
+        VALUES (_ik1, null, 'update seosedCSV', '', user());
+        INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
+        VALUES (_ik2, null, 'update seosedCSV', '', user());
 
     END LOOP;
     CLOSE cur1;

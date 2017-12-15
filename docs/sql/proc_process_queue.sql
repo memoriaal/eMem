@@ -41,16 +41,16 @@ BEGIN
         IF _task = 'create connections' THEN
             CALL create_connections(_ik1, _params, _ik2);
         END IF;
+        IF _task = 'remove connection' THEN
+            CALL remove_connection(_ik1, _ik2);
+        END IF;
         IF _task = 'Check EMI record' THEN
             CALL EMI_check_record(_ik1);
         END IF;
         IF _task = 'update seosedCSV' THEN
-            -- UPDATE kirjed SET seosedCSV = '' WHERE isikukood = _params;
             CALL update_seosedCSV(_ik1);
         END IF;
 
-        -- SELECT concat('foo:', ifnull(_id, 'NA'), ' ', ifnull(_created, 'NA'), ' ', ifnull(_ik1, 'NA'), ' ', ifnull(_ik2, 'NA')) INTO msg;
-        -- SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
         UPDATE z_queue SET rdy = 1 WHERE id = _id;
 
     END LOOP;
