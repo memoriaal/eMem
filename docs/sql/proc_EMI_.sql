@@ -27,7 +27,9 @@ BEGIN
         select k.emi_id
         , group_concat(DISTINCT upper(k.perenimi) SEPARATOR ';') as perenimi
         , group_concat(DISTINCT upper(k.eesnimi) SEPARATOR ';') as eesnimi
-        , group_concat(DISTINCT upper(k.isanimi) SEPARATOR ';') as isanimi
+        , group_concat(DISTINCT if(
+            k.allikas = 'RK', null, upper(k.isanimi)
+          ) SEPARATOR ';') as isanimi
         , group_concat(DISTINCT k.sünd SEPARATOR ';') as sünd
         , group_concat(DISTINCT k.surm SEPARATOR ';') as surm
         , group_concat(DISTINCT k.kommentaar SEPARATOR ';\n') as kommentaarid
