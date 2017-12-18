@@ -90,7 +90,7 @@
     </script>
 
 </head>
-<body ng-app="tutorial" eui-index="'isikud1'" eui-highlight="ejs.Highlight(['eesnimi','perenimi','isanimi','sünniaasta','allikad.kirje']).preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
+<body ng-app="tutorial" eui-index="'kirjed'" eui-highlight="ejs.Highlight(['emi_id','Eesnimi','Perenimi','Isanimi','Sünd','Surm','allikad.kirje']).preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
       eui-highlight="ejs.Highlight(allikad.kirje).preTags('<b>').postTags('</b>')"
       eui-enabled="true">
 
@@ -106,7 +106,7 @@
                     placeholder="Otsi"
                     onchange="setFeedback()"
                     autofocus />
-                  <!-- <div>Perenimi:<br/><eui-searchbox field="'perenimi'" ng-click="indexVM.page=1"></eui-searchbox> </div> -->
+                  <!-- <div>Perenimi:<br/><eui-searchbox field="'Perenimi'" ng-click="indexVM.page=1"></eui-searchbox> </div> -->
                 </div>
 
                 <div ng-if="indexVM.results.hits.total > 0">
@@ -119,8 +119,8 @@
                 <hr/>
                 <div class="row form-group">
                   <textarea id="comment" class="form-control" rows="5"
-                    label="Palun lisage siia puuduva isiku ees-, pere- ja isanimi ning võimalusel ka sünni- ja surmadaatumid"
-                    placeholder="Palun lisage siia puuduva isiku ees-, pere- ja isanimi ning võimalusel ka sünni- ja surmadaatumid."
+                    label="Palun lisage siia puuduva isiku ees-, pere- ja Isanimi ning võimalusel ka sünni- ja surmadaatumid"
+                    placeholder="Palun lisage siia puuduva isiku ees-, pere- ja Isanimi ning võimalusel ka sünni- ja surmadaatumid."
                     onChange="setFeedback()"></textarea>
                   <!-- <a id="feedback0" href="">Tagasiside puuduva kirje kohta</a> -->
                   <input id="feedback0" type="button" class="btn btn-info" value="Tagasiside puuduva kirje kohta" onclick="location.href = 'www.google.com';">
@@ -176,14 +176,15 @@
                 <div ng-repeat="doc in indexVM.results.hits.hits">
                     <div class="row">
                       <div class="isikukaart {{doc._source.kasHukkunud === '1' ? 'must' : 'valge'}}">
-                        <p>p: {{doc._source.perenimi}}</p>
-                        <p>e: {{doc._source.eesnimi}}</p>
-                        <p>i: {{doc._source['isanimi'] === 'NULL' ? '???' : doc._source['isanimi']}}</p>
-                        <p>{{doc._source['sünniaasta'] === 'NULL' ? '???' : doc._source['sünniaasta']}}
-                         - {{doc._source['surmaaasta'] === 'NULL' ? '???' : doc._source['surmaaasta']}}</p>
-                        <p>id: {{doc._id}}</p>
+                        <p>p: {{doc._source.Perenimi}}</p>
+                        <p>e: {{doc._source.Eesnimi}}</p>
+                        <p>i: {{doc._source['Isanimi'] === 'NULL' ? '???' : doc._source['Isanimi']}}</p>
+                        <p>{{doc._source['Sünd'] === '' ? '???' : doc._source['Sünd']}}
+                         - {{doc._source['Surm'] === '' ? '???' : doc._source['Surm']}}</p>
+                        <p>id: {{doc._source.emi_id}}</p>
+                        <!-- <pre>{{doc._source}}</pre> -->
                         <div class="btn-group">
-                          <a class="btn btn-sm active {{doc._source.kasHukkunud === '1' ? 'btn-info' : 'btn-primary'}}" href="mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.perenimi}}, {{doc._source.eesnimi}}, {{doc._source.isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}">Tagasiside selle kirje kohta</a>
+                          <a class="btn btn-sm active {{doc._source.kasHukkunud === '1' ? 'btn-info' : 'btn-primary'}}" href="mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.Perenimi}}, {{doc._source.Eesnimi}}, {{doc._source.Isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}">Tagasiside selle kirje kohta</a>
                         </div>
                       </div>
                       <div style="overflow: auto;">
@@ -191,7 +192,7 @@
                           <span ng-bind-html="allikas.kirje"></span><br/>
                           <a href="{{allikas.allikas.href}}">{{ allikas.allikas.text }}</a>
                         </li>
-                        <!-- <input type="button" class="btn btn-info" value="Tagasiside selle kirje kohta" onclick="location.href = 'mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.perenimi}}, {{doc._source.eesnimi}}, {{doc._source.isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}';"> -->
+                        <!-- <input type="button" class="btn btn-info" value="Tagasiside selle kirje kohta" onclick="location.href = 'mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.Perenimi}}, {{doc._source.Eesnimi}}, {{doc._source.Isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}';"> -->
                       </div>
                     </div>
                     <hr/>
