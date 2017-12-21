@@ -8,8 +8,8 @@ var first_line_is_for_labels = true
 const ES_CREDENTIALS = process.env.ES_CREDENTIALS
 const INDEX = process.env.INDEX
 const SOURCE = process.env.SOURCE
-const QUEUE_LENGTH = 5
-const BULK_SIZE = 500
+const QUEUE_LENGTH = 1
+const BULK_SIZE = 180
 const START_TIME = Date.now()
 
 
@@ -79,7 +79,8 @@ csv
       let allikas = spl.shift().split('-')[0]
       // console.log(allikas, allikalingid[allikas]);
       let txt = convertLinks(spl.join(':'))
-      return {'allikas':allikalingid[allikas], 'kirje':txt}
+      return {'allikas':allikalingid[allikas], 'kirje':kirje}
+      // return {'allikas':allikalingid[allikas], 'kirje':txt}
     })
     save2db(isik, function(error) {
       if (error) {
