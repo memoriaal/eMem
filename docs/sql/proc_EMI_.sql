@@ -26,16 +26,17 @@ BEGIN
     LEFT JOIN (
         select k.emi_id
         , group_concat(DISTINCT upper(k.perenimi) SEPARATOR ';') as perenimi
-        , group_concat(DISTINCT upper(k.eesnimi) SEPARATOR ';') as eesnimi
+        , group_concat(DISTINCT replace(upper(k.eesnimi),'ALEKSANDR','ALEKSANDER') SEPARATOR ';') as eesnimi
         , group_concat(DISTINCT if(
             k.allikas = 'RK', null, upper(k.isanimi)
           ) SEPARATOR ';') as isanimi
-        , group_concat(DISTINCT k.sünd SEPARATOR ';') as sünd
-        , group_concat(DISTINCT k.surm SEPARATOR ';') as surm
-        , group_concat(DISTINCT k.kommentaar SEPARATOR ';\n') as kommentaarid
+        , group_concat(DISTINCT if(k.sünd = '', null, left(k.sünd,4)) SEPARATOR ';') as sünd
+        , group_concat(DISTINCT if(k.surm = '', null, left(k.surm,4)) SEPARATOR ';') as surm
+        , group_concat(DISTINCT if(k.kommentaar = '', null, k.kommentaar) SEPARATOR ';\n') as kommentaarid
         , group_concat(DISTINCT concat(k.isikukood, ': ', k.kirje) SEPARATOR ';\n') as kirjed
         from kirjed k
         where k.emi_id = _emi_id
+        and k.EkslikKanne = ''
         group by k.emi_id
     ) krj ON krj.emi_id = e.id
     SET e.perenimi = krj.perenimi
@@ -57,6 +58,8 @@ BEGIN
     ELSE
         call EMI_update_id_for(_ik, @emi_id);
     END IF;
-    call EMI_consolidate_records(@emi_id);
+    INSERT IGNORE INTO z_queue (emi_id, task, `user`)
+    VALUES (@emi_id, 'Consolidate EMI records', 'EMI_check_record');
+    -- call EMI_consolidate_records(@emi_id);
 END;;
 DELIMITER ;

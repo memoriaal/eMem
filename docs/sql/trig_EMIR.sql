@@ -14,8 +14,8 @@ BEGIN
 
     IF NEW.ts <> OLD.ts 
     THEN  
-        INSERT IGNORE INTO z_queue (emi_id, task)
-        VALUES (NEW.id, 'Consolidate EMI records');
+        INSERT IGNORE INTO z_queue (emi_id, task, user)
+        VALUES (NEW.id, 'Consolidate EMI records', 'EMIR_AU');
     END IF;
 
 END;;

@@ -54,6 +54,12 @@ BEGIN
         IF _task = 'update seosedCSV' THEN
             CALL update_seosedCSV(_ik1);
         END IF;
+        IF _task = 'Import from RK' THEN
+            CALL import_from_rk(_ik1);
+        END IF;
+        IF _task = 'Rollback prior to' THEN
+            CALL rollback_prior_to(_ik1, _params);
+        END IF;
 
         UPDATE z_queue SET rdy = 1 WHERE id = _id;
 

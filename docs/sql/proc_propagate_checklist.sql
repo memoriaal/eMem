@@ -40,8 +40,8 @@ BEGIN
         IF finished = 1 THEN
             LEAVE read_loop;
         END IF;
-        INSERT INTO `z_queue` (`isikukood1`, `isikukood2`, `task`, `params`)
-        VALUES (ik1, ik2, 'propagate checklist', '');
+        INSERT INTO `z_queue` (`isikukood1`, `isikukood2`, `task`, `params`, user)
+        VALUES (ik1, ik2, 'propagate checklist', '', 'propagate_checklists');
 
     END LOOP;
     CLOSE cur1;

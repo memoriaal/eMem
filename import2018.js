@@ -8,8 +8,8 @@ var first_line_is_for_labels = true
 const ES_CREDENTIALS = process.env.ES_CREDENTIALS
 const INDEX = process.env.INDEX
 const SOURCE = process.env.SOURCE
-const QUEUE_LENGTH = 1
-const BULK_SIZE = 180
+const QUEUE_LENGTH = 10
+const BULK_SIZE = 500
 const START_TIME = Date.now()
 
 

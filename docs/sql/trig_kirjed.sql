@@ -20,7 +20,7 @@ BEGIN
             SET NEW.seoseliik = '';
             CALL validate_checklist(NEW.isikukood, NEW.seos);
             INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-            VALUES (NEW.isikukood, NEW.seos, 'create connections', NEW.seoseliik, user());
+            VALUES (NEW.isikukood, NEW.seos, 'create connections', NEW.seoseliik, 'kirjed_BU');
 
         ELSEIF NEW.seoseliik = '-'
         THEN
@@ -31,11 +31,11 @@ BEGIN
         THEN
             SET NEW.seoseliik = '';
             INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-            VALUES (NEW.isikukood, NEW.seos, 'create connections', NEW.seoseliik, user());
+            VALUES (NEW.isikukood, NEW.seos, 'create connections', NEW.seoseliik, 'kirjed_BU');
 
         ELSE
             INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-            VALUES (NEW.isikukood, NEW.seos, 'create connections', NEW.seoseliik, user());
+            VALUES (NEW.isikukood, NEW.seos, 'create connections', NEW.seoseliik, 'kirjed_BU');
         END IF;
 
         SET NEW.seos = NULL;
@@ -92,7 +92,7 @@ BEGIN
         SELECT count(1) into @cnt FROM seosed WHERE isikukood1 = NEW.isikukood AND seos = 'sama isik';
         IF @cnt > 0 THEN
             INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-            VALUES (NEW.isikukood, null, 'propagate checklists', '', user());
+            VALUES (NEW.isikukood, null, 'propagate checklists', '', 'kirjed_BU');
         END IF;
     END IF;
 
@@ -145,9 +145,17 @@ begin
           , NEW.created, NEW.updated, NEW.user);
 
         INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-        VALUES (NEW.isikukood, NULL, 'Check EMI record', '', user());
+        VALUES (NEW.isikukood, NULL, 'Check EMI record', '', 'kirjed_AU');
   END IF;
 end;;
+
+
+CREATE OR REPLACE TRIGGER kirjed_BI BEFORE INSERT ON kirjed FOR EACH ROW 
+BEGIN
+
+  SET NEW.user = user();
+
+END;;
 
 
 CREATE OR REPLACE TRIGGER kirjed_AI AFTER INSERT ON kirjed FOR EACH ROW 

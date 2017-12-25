@@ -41,8 +41,11 @@ proc_label:BEGIN
     END IF;
 
     -- Sümmeetrilised seosed
-    IF seoseliik = 'sama isik' OR seoseliik = 'kahtlusseos' OR seoseliik = 'abikaasa' THEN
-        SET @vastasseos = seoseliik;
+    IF seoseliik = 'sama isik' OR 
+       seoseliik = 'kahtlusseos' OR 
+       seoseliik = 'abikaasa' OR 
+       seoseliik = 'erinevad isikud' THEN
+         SET @vastasseos = seoseliik;
     ELSE
         SET @vastasseos = NULL;
     END IF;
@@ -59,7 +62,7 @@ proc_label:BEGIN
 
         IF seoseliik = 'sama isik' THEN
             INSERT INTO z_queue (isikukood1, isikukood2, task, params, user)
-            VALUES (_ik1, _ik2, 'synchronize checklist', '', user());
+            VALUES (_ik1, _ik2, 'synchronize checklist', '', 'create_connections');
         END IF;
 
         INSERT IGNORE INTO seosed
@@ -68,9 +71,9 @@ proc_label:BEGIN
             SET isikukood1 = _ik2, seos = @vastasseos, vastasseos = seoseliik, isikukood2 = _ik1;
 
         INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-        VALUES (_ik1, null, 'update seosedCSV', '', user());
+        VALUES (_ik1, null, 'update seosedCSV', '', 'create_connections');
         INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-        VALUES (_ik2, null, 'update seosedCSV', '', user());
+        VALUES (_ik2, null, 'update seosedCSV', '', 'create_connections');
 
     END LOOP;
     CLOSE cur1;
