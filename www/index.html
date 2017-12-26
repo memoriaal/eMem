@@ -90,7 +90,7 @@
     </script>
 
 </head>
-<body ng-app="tutorial" eui-index="'kirjed3'" eui-highlight="ejs.Highlight(['emi_id','Eesnimi','Perenimi','Isanimi','Sünd','Surm','allikad.kirje']).preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
+<body ng-app="tutorial" eui-index="'kirjed4'" eui-highlight="ejs.Highlight(['emi_id','Eesnimi','Perenimi','Isanimi','Sünd','Surm','allikad.kirje']).preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
       eui-highlight="ejs.Highlight(allikad.kirje).preTags('<b>').postTags('</b>')"
       eui-enabled="true">
 
@@ -201,7 +201,7 @@
                         <p>id: {{doc._source.emi_id}}</p>
                         <!-- <pre>{{doc._source}}</pre> -->
                         <div class="btn-group">
-                          <a class="btn btn-sm active {{doc._source.kasHukkunud === '1' ? 'btn-info' : 'btn-primary'}}" href="mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.Perenimi}}, {{doc._source.Eesnimi}}, {{doc._source.Isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}">Tagasiside selle kirje kohta</a>
+                          <a class="btn btn-sm active {{doc._source.kasHukkunud === '1' ? 'btn-info' : 'btn-primary'}}" href="mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.Perenimi}}, {{doc._source.Eesnimi}}, {{doc._source.Isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.emi_id}}">Tagasiside selle kirje kohta</a>
                         </div>
                       </div>
                       <div style="overflow: auto;">
@@ -214,6 +214,13 @@
                     </div>
                     <hr/>
                 </div>
+
+                <ul class="pager">
+                    <li ng-class="{hidden:indexVM.page <= 1}"><a href="" ng-click="indexVM.page=1">Esimene</a></li>
+                    <li ng-class="{hidden:indexVM.page <= 1}"><a href="" ng-click="indexVM.page=indexVM.page - 1">Eelmine</a></li>
+                    <li ng-class="{hidden:indexVM.pageCount <= indexVM.page}"><a href="" ng-click="indexVM.page=indexVM.page + 1">Järgmine</a></li>
+                </ul>
+
             </div>
         </div>
     </div>

@@ -8,8 +8,8 @@ var first_line_is_for_labels = true
 const ES_CREDENTIALS = process.env.ES_CREDENTIALS
 const INDEX = process.env.INDEX
 const SOURCE = process.env.SOURCE
-const QUEUE_LENGTH = 10
-const BULK_SIZE = 500
+const QUEUE_LENGTH = 1
+const BULK_SIZE = 4000
 const START_TIME = Date.now()
 
 
@@ -98,7 +98,7 @@ csv
 
 const elasticsearch = require('elasticsearch')
 const esClient = new elasticsearch.Client({
-  host: 'https://' + process.env.ES_CREDENTIALS + '@94abc9318c712977e8c684628aa5ea0f.us-east-1.aws.found.io:9243'
+  host: 'https://' + process.env.ES_CREDENTIALS + '@94abc9318c712977e8c684628aa5ea0f.us-east-1.aws.found.io:9243',
   // log: 'trace'
 })
 
