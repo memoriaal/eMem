@@ -90,7 +90,7 @@
     </script>
 
 </head>
-<body ng-app="tutorial" eui-index="'kirjed'" eui-highlight="ejs.Highlight(['emi_id','Eesnimi','Perenimi','Isanimi','Sünd','Surm','allikad.kirje']).preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
+<body ng-app="tutorial" eui-index="'isikud1'" eui-highlight="ejs.Highlight(['emi_id','Eesnimi','Perenimi','Isanimi','Sünd','Surm','allikad.kirje']).preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
       eui-highlight="ejs.Highlight(allikad.kirje).preTags('<b>').postTags('</b>')"
       eui-enabled="true">
 
@@ -207,7 +207,7 @@
                       <div style="overflow: auto;">
                         <li ng-repeat="allikas in doc._source.allikad">
                           <span ng-bind-html="allikas.kirje"></span><br/>
-                          <a href="{{allikas.allikas.href}}">{{ allikas.allikas.text }}</a>
+                          <!-- <a href="{{allikas.allikas.href}}">{{ allikas.allikas.text }}</a> -->
                         </li>
                         <!-- <input type="button" class="btn btn-info" value="Tagasiside selle kirje kohta" onclick="location.href = 'mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.Perenimi}}, {{doc._source.Eesnimi}}, {{doc._source.Isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}';"> -->
                       </div>

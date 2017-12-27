@@ -9,7 +9,7 @@ const ES_CREDENTIALS = process.env.ES_CREDENTIALS
 const INDEX = process.env.INDEX
 const SOURCE = process.env.SOURCE
 const QUEUE_LENGTH = 1
-const BULK_SIZE = 4000
+const BULK_SIZE = 4100
 const START_TIME = Date.now()
 
 
@@ -17,37 +17,37 @@ const allikalingid = {
   'LMSS':        { href: '',
                    text: 'Lindmäe "Suvesõjad"'},
   'R1':          { href: 'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_1.pdf',
-                   text: 'Memento ""'},
+                   text: 'Memento "Poliitilised arreteerimised Eestis 1940–1988 (§58), kd 1"'},
   'R2':          { href: 'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_2.pdf',
-                   text: 'Memento ""'},
+                   text: 'Memento "Poliitilised arreteerimised Eestis, kd 2"'},
   'R3':          { href: 'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_3.pdf',
-                   text: 'Memento ""'},
-  'R4-2':        { href: 'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_4.pdf',
-                   text: 'Memento ""'},
+                   text: 'Memento "Poliitilised arreteerimised Eestis, kd 3"'},
+  'R42':        { href: 'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_4.pdf',
+                   text: 'Memento "Märtsiküüditamine 1949"'},
   'R5':          { href: 'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_5.pdf',
-                   text: 'Memento ""'},
+                   text: 'Memento "Märtsiküüditamine 1949"'},
   'R61':         { href: 'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_6.pdf',
-                   text: 'Memento ""'},
+                   text: 'Memento "Küüditatud 1940"'},
   'R62':         { href: 'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_6.pdf',
-                   text: 'Memento ""'},
+                   text: 'Memento "Küüditatud juunis & juulis 1941"'},
   'R63':         { href: 'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_6.pdf',
-                   text: 'Memento ""'},
+                   text: 'Memento "Sakslastena küüditatud 15.08.1945"'},
   'R64':         { href: 'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_6.pdf',
-                   text: 'Memento ""'},
+                   text: 'Memento "Vahepealsetel aegadel küüditatud 1945-1953"'},
   'R65':         { href: 'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_5.pdf',
-                   text: 'Memento ""'},
+                   text: 'Memento "Küüditatud usutunnistuse pärast"'},
   'R81':         { href: 'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_81.pdf',
-                   text: 'Memento ""'},
+                   text: 'Memento "Lisanimestik 1940-1990 raamatute R1-R7 täiendamiseks"'},
   'R82':         { href: 'http://www.memento.ee/memento_materjalid/memento_raamatud/memento_r_82.pdf',
-                   text: 'Memento ""'},
+                   text: 'Memento "Lisanimestik 1940-1990. Raamatute R1-R7 täiendamiseks."'},
   'TS':          { href: '',
-                   text: 'Tagasiside e-memoriaalilt'},
-  'mnm':         { href: 'www.arborit.eu/memento/kommunismiohvrite-memoriaal/Kommunismiohvrite%20memoriaali%20nime%20kirjed%20%2820-03-2017%29%20-%20Stat-Nimek.pdf',
-                   text: 'Memento "KOMMUNISMIOHVRITE MEMORIAALI NIME KIRJETE STATISTIKA' },
-  'okumus':      { href: 'https://okupatsioon.entu.ee',
-                   text: 'Okupatsioonide Muuseumi avalik vaade' },
-  'metsavennad': { href: '',
+                   text: 'Tagasiside e-memoriaalilt. 2017.a.'},
+  'MM':          { href: '',
                    text: 'Martin Andreller "Metsavendade nimekiri"' },
+  'EVO':         { href: '',
+                   text: 'Ohvitseride nimestik' },
+  'RK':          { href: '',
+                   text: 'EMI "Represseeritute kartoteek"' },
 }
 
 const convertLinks = function convertLinks(text) {
@@ -79,7 +79,7 @@ csv
       let allikas = spl.shift().split('-')[0]
       // console.log(allikas, allikalingid[allikas]);
       let txt = convertLinks(spl.join(':'))
-      return {'allikas':allikalingid[allikas], 'kirje':kirje}
+      return {'allikas':allikalingid[allikas], 'kirje':txt}
       // return {'allikas':allikalingid[allikas], 'kirje':txt}
     })
     save2db(isik, function(error) {
@@ -159,7 +159,7 @@ var bulk = []
 const save2db = function save2db(isik, callback) {
 
   if (isik !== false) {
-    bulk.push(JSON.stringify({'index':{'_index':INDEX,'_type':'isik','_id':isik.id}}))
+    bulk.push(JSON.stringify({'index':{'_index':INDEX,'_type':'isik','_id':isik.emi_id}}))
     bulk.push(JSON.stringify(isik))
   }
   if (bulk.length/2 >= BULK_SIZE) {
