@@ -19,18 +19,19 @@ SELECT
   k.SeosedCSV  AS seosedcsv,
   k.Nimekiri   AS nimekiri
 FROM
-  MEMENTO m 
+  _r86_2017_12 m 
   LEFT JOIN kirjed k 
     ON 
       m.Seos = k.Isikukood 
-      OR ( k.Eesnimi = m.Eesnimi 
-        AND k.Perenimi = m.Perenimi 
-        AND left(k.Sünd, 4) = left(m.Sünd, 4)
-        AND left(k.Surm, 4) = left(m.Surm, 4)
-      )
+      -- OR ( k.Eesnimi = m.Eesnimi 
+      --   AND k.Perenimi = m.Perenimi 
+      --   AND left(k.Sünd, 4) = left(m.Sünd, 4)
+      --   AND left(k.Surm, 4) = left(m.Surm, 4)
+      -- )
   LEFT JOIN repr_kart rk ON rk.seos = k.isikukood
 WHERE    m.Surm <> ''
-  AND    k.Surm <> ''
+  AND    k.kivi = ''
+  AND    k.mittekivi = ''
 ORDER BY k.REL DESC,
          k.MR DESC,
          k.Kivi DESC,
