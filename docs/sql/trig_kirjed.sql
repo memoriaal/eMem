@@ -2,15 +2,22 @@ DELIMITER ;;
 
 CREATE OR REPLACE TRIGGER kirjed_BU BEFORE UPDATE ON kirjed FOR EACH ROW 
 
-BEGIN
+proc_label:BEGIN
 
     DECLARE msg VARCHAR(200);
+
+    SET NEW.user = user();
 
     -- Isikukoodi muutmine pole lubatud
     IF NEW.isikukood != OLD.isikukood
     THEN
-        SELECT 'Isikukoodi muutmine ei tule kõne alla!' INTO msg;
-        SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
+        IF NEW.user = 'michelek@localhost'
+        THEN
+            LEAVE proc_label;
+        ELSE
+            SELECT 'Isikukoodi muutmine ei tule kõne alla!' INTO msg;
+            SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
+        END IF;
     END IF;
 
     IF !ISNULL(NEW.seos)
@@ -96,7 +103,6 @@ BEGIN
         END IF;
     END IF;
 
-    SET NEW.user = user();
 END;;
 
 
@@ -154,6 +160,29 @@ CREATE OR REPLACE TRIGGER kirjed_BI BEFORE INSERT ON kirjed FOR EACH ROW
 BEGIN
 
   SET NEW.user = user();
+  
+  IF UPPER(IFNULL(NEW.isikukood, '')) IN ('', 'TEST')
+  THEN
+      SELECT right(max(isikukood), 5)+1 INTO @ik FROM kirjed WHERE allikas = 'TEST';
+      SET @ik = IFNULL(@ik, 0);
+      SET @ik = LPAD(@ik, 5, 0);
+      SET NEW.isikukood = concat('TEST-', @ik);
+      SET NEW.allikas = 'TEST';
+  ELSEIF UPPER(NEW.isikukood) = 'EMI'
+  THEN
+      SELECT right(max(isikukood), 6)+1 INTO @ik FROM kirjed WHERE allikas = 'EMI';
+      SET @ik = IFNULL(@ik, 0);
+      SET @ik = LPAD(@ik, 6, 0);
+      SET NEW.isikukood = concat('EMI-', @ik);
+      SET NEW.allikas = 'EMI';
+  ELSEIF UPPER(NEW.isikukood) = 'TS'
+  THEN
+      SELECT right(max(isikukood), 7)+1 INTO @ik FROM kirjed WHERE allikas = 'TS';
+      SET @ik = IFNULL(@ik, 0);
+      SET @ik = LPAD(@ik, 7, 0);
+      SET NEW.isikukood = concat('TS-', @ik);
+      SET NEW.allikas = 'TS';
+  END IF;
 
 END;;
 
