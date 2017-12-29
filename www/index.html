@@ -195,7 +195,7 @@
                       <div class="isikukaart {{doc._source.kasHukkunud === '1' ? 'must' : 'valge'}}">
                         <p>p: {{doc._source.Perenimi}}</p>
                         <p>e: {{doc._source.Eesnimi}}</p>
-                        <p>i: {{doc._source['Isanimi'] === 'NULL' ? '???' : doc._source['Isanimi']}}</p>
+                        <!-- <p>i: {{doc._source['Isanimi'] === 'NULL' ? '???' : doc._source['Isanimi']}}</p> -->
                         <p>{{doc._source['Sünd'] === '' ? '???' : doc._source['Sünd']}}
                          - {{doc._source['Surm'] === '' ? '???' : doc._source['Surm']}}</p>
                         <p>id: {{doc._source.emi_id}}</p>
