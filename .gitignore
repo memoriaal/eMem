@@ -39,3 +39,4 @@ jspm_packages
 *.csv
 
 node_modules
+secret.txt
