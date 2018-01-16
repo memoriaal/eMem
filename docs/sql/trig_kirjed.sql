@@ -66,7 +66,7 @@ proc_label:BEGIN
     END IF;
 
     -- Kivi ja Mittekivi välistavad teineteist
-    IF NEW.kivi != OLD.kivi AND NEW.kivi = '!'
+    IF NEW.kivi = '!' AND OLD.kivi = ''
     THEN
         SET NEW.mittekivi = '';
         SET NEW.rel = '!';
@@ -136,22 +136,30 @@ begin
      OR OLD.user <> NEW.user
       THEN
         INSERT INTO kirjed_audit_log 
-           (isikukood, Attn, Kirje
-           , Huk, REL, MR, Kivi, Mittekivi
-           , Perenimi, Eesnimi, Isanimi, Sünd, Surm
-           , Märksõna, Kommentaar
-           , Rahvus, Perekood, Allikas, sugu, Nimekiri, EkslikKanne
-           , created, updated, user)
-        VALUES
-          (NEW.isikukood, NEW.Attn, NEW.Kirje
-          , NEW.Huk, NEW.REL, NEW.MR, NEW.Kivi, NEW.Mittekivi
-          , NEW.Perenimi, NEW.Eesnimi, NEW.Isanimi, NEW.Sünd, NEW.Surm
-          , NEW.Märksõna, NEW.Kommentaar
-          , NEW.Rahvus, NEW.Perekood, NEW.Allikas, NEW.sugu, NEW.Nimekiri, NEW.EkslikKanne
-          , NEW.created, NEW.updated, NEW.user);
+             (   isikukood, emi_id, Kirje
+               , Kivi, Mittekivi, SaatusTeadmata, Puudulik
+               , Kommentaar, Attn, REL, MR
+               , Perenimi, Eesnimi, Isanimi, Sünd, Surm
+               , Märksõna, Rahvus, Perekood, Allikas, Sugu
+               , Nimekiri, EkslikKanne, Huk
+               , created, updated, user)
+          VALUES
+            (   NEW.isikukood, NEW.emi_id, NEW.Kirje
+              , NEW.Kivi, NEW.Mittekivi, NEW.SaatusTeadmata, NEW.Puudulik
+              , NEW.Kommentaar, NEW.Attn, NEW.REL, NEW.MR
+              , NEW.Perenimi, NEW.Eesnimi, NEW.Isanimi, NEW.Sünd, NEW.Surm
+              , NEW.Märksõna, NEW.Rahvus, NEW.Perekood, NEW.Allikas, NEW.Sugu
+              , NEW.Nimekiri, NEW.EkslikKanne, NEW.Huk
+              , NEW.created, NEW.updated, NEW.user);
 
         INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-        VALUES (NEW.isikukood, NULL, 'Check EMI record', '', 'kirjed_AU');
+        VALUES (NEW.isikukood, NULL, 'Check EMI record', OLD.emi_id, 'kirjed_AU');
+  END IF;
+  
+  IF OLD.emi_id <> NEW.emi_id
+    THEN
+      INSERT IGNORE INTO z_queue (emi_id, isikukood1, isikukood2, task, params, user)
+      VALUES (OLD.emi_id, NULL, NULL, 'Create EMI reference', NEW.emi_id, 'kirjed_AU');
   END IF;
 end;;
 
@@ -190,20 +198,22 @@ END;;
 CREATE OR REPLACE TRIGGER kirjed_AI AFTER INSERT ON kirjed FOR EACH ROW 
 BEGIN
 
-INSERT INTO kirjed_audit_log 
-     (isikukood, Attn, Kirje
-     , Huk, REL, MR, Kivi, Mittekivi
-     , Perenimi, Eesnimi, Isanimi, Sünd, Surm
-     , Märksõna, Kommentaar
-     , Rahvus, Perekood, Allikas, sugu, Nimekiri, EkslikKanne
-     , created, updated, user)
-  VALUES
-    (NEW.isikukood, NEW.Attn, NEW.Kirje
-    , NEW.Huk, NEW.REL, NEW.MR, NEW.Kivi, NEW.Mittekivi
-    , NEW.Perenimi, NEW.Eesnimi, NEW.Isanimi, NEW.Sünd, NEW.Surm
-    , NEW.Märksõna, NEW.Kommentaar
-    , NEW.Rahvus, NEW.Perekood, NEW.Allikas, NEW.sugu, NEW.Nimekiri, NEW.EkslikKanne
-    , NEW.created, NEW.updated, NEW.user);
+    INSERT INTO kirjed_audit_log 
+         (   isikukood, emi_id, Kirje
+           , Kivi, Mittekivi, SaatusTeadmata, Puudulik
+           , Kommentaar, Attn, REL, MR
+           , Perenimi, Eesnimi, Isanimi, Sünd, Surm
+           , Märksõna, Rahvus, Perekood, Allikas, Sugu
+           , Nimekiri, EkslikKanne, Huk
+           , created, updated, user)
+      VALUES
+        (   NEW.isikukood, NEW.emi_id, NEW.Kirje
+          , NEW.Kivi, NEW.Mittekivi, NEW.SaatusTeadmata, NEW.Puudulik
+          , NEW.Kommentaar, NEW.Attn, NEW.REL, NEW.MR
+          , NEW.Perenimi, NEW.Eesnimi, NEW.Isanimi, NEW.Sünd, NEW.Surm
+          , NEW.Märksõna, NEW.Rahvus, NEW.Perekood, NEW.Allikas, NEW.Sugu
+          , NEW.Nimekiri, NEW.EkslikKanne, NEW.Huk
+          , NEW.created, NEW.updated, NEW.user);
 
 END;;
 

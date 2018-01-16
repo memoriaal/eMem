@@ -46,7 +46,10 @@ BEGIN
             CALL remove_connection(_ik1, _ik2);
         END IF;
         IF _task = 'Check EMI record' THEN
-            CALL EMI_check_record(_ik1);
+            CALL EMI_check_record(_ik1, _params);
+        END IF;
+        IF _task = 'Create EMI reference' THEN
+            CALL EMI_create_ref_for(_emi_id, _params);
         END IF;
         IF _task = 'Consolidate EMI records' THEN
         call EMI_consolidate_records(_emi_id);
