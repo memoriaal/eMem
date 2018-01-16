@@ -76,10 +76,17 @@ csv
     // console.log('go save', isik);
     isik.allikad = isik.Kirjed.split(';\n').map(function(kirje) {
       let spl = kirje.split(':')
-      let allikas = spl.shift().split('-')[0]
+      let isikukood = spl.shift()
+      let allikas = isikukood.split('-')[0]
       // console.log(allikas, allikalingid[allikas]);
       let txt = convertLinks(spl.join(':'))
-      return {'allikas':allikalingid[allikas], 'kirje':txt}
+      let _kirje = {
+        'isikukood':  isikukood,
+        'allikas':    allikalingid[allikas], 
+        'kirje':      txt
+      }
+      return _kirje
+      // return {'allikas':'[' + isikukood + '] ' + allikalingid[allikas], 'kirje':txt}
       // return {'allikas':allikalingid[allikas], 'kirje':txt}
     })
     save2db(isik, function(error) {
