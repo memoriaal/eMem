@@ -1,5 +1,5 @@
 create or replace view v_prioriteedid as
-select kood, prioriteet 
+select kood, prioriteetPerenimi, prioriteetEesnimi, prioriteetIsanimi, prioriteetSünd, prioriteetSurm, prioriteetKirje
 from allikad 
 group by kood 
-order by prioriteet desc;
+order by prioriteetPerenimi, prioriteetEesnimi, prioriteetIsanimi, prioriteetSünd, prioriteetSurm, prioriteetKirje;
