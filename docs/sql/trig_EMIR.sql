@@ -27,6 +27,17 @@ BEGIN
 END;;
 
 
+CREATE OR REPLACE TRIGGER EMIR_BU BEFORE UPDATE ON EMIR FOR EACH ROW
+BEGIN
+    SET NEW.perenimi = IFNULL(NEW.perenimi, '');
+    SET NEW.eesnimi = IFNULL(NEW.eesnimi, '');
+    SET NEW.isanimi = IFNULL(NEW.isanimi, '');
+    SET NEW.sünd = IFNULL(NEW.sünd, '');
+    SET NEW.surm = IFNULL(NEW.surm, '');
+    SET NEW.kommentaarid = IFNULL(NEW.kommentaarid, '');
+END;;
+
+
 CREATE OR REPLACE TRIGGER EMIR_BD BEFORE DELETE ON EMIR FOR EACH ROW
 BEGIN
 
