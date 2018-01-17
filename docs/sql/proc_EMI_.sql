@@ -54,27 +54,27 @@ BEGIN
           ORDER BY a.prioriteetPerenimi DESC SEPARATOR ';')
           AS perenimi
       , group_concat( DISTINCT
-          if(k.eesnimi = ''    OR a.prioriteetEesnimi = 0,  NULL, REPLACE(UPPER(k.eesnimi),'ALEKSANDR','ALEKSANDER')) 
+          if(k.eesnimi = ''    OR a.prioriteetEesnimi  = 0,  NULL, REPLACE(UPPER(k.eesnimi),'ALEKSANDR','ALEKSANDER')) 
           ORDER BY a.prioriteetEesnimi  DESC SEPARATOR ';')
           AS eesnimi
       , group_concat( DISTINCT
-          if(k.isanimi = ''    OR a.prioriteetIsanimi = 0,  NULL, UPPER(k.isanimi))
+          if(k.isanimi = ''    OR a.prioriteetIsanimi  = 0,  NULL, UPPER(k.isanimi))
           ORDER BY a.prioriteetIsanimi  DESC SEPARATOR ';')
           AS isanimi
       , group_concat( DISTINCT
-          if(k.sünd = ''       OR a.prioriteetSünd = 0,     NULL, LEFT(k.sünd,4)) 
+          if(k.sünd = ''       OR a.prioriteetSünd     = 0,  NULL, LEFT(k.sünd,4)) 
           ORDER BY a.prioriteetSünd     DESC SEPARATOR ';')
           AS sünd
       , group_concat( DISTINCT
-          if(k.surm = ''       OR a.prioriteetSurm = 0,     NULL, LEFT(k.surm,4)) 
+          if(k.surm = ''       OR a.prioriteetSurm     = 0,  NULL, LEFT(k.surm,4)) 
           ORDER BY a.prioriteetSurm     DESC SEPARATOR ';')
           AS surm
       , group_concat( DISTINCT
-          if(k.kommentaar = '' OR a.prioriteetKirje = 0,    NULL, k.kommentaar) 
+          if(k.kommentaar = '' OR a.prioriteetKirje    = 0,  NULL, k.kommentaar) 
           ORDER BY a.prioriteetKirje    DESC SEPARATOR ';\n')
           AS kommentaarid
       , group_concat(
-          if(                     a.prioriteetKirje = 0,    NULL, concat(k.isikukood, ': ', k.kirje))
+          if(                     a.prioriteetKirje    = 0,  NULL, concat(k.isikukood, ': ', k.kirje))
           ORDER BY a.prioriteetKirje    DESC SEPARATOR ';\n')
           AS kirjed
       from kirjed k
