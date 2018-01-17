@@ -66,7 +66,7 @@ BEGIN
           ORDER BY a.prioriteetSünd     DESC SEPARATOR ';')
           AS sünd
       , group_concat( DISTINCT
-          if(k.surm = ''       OR a.prioriteetSurm,         NULL, LEFT(k.surm,4)) 
+          if(k.surm = ''       OR a.prioriteetSurm = 0,     NULL, LEFT(k.surm,4)) 
           ORDER BY a.prioriteetSurm     DESC SEPARATOR ';')
           AS surm
       , group_concat( DISTINCT
