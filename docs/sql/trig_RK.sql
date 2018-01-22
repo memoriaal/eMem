@@ -1,5 +1,16 @@
 DELIMITER ;;
 
+CREATE OR REPLACE TRIGGER repr_kart_BU BEFORE UPDATE ON repr_kart FOR EACH ROW
+BEGIN
+  IF NEW.seos = '+' THEN
+    INSERT IGNORE INTO z_queue (isikukood1, task, user)
+    VALUES (NEW.isikukood, 'Import from RK', 'kirjed_BU');
+    SET NEW.seos = '';
+  END IF;
+END;;
+
+
+
 CREATE OR REPLACE TRIGGER repr_kart_AU AFTER UPDATE ON repr_kart FOR EACH ROW
 BEGIN
 
