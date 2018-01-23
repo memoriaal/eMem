@@ -7,19 +7,20 @@ BEGIN
     DECLARE _ik2 CHAR(10);
     DECLARE _task VARCHAR(30);
     DECLARE _params VARCHAR(200);
+    DECLARE _user VARCHAR(50);
     DECLARE _created TIMESTAMP;
     DECLARE finished INTEGER DEFAULT 0;
     DECLARE msg VARCHAR(200);
 
     DECLARE cur1 CURSOR FOR
-        SELECT id, emi_id, isikukood1, isikukood2, task, params, created
+        SELECT id, emi_id, isikukood1, isikukood2, task, params, created, user
         FROM z_queue WHERE rdy = 0
         LIMIT 30;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
 
     OPEN cur1;
     read_loop: LOOP
-        FETCH cur1 INTO _id, _emi_id, _ik1, _ik2, _task, _params, _created;
+        FETCH cur1 INTO _id, _emi_id, _ik1, _ik2, _task, _params, _created, _user;
         IF finished = 1 THEN
             LEAVE read_loop;
         END IF;
@@ -59,6 +60,9 @@ BEGIN
         END IF;
         IF _task = 'Import from RK' THEN
             CALL import_from_rk(_ik1);
+        END IF;
+        IF _task = 'Import from pereregister' THEN
+            CALL import_from_pereregister(_ik1, _ik2, _user);
         END IF;
         IF _task = 'Rollback prior to' THEN
             CALL rollback_prior_to(_ik1, _params);
