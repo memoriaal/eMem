@@ -40,6 +40,9 @@ CREATE or REPLACE PROCEDURE `EMI_create_ref_for`(
 BEGIN
     INSERT INTO EMIR SET id = _old_emi_id, ref = _new_emi_id
     ON DUPLICATE KEY UPDATE ref = _new_emi_id;
+    
+    SELECT id_set INTO @oldids FROM EMIR WHERE id = _old_emi_id;
+    UPDATE EMIR SET id_set = concat_ws(',', @oldids, id);
 END;;
 
 
@@ -93,6 +96,7 @@ BEGIN
     WHERE e.id = _emi_id;
 END;;
 
+
 CREATE or REPLACE PROCEDURE `EMI_check_record`(IN _ik CHAR(10), IN _old_emi_id VARCHAR(200))
 BEGIN
     SELECT emi_id INTO @emi_id FROM kirjed WHERE isikukood = _ik;
@@ -107,4 +111,34 @@ BEGIN
     VALUES (@emi_id, 'Consolidate EMI records', 'EMI_check_record');
     -- call EMI_consolidate_records(@emi_id);
 END;;
+
+
+CREATE or REPLACE PROCEDURE `EMI_scheduled_propagate_referenced`()
+BEGIN
+  UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
+     SET e2.EmiPerenimi = e1.EmiPerenimi
+   WHERE e2.EmiPerenimi IS NULL 
+     AND e1.EmiPerenimi IS NOT NULL;
+  UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
+     SET e2.EmiEesnimi = e1.EmiEesnimi
+   WHERE e2.EmiEesnimi IS NULL 
+     AND e1.EmiEesnimi IS NOT NULL;
+  UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
+     SET e2.EmiIsanimi = e1.EmiIsanimi
+   WHERE e2.EmiIsanimi IS NULL 
+     AND e1.EmiIsanimi IS NOT NULL;
+  UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
+     SET e2.EmiSünd = e1.EmiSünd
+   WHERE e2.EmiSünd IS NULL 
+     AND e1.EmiSünd IS NOT NULL;
+  UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
+     SET e2.EmiSurm = e1.EmiSurm
+   WHERE e2.EmiSurm IS NULL 
+     AND e1.EmiSurm IS NOT NULL;
+  UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
+     SET e2.välisviide = e1.välisviide
+   WHERE e2.välisviide = '' 
+     AND e1.välisviide != '';
+END;;
+
 DELIMITER ;
