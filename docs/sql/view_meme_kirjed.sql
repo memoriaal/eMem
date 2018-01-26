@@ -1,40 +1,9 @@
 CREATE OR REPLACE VIEW meme_kirjed AS
-SELECT
-  m.id         AS id,
-  m.Kommentaar AS meme_kommentaar,
-  m.Seos       AS seos,
-  m.Perenimi   AS perenimi,
-  m.Eesnimi    AS eesnimi,
-  m.Sünd       AS sünd,
-  m.Surm       AS surm,
-  m.Nimestik   AS nimestik,
-  rk.otmetki   AS otmetki,
-  k.Isikukood  AS isikukood,
-  k.Kivi       AS kivi,
-  k.Mittekivi  AS mittekivi,
-  k.REL        AS rel,
-  k.MR         AS mr,
-  k.Kirje      AS kirje,
-  k.kommentaar AS kirje_kommentaar,
-  k.SeosedCSV  AS seosedcsv,
-  k.Nimekiri   AS nimekiri
-FROM
-  _r86_2017_12 m 
-  LEFT JOIN kirjed k 
-    ON 
-      m.Seos = k.Isikukood 
-      -- OR ( k.Eesnimi = m.Eesnimi 
-      --   AND k.Perenimi = m.Perenimi 
-      --   AND left(k.Sünd, 4) = left(m.Sünd, 4)
-      --   AND left(k.Surm, 4) = left(m.Surm, 4)
-      -- )
-  LEFT JOIN repr_kart rk ON rk.seos = k.isikukood
-WHERE    m.Surm <> ''
-  AND    k.kivi = ''
-  AND    k.mittekivi = ''
-ORDER BY k.REL DESC,
-         k.MR DESC,
-         k.Kivi DESC,
-         k.Mittekivi DESC,
-         k.Surm DESC
+select k.emi_id, k.kirje as Memento, k.kivi, k.mittekivi, k.rel, k.mr, e.kirjed as EMI_kirjed, ifnull(e.EmiSurm,e.Surm) as EMI_surm
+from kirjed k, EMIR e
+where k.allikas = 'r86'
+and k.emi_id = e.id
+and k.nimekiri not in ('R9','R10','R11')
+and k.kivi = ''
+and k.mittekivi = ''
 ;
