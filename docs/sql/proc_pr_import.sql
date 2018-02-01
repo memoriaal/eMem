@@ -56,13 +56,21 @@ BEGIN
       k.perenimi = pr.isik_perenimi,
       k.eesnimi = pr.isik_eesnimi,
       k.isanimi = pr.isa_eesnimi,
-      k.sünd = concat_ws('-', pr.isik_synniaasta, pr.isik_synnikuu, pr.isik_synnipaev),
-      k.surm = concat_ws('-', pr.isik_surmaaasta, pr.isik_surmakuu, pr.isik_surmapaev)
+      k.sünd = ifnull(concat_ws('-', 
+        if(pr.isik_synniaasta = '', NULL, pr.isik_synniaasta), 
+        if(pr.isik_synnikuu = '', NULL, pr.isik_synnikuu), 
+        if(pr.isik_synnipaev = '', NULL, pr.isik_synnipaev)
+      ), '')
+      k.surm = ifnull(concat_ws('-', 
+        if(pr.isik_surmaaasta = '', NULL, pr.isik_surmaaasta), 
+        if(pr.isik_surmakuu = '', NULL, pr.isik_surmakuu), 
+        if(pr.isik_surmapaev = '', NULL, pr.isik_surmapaev)
+      ), '')
     WHERE pr.isikukood = _ik1;
     
     IF _ik2 IS NOT NULL THEN
       INSERT INTO z_queue (isikukood1, isikukood2, task, params, user)
-      VALUES (_ik1, _ik2, 'create connections', '', _user);
+      VALUES (_ik2, _ik1, 'create connections', '', _user);
     END IF;
 
 END;;

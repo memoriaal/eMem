@@ -64,6 +64,9 @@ BEGIN
         IF _task = 'Import from pereregister' THEN
             CALL import_from_pereregister(_ik1, _ik2, _user);
         END IF;
+        IF _task = 'Import from hävituspataljon' THEN
+            CALL import_from_hävituspataljon(_ik1, _ik2, _user);
+        END IF;
         IF _task = 'Rollback prior to' THEN
             CALL rollback_prior_to(_ik1, _params);
         END IF;
