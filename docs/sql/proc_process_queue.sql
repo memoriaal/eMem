@@ -70,6 +70,9 @@ BEGIN
         IF _task = 'Rollback prior to' THEN
             CALL rollback_prior_to(_ik1, _params);
         END IF;
+        IF _task = 'add label' THEN
+            CALL add_label(_ik1, _params, _user);
+        END IF;
 
         UPDATE z_queue SET rdy = 1 WHERE id = _id;
 

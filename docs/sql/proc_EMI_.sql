@@ -84,6 +84,8 @@ BEGIN
       left join v_prioriteedid a on a.kood = k.allikas
       where k.emi_id = _emi_id
       and k.EkslikKanne = ''
+      and k.Puudulik = ''
+      and k.Peatatud = ''
       group by k.emi_id
     ) krj ON krj.emi_id = e.id
     SET e.perenimi = krj.perenimi
