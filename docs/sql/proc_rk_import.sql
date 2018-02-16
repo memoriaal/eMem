@@ -25,11 +25,15 @@ BEGIN
       k.isanimi = rk.o,
       k.sünd = rk.sa,
       k.surm = rk.surm,
-      k.kommentaar = concat(rk.märkused1, '; ', rk.märkused2)
+      k.kommentaar = concat(rk.märkused1, '; ', rk.märkused2),
+      k.allikas = 'RK'
     WHERE rk.isikukood = _ik;
     
-    INSERT INTO z_queue (isikukood1, isikukood2, task, params, user)
-    VALUES (_ik, _ik2, 'create connections', '', 'import_from_rk');
+    IF _ik2 IS NOT NULL THEN
+      INSERT INTO z_queue (isikukood1, isikukood2, task, params, user)
+      VALUES (_ik, _ik2, 'create connections', '', 'import_from_rk');
+    END IF;
+    
 
 END;;
 DELIMITER ;
