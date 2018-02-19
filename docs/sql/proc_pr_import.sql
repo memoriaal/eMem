@@ -60,7 +60,7 @@ BEGIN
         if(pr.isik_synniaasta = '', NULL, pr.isik_synniaasta), 
         if(pr.isik_synnikuu = '', NULL, pr.isik_synnikuu), 
         if(pr.isik_synnipaev = '', NULL, pr.isik_synnipaev)
-      ), '')
+      ), ''),
       k.surm = ifnull(concat_ws('-', 
         if(pr.isik_surmaaasta = '', NULL, pr.isik_surmaaasta), 
         if(pr.isik_surmakuu = '', NULL, pr.isik_surmakuu), 
