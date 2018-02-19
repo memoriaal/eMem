@@ -27,7 +27,7 @@ proc_label:BEGIN
             SET NEW.seoseliik = '';
             CALL validate_checklist(NEW.isikukood, NEW.seos);
             INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-            VALUES (NEW.isikukood, NEW.seos, 'create connections', NEW.seoseliik, NEW.user);
+            VALUES (NEW.isikukood, NEW.seos, 'Create connections', NEW.seoseliik, NEW.user);
 
         ELSEIF NEW.seoseliik = '-'
         THEN
@@ -38,17 +38,17 @@ proc_label:BEGIN
         THEN
             SET NEW.seoseliik = '';
             INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-            VALUES (NEW.isikukood, NEW.seos, 'create connections', 'erinevad isikud', NEW.user);
+            VALUES (NEW.isikukood, NEW.seos, 'Create connections', 'erinevad isikud', NEW.user);
 
         ELSEIF NEW.seoseliik = '?'
         THEN
             SET NEW.seoseliik = '';
             INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-            VALUES (NEW.isikukood, NEW.seos, 'create connections', 'kahtlusseos', NEW.user);
+            VALUES (NEW.isikukood, NEW.seos, 'Create connections', 'kahtlusseos', NEW.user);
 
         ELSE
             INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-            VALUES (NEW.isikukood, NEW.seos, 'create connections', NEW.seoseliik, NEW.user);
+            VALUES (NEW.isikukood, NEW.seos, 'Create connections', NEW.seoseliik, NEW.user);
         END IF;
 
         SET NEW.seos = NULL;
@@ -104,15 +104,15 @@ proc_label:BEGIN
     THEN
         SELECT count(1) into @cnt FROM seosed WHERE isikukood1 = NEW.isikukood AND seos = 'sama isik';
         IF @cnt > 0 THEN
-            INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-            VALUES (NEW.isikukood, null, 'propagate checklists', '', NEW.user);
+            INSERT IGNORE INTO z_queue (isikukood1, task, user)
+            VALUES (NEW.isikukood, 'Propagate checklists', NEW.user);
         END IF;
     END IF;
 
     IF !ISNULL(NEW.silt)
     THEN
-        INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-        VALUES (NEW.isikukood, NULL, 'add label', NEW.silt, NEW.user);
+        INSERT IGNORE INTO z_queue (isikukood1, task, params, user)
+        VALUES (NEW.isikukood, 'Add label', NEW.silt, NEW.user);
         SET NEW.silt = NULL;
     END if;
 
@@ -165,14 +165,14 @@ begin
               , NEW.Nimekiri, NEW.EkslikKanne, NEW.Huk
               , NEW.created, NEW.updated, NEW.user);
 
-        INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-        VALUES (NEW.isikukood, NULL, 'Check EMI record', OLD.emi_id, NEW.user);
+        INSERT IGNORE INTO z_queue (isikukood1, task, params, user)
+        VALUES (NEW.isikukood, 'Check EMI record', OLD.emi_id, NEW.user);
   END IF;
   
   IF OLD.emi_id <> NEW.emi_id
     THEN
-      INSERT IGNORE INTO z_queue (emi_id, isikukood1, isikukood2, task, params, user)
-      VALUES (OLD.emi_id, NULL, NULL, 'Create EMI reference', NEW.emi_id, NEW.user);
+      INSERT IGNORE INTO z_queue (emi_id, task, params, user)
+      VALUES (OLD.emi_id, 'Create EMI reference', NEW.emi_id, NEW.user);
   END IF;
 end;;
 

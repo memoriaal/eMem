@@ -61,8 +61,8 @@ proc_label:BEGIN
         END IF;
 
         IF seoseliik = 'sama isik' THEN
-            INSERT INTO z_queue (isikukood1, isikukood2, task, params, user)
-            VALUES (_ik1, _ik2, 'synchronize checklist', '', 'create_connections');
+            INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, user)
+            VALUES (_ik1, _ik2, 'Synchronize checklist', 'create_connections');
         END IF;
 
         INSERT IGNORE INTO seosed
@@ -70,10 +70,10 @@ proc_label:BEGIN
         INSERT IGNORE INTO seosed
             SET isikukood1 = _ik2, seos = @vastasseos, vastasseos = seoseliik, isikukood2 = _ik1;
 
-        INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-        VALUES (_ik1, null, 'update seosedCSV', '', 'create_connections');
-        INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-        VALUES (_ik2, null, 'update seosedCSV', '', 'create_connections');
+        INSERT IGNORE INTO z_queue (isikukood1, task, user)
+        VALUES (_ik1, 'Update seosedCSV', 'create_connections');
+        INSERT IGNORE INTO z_queue (isikukood1, task, user)
+        VALUES (_ik2, 'Update seosedCSV', 'create_connections');
 
     END LOOP;
     CLOSE cur1;

@@ -20,7 +20,7 @@ BEGIN
     SELECT isikukood INTO @ik1 FROM kirjed WHERE emi_id = _emi_id1 LIMIT 1;
     SELECT isikukood INTO @ik2 FROM kirjed WHERE emi_id = _emi_id2 LIMIT 1;
     INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-    VALUES (@ik1, @ik2, 'create connections', NEW.seoseliik, 'EMI merge');
+    VALUES (@ik1, @ik2, 'Create connections', NEW.seoseliik, 'EMI merge');
 END;;
 
 
@@ -42,7 +42,8 @@ BEGIN
     ON DUPLICATE KEY UPDATE ref = _new_emi_id;
     
     SELECT id_set INTO @oldids FROM EMIR WHERE id = _old_emi_id;
-    UPDATE EMIR SET id_set = concat_ws(',', @oldids, id);
+    UPDATE EMIR e SET e.id_set = concat_ws(',', @oldids, e.id_set)
+    WHERE e.id = _new_emi_id;
 END;;
 
 

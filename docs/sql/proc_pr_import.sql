@@ -69,8 +69,8 @@ BEGIN
     WHERE pr.isikukood = _ik1;
     
     IF _ik2 IS NOT NULL THEN
-      INSERT INTO z_queue (isikukood1, isikukood2, task, params, user)
-      VALUES (_ik2, _ik1, 'create connections', '', _user);
+      INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, user)
+      VALUES (_ik2, _ik1, 'Create connections', _user);
     END IF;
 
 END;;

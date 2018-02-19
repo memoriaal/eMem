@@ -20,6 +20,7 @@ BEGIN
 
     OPEN cur1;
     read_loop: LOOP
+        -- LEAVE read_loop;
         FETCH cur1 INTO _id, _emi_id, _ik1, _ik2, _task, _params, _created, _user;
         IF finished = 1 THEN
             LEAVE read_loop;
@@ -28,22 +29,22 @@ BEGIN
         IF _params LIKE '%validate_checklist%' THEN
             CALL validate_checklist(_ik1, _ik2);
         END IF;
-        IF _task = 'propagate checklist' THEN
+        IF _task = 'Propagate checklist' THEN
             CALL propagate_checklist(_ik1, _ik2);
         END IF;
-        IF _task = 'synchronize checklist' THEN
+        IF _task = 'Synchronize checklist' THEN
             CALL synchronize_checklist(_ik1, _ik2);
         END IF;
-        IF _task = 'propagate checklists' THEN
+        IF _task = 'Propagate checklists' THEN
             CALL propagate_checklists(_ik1);
         END IF;
-        IF _task = 'process connection' THEN
+        IF _task = 'Process connection' THEN
             CALL process_connection(_params);
         END IF;
-        IF _task = 'create connections' THEN
+        IF _task = 'Create connections' THEN
             CALL create_connections(_ik1, _params, _ik2);
         END IF;
-        IF _task = 'remove connection' THEN
+        IF _task = 'Remove connection' THEN
             CALL remove_connection(_ik1, _ik2);
         END IF;
         IF _task = 'Check EMI record' THEN
@@ -55,7 +56,7 @@ BEGIN
         IF _task = 'Consolidate EMI records' THEN
         call EMI_consolidate_records(_emi_id);
         END IF;
-        IF _task = 'update seosedCSV' THEN
+        IF _task = 'Update seosedCSV' THEN
             CALL update_seosedCSV(_ik1);
         END IF;
         IF _task = 'Import from RK' THEN
@@ -70,11 +71,19 @@ BEGIN
         IF _task = 'Rollback prior to' THEN
             CALL rollback_prior_to(_ik1, _params);
         END IF;
-        IF _task = 'add label' THEN
+        IF _task = 'Add label' THEN
             CALL add_label(_ik1, _params, _user);
         END IF;
+        IF _task = 'Remove label' THEN
+            CALL remove_label(_ik1, _params, _user);
+        END IF;
 
-        UPDATE z_queue SET rdy = 1 WHERE id = _id;
+        UPDATE z_queue SET rdy = rdy + 1 
+         WHERE ifnull(emi_id, 0) = ifnull(_emi_id, 0)
+           AND ifnull(isikukood1, '') = ifnull(_ik1, '')
+           AND ifnull(isikukood2, '') = ifnull(_ik2, '')
+           AND task = _task
+           AND params = _params;
 
     END LOOP;
     CLOSE cur1;

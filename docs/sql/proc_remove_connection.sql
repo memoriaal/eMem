@@ -27,10 +27,10 @@ proc_label:BEGIN
         DELETE FROM seosed
         WHERE isikukood1 = _ik2 AND isikukood2 = _ik1;
         
-        INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-        VALUES (_ik1, null, 'update seosedCSV', '', 'remove_connection');
-        INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
-        VALUES (_ik2, null, 'update seosedCSV', '', 'remove_connection');
+        INSERT IGNORE INTO z_queue (isikukood1, task, user)
+        VALUES (_ik1, 'Update seosedCSV', 'remove_connection');
+        INSERT IGNORE INTO z_queue (isikukood1, task, user)
+        VALUES (_ik2, 'Update seosedCSV', 'remove_connection');
     END LOOP;
     CLOSE cur1;
     SET finished = 0;
