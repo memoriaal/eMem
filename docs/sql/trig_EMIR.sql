@@ -1,10 +1,15 @@
 DELIMITER ;;
 
 CREATE OR REPLACE TRIGGER EMIR_AU AFTER UPDATE ON EMIR FOR EACH ROW
-BEGIN
+proc_label:BEGIN
 
     DECLARE msg VARCHAR(200);
 
+    IF NEW.id_set != OLD.id_set
+    THEN
+        LEAVE proc_label;
+    END IF;
+    
     -- Isikukoodi muutmine pole lubatud
     IF NEW.id != OLD.id
     THEN
