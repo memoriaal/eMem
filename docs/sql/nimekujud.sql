@@ -10,21 +10,10 @@ CREATE TABLE `x_nimekujud4` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-select distinct emi_id, 'emanimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(emanimi, '-',';'),' ',';'), ';', n.n), ';', -1)
-from kirjed k 
-INNER JOIN
-(select 1 n union all
- select 2   union all select 3 union all
- select 4   union all select 5 union all
- select 6   union all select 7 union all
- select 8   union all select 7 union all
- select 10  union all select 11) n
-where k.emanimi != '' ;
-
-
+TRUNCATE TABLE x_nimekujud4;
 
 insert ignore into x_nimekujud4 (id, tunnus, v)
-select emi_id, 'perenimi',  SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(perenimi,'-',';'),' ',';'), ';', n.n), ';', -1)
+select distinct emi_id, 'perenimi',  SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(perenimi,'-',';'),' ',';'), ';', n.n), ';', -1)
 from kirjed k 
 INNER JOIN
 (select 1 n union all select 2 union all select 3 union all select 4 union all 
@@ -33,7 +22,7 @@ INNER JOIN
 where perenimi != '' ;
 
 insert ignore into x_nimekujud4 (id, tunnus, v)
-select emi_id, 'eesnimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(eesnimi, '-',';'),' ',';'), ';', n.n), ';', -1)
+select distinct emi_id, 'eesnimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(eesnimi, '-',';'),' ',';'), ';', n.n), ';', -1)
 from kirjed k 
 INNER JOIN
 (select 1 n union all select 2 union all select 3 union all select 4 union all 
@@ -42,7 +31,7 @@ INNER JOIN
 where eesnimi != '' ;
 
 insert ignore into x_nimekujud4 (id, tunnus, v)
-select emi_id, 'isanimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(isanimi, '-',';'),' ',';'), ';', n.n), ';', -1)
+select distinct emi_id, 'isanimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(isanimi, '-',';'),' ',';'), ';', n.n), ';', -1)
 from kirjed k 
 INNER JOIN
 (select 1 n union all select 2 union all select 3 union all select 4 union all 
@@ -51,7 +40,7 @@ INNER JOIN
 where isanimi != '' ;
 
 insert ignore into x_nimekujud4 (id, tunnus, v)
-select emi_id, 'emanimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(emanimi, '-',';'),' ',';'), ';', n.n), ';', -1)
+select distinct emi_id, 'emanimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(emanimi, '-',';'),' ',';'), ';', n.n), ';', -1)
 from kirjed k 
 INNER JOIN
 (select 1 n union all select 2 union all select 3 union all select 4 union all 
@@ -60,7 +49,7 @@ INNER JOIN
 where emanimi != '' ;
 
 insert ignore into x_nimekujud4 (id, tunnus, v)
-select emi_id, 'sünd', left(SUBSTRING_INDEX(SUBSTRING_INDEX(                                      sünd, ';', n.n), ';', -1), 4)
+select distinct emi_id, 'sünd', left(SUBSTRING_INDEX(SUBSTRING_INDEX(                                      sünd, ';', n.n), ';', -1), 4)
 from kirjed k 
 INNER JOIN
 (select 1 n union all select 2 union all select 3 union all select 4 union all 
@@ -69,7 +58,7 @@ INNER JOIN
 where sünd != '' ;
 
 insert ignore into x_nimekujud4 (id, tunnus, v)
-select emi_id, 'surm', left(SUBSTRING_INDEX(SUBSTRING_INDEX(                                      surm, ';', n.n), ';', -1), 4)
+select distinct emi_id, 'surm', left(SUBSTRING_INDEX(SUBSTRING_INDEX(                                      surm, ';', n.n), ';', -1), 4)
 from kirjed k 
 INNER JOIN
 (select 1 n union all select 2 union all select 3 union all select 4 union all 
@@ -113,14 +102,38 @@ left join kirjed k1 on k1.emi_id = e1.id
 left join kirjed k2 on k2.emi_id = e2.id
  where k1.eesnimi != ''
    and k1.perenimi != ''
-   and k1.sünd != '' or k1.surm != ''
+   and (k1.sünd != '' or k1.surm != '')
+   and k1.kivi = '' and k2.kivi = ''
 group by id1,id2
 having k1.kivi = '' and k2.kivi = ''
 ;
 -- 2492 duplikaati mittekivide seas
 
-
-
+-- tõstame mittekivi täpsed vasted kokku
+INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
+select k1.isikukood, k2.isikukood, 'Create connections', 'sama isik', 'michelek'
+from (
+  select y1.id as id1, y2.id as id2 from y_nimekujud4 y1
+  left join y_nimekujud4 y2 on y2.id < y1.id and
+  y2.perenimi = y1.perenimi and
+  y2.eesnimi = y1.eesnimi and
+  y2.isanimi = y1.isanimi and
+  y2.emanimi = y1.emanimi and
+  y2.sünd = y1.sünd and
+  y2.surm = y1.surm 
+  where y2.id is not null
+  group by y1.id, y2.id
+) yy
+left join EMIR e1 on e1.id = yy.id1
+left join EMIR e2 on e2.id = yy.id2
+left join kirjed k1 on k1.emi_id = e1.id
+left join kirjed k2 on k2.emi_id = e2.id
+ where k1.eesnimi != ''
+   and k1.perenimi != ''
+   and (k1.sünd != '' or k1.surm != '')
+   and k1.kivi = '' and k2.kivi = ''
+group by id1,id2
+;
 
 
 
