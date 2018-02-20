@@ -78,12 +78,13 @@ BEGIN
             CALL remove_label(_ik1, _params, _user);
         END IF;
 
-        UPDATE z_queue SET rdy = rdy + 1 
-         WHERE ifnull(emi_id, 0) = ifnull(_emi_id, 0)
-           AND ifnull(isikukood1, '') = ifnull(_ik1, '')
-           AND ifnull(isikukood2, '') = ifnull(_ik2, '')
-           AND task = _task
-           AND params = _params;
+        DELETE FROM z_queue WHERE id = _id;
+        -- UPDATE z_queue SET rdy = rdy + 1 
+        --  WHERE ifnull(emi_id, 0) = ifnull(_emi_id, 0)
+        --    AND ifnull(isikukood1, '') = ifnull(_ik1, '')
+        --    AND ifnull(isikukood2, '') = ifnull(_ik2, '')
+        --    AND task = _task
+        --    AND params = _params;
 
     END LOOP;
     CLOSE cur1;
