@@ -18,7 +18,8 @@ from kirjed k
 INNER JOIN
 (select 1 n union all select 2 union all select 3 union all select 4 union all 
    select 5 union all select 6 union all select 7 union all select 8 union all 
-   select 7 union all select 10 union all select 11) n
+   select 9 union all select 10 union all select 11 union all select 12 union all 
+   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
 where perenimi != '' ;
 
 insert ignore into x_nimekujud4 (id, tunnus, v)
@@ -27,7 +28,8 @@ from kirjed k
 INNER JOIN
 (select 1 n union all select 2 union all select 3 union all select 4 union all 
    select 5 union all select 6 union all select 7 union all select 8 union all 
-   select 7 union all select 10 union all select 11) n
+   select 9 union all select 10 union all select 11 union all select 12 union all 
+   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
 where eesnimi != '' ;
 
 insert ignore into x_nimekujud4 (id, tunnus, v)
@@ -36,7 +38,8 @@ from kirjed k
 INNER JOIN
 (select 1 n union all select 2 union all select 3 union all select 4 union all 
    select 5 union all select 6 union all select 7 union all select 8 union all 
-   select 7 union all select 10 union all select 11) n
+   select 9 union all select 10 union all select 11 union all select 12 union all 
+   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
 where isanimi != '' ;
 
 insert ignore into x_nimekujud4 (id, tunnus, v)
@@ -45,7 +48,8 @@ from kirjed k
 INNER JOIN
 (select 1 n union all select 2 union all select 3 union all select 4 union all 
    select 5 union all select 6 union all select 7 union all select 8 union all 
-   select 7 union all select 10 union all select 11) n
+   select 9 union all select 10 union all select 11 union all select 12 union all 
+   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
 where emanimi != '' ;
 
 insert ignore into x_nimekujud4 (id, tunnus, v)
@@ -54,7 +58,8 @@ from kirjed k
 INNER JOIN
 (select 1 n union all select 2 union all select 3 union all select 4 union all 
    select 5 union all select 6 union all select 7 union all select 8 union all 
-   select 7 union all select 10 union all select 11) n
+   select 9 union all select 10 union all select 11 union all select 12 union all 
+   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
 where sünd != '' ;
 
 insert ignore into x_nimekujud4 (id, tunnus, v)
@@ -63,7 +68,8 @@ from kirjed k
 INNER JOIN
 (select 1 n union all select 2 union all select 3 union all select 4 union all 
    select 5 union all select 6 union all select 7 union all select 8 union all 
-   select 7 union all select 10 union all select 11) n
+   select 9 union all select 10 union all select 11 union all select 12 union all 
+   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
 where surm != '' ;
 
 create or replace table y_nimekujud4 as
@@ -135,21 +141,3 @@ left join kirjed k2 on k2.emi_id = e2.id
 group by id1,id2
 ;
 
-
-
-create table nk1 as
-select distinct
-  nk.sünniaasta,
-  nk.surmaaasta,
-  SUBSTRING_INDEX(SUBSTRING_INDEX(nk.perenimed, ';', n.n), ';', -1) perenimed,
-  nk.eesnimed,
-  nk.isanimed
-from
-  (select 1 n union all
-   select 2   union all select 3 union all
-   select 4   union all select 5 union all
-   select 6   union all select 7 union all
-   select 8   union all select 7 union all
-   select 10  union all select 11) n
-INNER JOIN nimekujud0 as nk
-;
