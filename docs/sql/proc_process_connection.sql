@@ -1,6 +1,6 @@
 DELIMITER ;;
 
-CREATE OR REPLACE PROCEDURE set_sex_from_connection(IN _id INT(11) UNSIGNED)
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE set_sex_from_connection(IN _id INT(11) UNSIGNED)
 BEGIN
     DECLARE msg VARCHAR(200);
 
@@ -45,7 +45,7 @@ BEGIN
     END IF;
 END;;
 
-CREATE OR REPLACE PROCEDURE process_connection(IN _id INT(11) UNSIGNED)
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE process_connection(IN _id INT(11) UNSIGNED)
 BEGIN
     DECLARE msg VARCHAR(200);
 

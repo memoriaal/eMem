@@ -1,6 +1,6 @@
 DELIMITER ;;
-CREATE OR REPLACE PROCEDURE process_queue()
-BEGIN
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE process_queue()
+proc_label:BEGIN
     DECLARE _id INT(11) UNSIGNED;
     DECLARE _emi_id INT(11) UNSIGNED;
     DECLARE _ik1 CHAR(10);
@@ -17,6 +17,14 @@ BEGIN
         FROM z_queue WHERE rdy = 0
         LIMIT 30;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+
+    SELECT count(1) INTO @pcnt FROM INFORMATION_SCHEMA.PROCESSLIST 
+    WHERE User = 'queue';
+    IF @pcnt > 1
+    THEN
+        LEAVE proc_label;
+    END IF;
+    
 
     OPEN cur1;
     read_loop: LOOP
@@ -97,3 +105,5 @@ CREATE OR REPLACE EVENT `process_queue`
     ON SCHEDULE EVERY 1 SECOND STARTS '2017-11-19 01:00:00'
     ON COMPLETION PRESERVE ENABLE
     DO CALL process_queue();
+
+SET GLOBAL event_scheduler=ON;

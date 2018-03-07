@@ -116,6 +116,24 @@ proc_label:BEGIN
         SET NEW.silt = NULL;
     END if;
 
+    -- Kui muutunud on nimekuju kirje, siis taasta kirje väli
+    IF NEW.Allikas = 'Nimekujud'
+    THEN
+      SET NEW.kirje = 
+      concat_ws('. '
+        , concat_ws(', '
+          , if(NEW.perenimi='',NULL,NEW.perenimi)
+          , if(NEW.eesnimi='',NULL,NEW.eesnimi)
+          , if(NEW.isanimi='',NULL,NEW.isanimi)
+          , if(NEW.emanimi='',NULL,NEW.emanimi)
+        )
+        , concat_ws(' - '
+          , if(NEW.sünd='', NULL, concat('Sünd ', NEW.sünd))
+          , if(NEW.surm='', NULL, concat('Surm ', NEW.surm))
+        )
+      );
+    END IF;
+
 END;;
 
 

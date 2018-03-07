@@ -56,6 +56,7 @@ BEGIN
       k.perenimi = pr.isik_perenimi,
       k.eesnimi = pr.isik_eesnimi,
       k.isanimi = pr.isa_eesnimi,
+      k.emanimi = pr.ema_eesnimi,
       k.sünd = ifnull(concat_ws('-', 
         if(pr.isik_synniaasta = '', NULL, pr.isik_synniaasta), 
         if(pr.isik_synnikuu = '', NULL, pr.isik_synnikuu), 
@@ -70,7 +71,7 @@ BEGIN
     
     IF _ik2 IS NOT NULL THEN
       INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, user)
-      VALUES (_ik2, _ik1, 'Create connections', _user);
+      VALUES (_ik1, _ik2, 'Create connections', _user);
     END IF;
 
 END;;

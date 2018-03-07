@@ -1,5 +1,5 @@
 DELIMITER ;;
-CREATE or replace PROCEDURE `propagate_checklist`(IN ik1 CHAR(10), IN ik2 CHAR(10))
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `propagate_checklist`(IN ik1 CHAR(10), IN ik2 CHAR(10))
 BEGIN
     DECLARE kivi1, mittekivi1, rel1, mr1 enum('', '!');
     DECLARE kivi2, mittekivi2, rel2, mr2 enum('', '!');
@@ -25,7 +25,7 @@ END;;
 DELIMITER ;
 
 DELIMITER ;;
-CREATE OR REPLACE PROCEDURE `propagate_checklists`(IN ik1 CHAR(10))
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `propagate_checklists`(IN ik1 CHAR(10))
 BEGIN
     DECLARE ik2 CHAR(10);
     DECLARE finished INTEGER DEFAULT 0;

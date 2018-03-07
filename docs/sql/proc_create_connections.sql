@@ -1,5 +1,5 @@
 DELIMITER ;;
-CREATE or replace PROCEDURE `create_connections`(IN ik1 CHAR(10), IN seoseliik VARCHAR(50), IN ik2 CHAR(10))
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `create_connections`(IN ik1 CHAR(10), IN seoseliik VARCHAR(50), IN ik2 CHAR(10))
 proc_label:BEGIN
     DECLARE msg VARCHAR(200);
     DECLARE _ik1 CHAR(10);
@@ -27,12 +27,12 @@ proc_label:BEGIN
     END IF;
 
     -- Topeltseoseid pole tarvis lasta teha
-    SELECT count(1) INTO @cnt FROM seosed WHERE isikukood1 = ik1 AND seos = seoseliik AND isikukood2 = ik2;
-    IF @cnt > 0 THEN
-        SELECT CONCAT( 'See seos on juba olemas, nuh.' ) INTO msg;
-        SIGNAL SQLSTATE '02100' SET MESSAGE_TEXT = msg;
-        LEAVE proc_label;
-    END IF;
+    -- SELECT count(1) INTO @cnt FROM seosed WHERE isikukood1 = ik1 AND seos = seoseliik AND isikukood2 = ik2;
+    -- IF @cnt > 0 THEN
+    --     SELECT CONCAT( 'See seos on juba olemas, nuh.' ) INTO msg;
+    --     SIGNAL SQLSTATE '02100' SET MESSAGE_TEXT = msg;
+    --     LEAVE proc_label;
+    -- END IF;
 
     -- Iseendaga seoseid pole tarvis lasta teha
     IF ik1 = ik2 THEN

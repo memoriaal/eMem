@@ -1,5 +1,5 @@
 DELIMITER ;;
-CREATE or REPLACE PROCEDURE `EMI_update_id_for`(IN _ik CHAR(10), IN _emi_id INTEGER(11) UNSIGNED)
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `EMI_update_id_for`(IN _ik CHAR(10), IN _emi_id INTEGER(11) UNSIGNED)
 BEGIN
     UPDATE kirjed k
     LEFT JOIN seosed s ON s.isikukood2 = k.isikukood
@@ -15,7 +15,7 @@ END;;
 
 
 
-CREATE or REPLACE PROCEDURE `EMI_merge`(IN _emi_id1 INTEGER(11) UNSIGNED, IN _emi_id2 INTEGER(11) UNSIGNED)
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `EMI_merge`(IN _emi_id1 INTEGER(11) UNSIGNED, IN _emi_id2 INTEGER(11) UNSIGNED)
 BEGIN
     SELECT isikukood INTO @ik1 FROM kirjed WHERE emi_id = _emi_id1 LIMIT 1;
     SELECT isikukood INTO @ik2 FROM kirjed WHERE emi_id = _emi_id2 LIMIT 1;
@@ -25,7 +25,7 @@ END;;
 
 
 
-CREATE or REPLACE PROCEDURE `EMI_create_id_for`(IN _ik CHAR(10), OUT _emi_id INTEGER(11) UNSIGNED)
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `EMI_create_id_for`(IN _ik CHAR(10), OUT _emi_id INTEGER(11) UNSIGNED)
 BEGIN
     INSERT INTO EMIR SET id = NULL;
     SELECT last_insert_id() INTO _emi_id;
@@ -34,7 +34,7 @@ END;;
 
 
 
-CREATE or REPLACE PROCEDURE `EMI_create_ref_for`(
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `EMI_create_ref_for`(
   IN _old_emi_id INTEGER(11) UNSIGNED, 
   IN _new_emi_id INTEGER(11) UNSIGNED)
 BEGIN
@@ -48,32 +48,32 @@ END;;
 
 
 
-CREATE or REPLACE PROCEDURE `EMI_consolidate_records`(IN _emi_id INTEGER(11) UNSIGNED)
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `EMI_consolidate_records`(IN _emi_id INTEGER(11) UNSIGNED)
 BEGIN
     UPDATE EMIR AS e 
     LEFT JOIN (
       select k.emi_id
-      , group_concat( DISTINCT
+      , group_concat(
           if(k.perenimi = ''   OR a.prioriteetPerenimi = 0, NULL, UPPER(k.perenimi)) 
           ORDER BY a.prioriteetPerenimi DESC SEPARATOR ';')
           AS perenimi
-      , group_concat( DISTINCT
+      , group_concat(
           if(k.eesnimi = ''    OR a.prioriteetEesnimi  = 0,  NULL, REPLACE(UPPER(k.eesnimi),'ALEKSANDR','ALEKSANDER')) 
           ORDER BY a.prioriteetEesnimi  DESC SEPARATOR ';')
           AS eesnimi
-      , group_concat( DISTINCT
+      , group_concat(
           if(k.isanimi = ''    OR a.prioriteetIsanimi  = 0,  NULL, UPPER(k.isanimi))
           ORDER BY a.prioriteetIsanimi  DESC SEPARATOR ';')
           AS isanimi
-      , group_concat( DISTINCT
+      , group_concat(
           if(k.sünd = ''       OR a.prioriteetSünd     = 0,  NULL, LEFT(k.sünd,4)) 
           ORDER BY a.prioriteetSünd     DESC SEPARATOR ';')
           AS sünd
-      , group_concat( DISTINCT
+      , group_concat(
           if(k.surm = ''       OR a.prioriteetSurm     = 0,  NULL, LEFT(k.surm,4)) 
           ORDER BY a.prioriteetSurm     DESC SEPARATOR ';')
           AS surm
-      , group_concat( DISTINCT
+      , group_concat(
           if(k.kommentaar = '' OR a.prioriteetKirje    = 0,  NULL, k.kommentaar) 
           ORDER BY a.prioriteetKirje    DESC SEPARATOR ';\n')
           AS kommentaarid
@@ -100,7 +100,7 @@ BEGIN
 END;;
 
 
-CREATE or REPLACE PROCEDURE `EMI_check_record`(IN _ik CHAR(10), IN _old_emi_id VARCHAR(200))
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `EMI_check_record`(IN _ik CHAR(10), IN _old_emi_id VARCHAR(200))
 BEGIN
     SELECT emi_id INTO @emi_id FROM kirjed WHERE isikukood = _ik;
     
@@ -116,32 +116,32 @@ BEGIN
 END;;
 
 
-CREATE or REPLACE PROCEDURE `EMI_scheduled_propagate_referenced`()
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `EMI_scheduled_propagate_referenced`()
 BEGIN
-  UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
-     SET e2.EmiPerenimi = e1.EmiPerenimi
-   WHERE e2.EmiPerenimi IS NULL 
-     AND e1.EmiPerenimi IS NOT NULL;
-  UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
-     SET e2.EmiEesnimi = e1.EmiEesnimi
-   WHERE e2.EmiEesnimi IS NULL 
-     AND e1.EmiEesnimi IS NOT NULL;
-  UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
-     SET e2.EmiIsanimi = e1.EmiIsanimi
-   WHERE e2.EmiIsanimi IS NULL 
-     AND e1.EmiIsanimi IS NOT NULL;
-  UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
-     SET e2.EmiSünd = e1.EmiSünd
-   WHERE e2.EmiSünd IS NULL 
-     AND e1.EmiSünd IS NOT NULL;
-  UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
-     SET e2.EmiSurm = e1.EmiSurm
-   WHERE e2.EmiSurm IS NULL 
-     AND e1.EmiSurm IS NOT NULL;
-  UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
-     SET e2.välisviide = e1.välisviide
-   WHERE e2.välisviide = '' 
-     AND e1.välisviide != '';
+  -- UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
+  --    SET e2.EmiPerenimi = e1.EmiPerenimi
+  --  WHERE e2.EmiPerenimi IS NULL 
+  --    AND e1.EmiPerenimi IS NOT NULL;
+  -- UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
+  --    SET e2.EmiEesnimi = e1.EmiEesnimi
+  --  WHERE e2.EmiEesnimi IS NULL 
+  --    AND e1.EmiEesnimi IS NOT NULL;
+  -- UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
+  --    SET e2.EmiIsanimi = e1.EmiIsanimi
+  --  WHERE e2.EmiIsanimi IS NULL 
+  --    AND e1.EmiIsanimi IS NOT NULL;
+  -- UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
+  --    SET e2.EmiSünd = e1.EmiSünd
+  --  WHERE e2.EmiSünd IS NULL 
+  --    AND e1.EmiSünd IS NOT NULL;
+  -- UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
+  --    SET e2.EmiSurm = e1.EmiSurm
+  --  WHERE e2.EmiSurm IS NULL 
+  --    AND e1.EmiSurm IS NOT NULL;
+  -- UPDATE EMIR e1 LEFT JOIN EMIR e2 on e2.id = e1.ref
+  --    SET e2.välisviide = e1.välisviide
+  --  WHERE e2.välisviide = '' 
+  --    AND e1.välisviide != '';
 END;;
 
 DELIMITER ;

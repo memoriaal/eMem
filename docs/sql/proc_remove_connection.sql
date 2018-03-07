@@ -1,5 +1,5 @@
 DELIMITER ;;
-CREATE OR REPLACE PROCEDURE remove_connection(IN ik1 CHAR(10), IN ik2 CHAR(10))
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE remove_connection(IN ik1 CHAR(10), IN ik2 CHAR(10))
 proc_label:BEGIN
     DECLARE _ik1 CHAR(10);
     DECLARE _ik2 CHAR(10);

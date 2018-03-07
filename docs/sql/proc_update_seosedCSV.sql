@@ -1,5 +1,5 @@
 DELIMITER ;;
-CREATE OR REPLACE PROCEDURE update_seosedCSV(IN _ik CHAR(10))
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE update_seosedCSV(IN _ik CHAR(10))
 BEGIN
     SET @connstr = NULL;
     SELECT GROUP_CONCAT(conn SEPARATOR '\n') INTO @connstr
