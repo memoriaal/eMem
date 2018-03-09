@@ -73,7 +73,6 @@ WHERE e.EmiSurm IS NOT NULL
   AND e.surm != ''
   AND e.ref IS NULL
   AND x1.id IS NULL
-
 ;
 
 
