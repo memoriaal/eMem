@@ -103,3 +103,39 @@ FROM EMIR e
 WHERE e.ref IS NULL AND kirjed IS NOT NULL
   AND e.EmiSurm IS NOT NULL AND e.surm = ''
 ;
+
+
+
+CREATE DEFINER VIEW aruanne_R86_viited AS
+SELECT
+    `ff`.`isikukood`     AS `isikukood`
+  , `ff`.`kivi`          AS `kivi`
+  , `ff`.`mittekivi`     AS `mittekivi`
+  , `ff`.`rel`           AS `rel`
+  , `ff`.`mr`            AS `mr`
+  , `ff`.`nimekiri`      AS `nimekiri`
+  , `ff`.`kirje`         AS `kirje`
+  , `ff`.`emi_id`        AS `emi_id`
+  , `ff`.`kirje_allikad` AS `kirje_allikad`
+FROM (
+        select 
+            `kr`.`Isikukood` AS `isikukood`
+          , `kr`.`Kivi`      AS `kivi`
+          , `kr`.`Mittekivi` AS `mittekivi`
+          , `kr`.`REL`       AS `rel`
+          , `kr`.`MR`        AS `mr`
+          , `kr`.`Nimekiri`  AS `nimekiri`
+          , `kr`.`Kirje`     AS `kirje`
+          , `k`.`emi_id`     AS `emi_id`
+          , group_concat(distinct `k`.`Allikas` separator ';') 
+                             AS `kirje_allikad` 
+        from (
+                `kylli`.`kirjed` `kr` 
+                left join `kylli`.`kirjed` `k` 
+                       on `kr`.`emi_id` = `k`.`emi_id` 
+                      and `kr`.`Nimekiri` regexp substring_index(`k`.`Allikas`,'-',1)
+        )
+        where `kr`.`Allikas` = 'R86' 
+        group by `k`.`emi_id`
+) `ff` 
+WHERE `ff`.`kirje_allikad` not regexp `ff`.`nimekiri`;
