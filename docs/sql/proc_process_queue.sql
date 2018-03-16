@@ -70,6 +70,9 @@ proc_label:BEGIN
         IF _task = 'Import from RK' THEN
             CALL import_from_rk(_ik1);
         END IF;
+        IF _task = 'Import from RR' THEN
+            CALL import_from_rahvastikuregiste(_ik1);
+        END IF;
         IF _task = 'Import from pereregister' THEN
             CALL import_from_pereregister(_ik1, _ik2, _user);
         END IF;
