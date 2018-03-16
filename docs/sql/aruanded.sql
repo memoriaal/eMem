@@ -139,3 +139,47 @@ FROM (
         group by `k`.`emi_id`
 ) `ff` 
 WHERE `ff`.`kirje_allikad` not regexp `ff`.`nimekiri`;
+
+
+CREATE or replace TABLE `aruanne_määra_r7_seoseid` (
+  `koodid` varchar(23) DEFAULT NULL,
+  `kirjed1` text DEFAULT NULL,
+  `kasSama` enum('Jah','Ei','Uurida','Arhiiv','Imporditud') DEFAULT NULL,
+  `kirjed2` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+AS
+SELECT koodid.koodid,
+       e1.kirjed kirjed1, NULL as kasSama, e2.kirjed kirjed2
+FROM (
+  select group_concat(distinct eid separator ',') koodid
+  from 
+  (
+    select _r7.memento, _r7.eR1 AS eid from _r7 where _r7.eR1 is not NULL
+    UNION ALL
+    select _r7.memento, _r7.eR2 AS eid from _r7 where _r7.eR2 is not NULL
+    UNION ALL
+    select _r7.memento, _r7.eR3 AS eid from _r7 where _r7.eR3 is not NULL
+    UNION ALL
+    select _r7.memento, _r7.eR41 AS eid from _r7 where _r7.eR41 is not NULL
+    UNION ALL
+    select _r7.memento, _r7.eR42 AS eid from _r7 where _r7.eR42 is not NULL
+    UNION ALL
+    select _r7.memento, _r7.eR5 AS eid from _r7 where _r7.eR5 is not NULL
+    UNION ALL
+    select _r7.memento, _r7.eR61 AS eid from _r7 where _r7.eR61 is not NULL
+    UNION ALL
+    select _r7.memento, _r7.eR62 AS eid from _r7 where _r7.eR62 is not NULL
+    UNION ALL
+    select _r7.memento, _r7.eR63 AS eid from _r7 where _r7.eR63 is not NULL
+    UNION ALL
+    select _r7.memento, _r7.eR64 AS eid from _r7 where _r7.eR64 is not NULL
+    UNION ALL
+    select _r7.memento, _r7.eR65 AS eid from _r7 where _r7.eR65 is not NULL
+  ) as r
+  left join _r7 as r7 on r7.memento = r.memento
+  group by r.memento
+  having koodid like '%,%'
+) koodid
+left join EMIR e1 on e1.id = SUBSTRING_INDEX(koodid.koodid, ',', 1)
+left join EMIR e2 on e2.id = SUBSTRING_INDEX(koodid.koodid, ',', -1)
+;

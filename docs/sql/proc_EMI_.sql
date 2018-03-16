@@ -42,7 +42,7 @@ BEGIN
     ON DUPLICATE KEY UPDATE ref = _new_emi_id;
     
     SELECT id_set INTO @oldids FROM EMIR WHERE id = _old_emi_id;
-    UPDATE EMIR e SET e.id_set = concat_ws(',', @oldids, e.id_set)
+    UPDATE EMIR e SET e.id_set = concat_ws(',', @oldids, e.id)
     WHERE e.id = _new_emi_id;
 END;;
 
