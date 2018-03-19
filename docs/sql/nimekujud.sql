@@ -1,3 +1,4 @@
+-- 1.
 CREATE OR REPLACE TABLE `x_nimekujud` (
   `id` int(11) unsigned NOT NULL,
   `tunnus` enum('','id','perenimi','eesnimi','isanimi','emanimi','sünd','surm') NOT NULL DEFAULT '',
@@ -6,11 +7,12 @@ CREATE OR REPLACE TABLE `x_nimekujud` (
   PRIMARY KEY (`id`,`tunnus`,`v`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
+-- 2.
 insert ignore into x_nimekujud (id, tunnus, v)
 select distinct emi_id, 'id', emi_id
 from kirjed;
 
+-- 3.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
 select distinct emi_id, 'perenimi',  SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(UPPER(
           perenimi
@@ -24,6 +26,7 @@ INNER JOIN
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
 where allikas != 'Nimekujud' and perenimi != '' ;
 
+-- 4.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
 select distinct emi_id, 'eesnimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(UPPER(
           eesnimi
@@ -37,6 +40,7 @@ INNER JOIN
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
 where allikas != 'Nimekujud' and eesnimi != '' ;
 
+-- 5.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
 select distinct emi_id, 'isanimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(UPPER(
           isanimi
@@ -50,6 +54,7 @@ INNER JOIN
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
 where allikas != 'Nimekujud' and isanimi != '' ;
 
+-- 6.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
 select distinct emi_id, 'emanimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(UPPER(
           emanimi
@@ -63,8 +68,9 @@ INNER JOIN
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
 where allikas != 'Nimekujud' and emanimi != '' ;
 
+-- 7.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
-select distinct emi_id, 'sünd', left(SUBSTRING_INDEX(SUBSTRING_INDEX(sünd, ';', n.n), ';', -1), 4)
+select distinct emi_id, 'sünd', SUBSTRING_INDEX(SUBSTRING_INDEX(sünd, ';', n.n), ';', -1)
 , 'Ei'
 from kirjed k 
 INNER JOIN
@@ -74,8 +80,9 @@ INNER JOIN
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
 where allikas != 'Nimekujud' and sünd != '' ;
 
+-- 8.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
-select distinct emi_id, 'surm', left(SUBSTRING_INDEX(SUBSTRING_INDEX(surm, ';', n.n), ';', -1), 4)
+select distinct emi_id, 'surm', SUBSTRING_INDEX(SUBSTRING_INDEX(surm, ';', n.n), ';', -1)
 , 'Ei'
 from kirjed k 
 INNER JOIN
@@ -86,6 +93,93 @@ INNER JOIN
 where allikas != 'Nimekujud' and surm != '' ;
 
 
+-- Moonutatud nimekujud
+
+-- 9.
+insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
+select distinct emi_id, 'perenimi',  SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(unrepeat(UPPER(
+          perenimi
+        )),'-',';'),' ',';'), ';', n.n), ';', -1)
+, 'Jah'
+from kirjed k 
+INNER JOIN
+(select 1 n union all select 2 union all select 3 union all select 4 union all 
+   select 5 union all select 6 union all select 7 union all select 8 union all 
+   select 9 union all select 10 union all select 11 union all select 12 union all 
+   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
+where allikas != 'Nimekujud' and perenimi != '' ;
+
+-- 10.
+insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
+select distinct emi_id, 'eesnimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(unrepeat(UPPER(
+          eesnimi
+        )), '-',';'),' ',';'), ';', n.n), ';', -1)
+, 'Jah'
+from kirjed k 
+INNER JOIN
+(select 1 n union all select 2 union all select 3 union all select 4 union all 
+   select 5 union all select 6 union all select 7 union all select 8 union all 
+   select 9 union all select 10 union all select 11 union all select 12 union all 
+   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
+where allikas != 'Nimekujud' and eesnimi != '' ;
+
+-- 11.
+insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
+select distinct emi_id, 'isanimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(unrepeat(UPPER(
+          isanimi
+        )), '-',';'),' ',';'), ';', n.n), ';', -1)
+, 'Jah'
+from kirjed k 
+INNER JOIN
+(select 1 n union all select 2 union all select 3 union all select 4 union all 
+   select 5 union all select 6 union all select 7 union all select 8 union all 
+   select 9 union all select 10 union all select 11 union all select 12 union all 
+   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
+where allikas != 'Nimekujud' and isanimi != '' ;
+
+-- 12.
+insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
+select distinct emi_id, 'emanimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(unrepeat(UPPER(
+          emanimi
+        )), '-',';'),' ',';'), ';', n.n), ';', -1)
+, 'Jah'
+from kirjed k 
+INNER JOIN
+(select 1 n union all select 2 union all select 3 union all select 4 union all 
+   select 5 union all select 6 union all select 7 union all select 8 union all 
+   select 9 union all select 10 union all select 11 union all select 12 union all 
+   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
+where allikas != 'Nimekujud' and emanimi != '' ;
+
+-- 13.
+insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
+select distinct emi_id, 'sünd', LEFT(SUBSTRING_INDEX(SUBSTRING_INDEX(sünd, ';', n.n), ';', -1), 4)
+, 'Jah'
+from kirjed k 
+INNER JOIN
+(select 1 n union all select 2 union all select 3 union all select 4 union all 
+   select 5 union all select 6 union all select 7 union all select 8 union all 
+   select 9 union all select 10 union all select 11 union all select 12 union all 
+   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
+where allikas != 'Nimekujud' and sünd != '' ;
+
+-- 14.
+insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
+select distinct emi_id, 'surm', LEFT(SUBSTRING_INDEX(SUBSTRING_INDEX(surm, ';', n.n), ';', -1), 4)
+, 'Jah'
+from kirjed k 
+INNER JOIN
+(select 1 n union all select 2 union all select 3 union all select 4 union all 
+   select 5 union all select 6 union all select 7 union all select 8 union all 
+   select 9 union all select 10 union all select 11 union all select 12 union all 
+   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
+where allikas != 'Nimekujud' and surm != '' ;
+
+
+-- 15.
+DELETE FROM x_nimekujud WHERE v = '';
+
+-- 16.
 CREATE OR REPLACE TABLE `y_nimekujud` (
   `id` int(11) unsigned NOT NULL,
   `perenimi` varchar(25) CHARACTER SET utf8 COLLATE utf8_estonian_ci NOT NULL,
@@ -113,62 +207,8 @@ left join x_nimekujud x6 on x6.id = x0.id and x6.tunnus = 'surm'
 where x0.tunnus = 'id'
 ;
 
--- Moonutatud nimekujud
-
-insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
-select distinct emi_id, 'perenimi',  SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(unrepeat(UPPER(
-          perenimi
-        )),'-',';'),' ',';'), ';', n.n), ';', -1)
-, 'Jah'
-from kirjed k 
-INNER JOIN
-(select 1 n union all select 2 union all select 3 union all select 4 union all 
-   select 5 union all select 6 union all select 7 union all select 8 union all 
-   select 9 union all select 10 union all select 11 union all select 12 union all 
-   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and perenimi != '' ;
-
-insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
-select distinct emi_id, 'eesnimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(unrepeat(UPPER(
-          eesnimi
-        )), '-',';'),' ',';'), ';', n.n), ';', -1)
-, 'Jah'
-from kirjed k 
-INNER JOIN
-(select 1 n union all select 2 union all select 3 union all select 4 union all 
-   select 5 union all select 6 union all select 7 union all select 8 union all 
-   select 9 union all select 10 union all select 11 union all select 12 union all 
-   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and eesnimi != '' ;
-
-insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
-select distinct emi_id, 'isanimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(unrepeat(UPPER(
-          isanimi
-        )), '-',';'),' ',';'), ';', n.n), ';', -1)
-, 'Jah'
-from kirjed k 
-INNER JOIN
-(select 1 n union all select 2 union all select 3 union all select 4 union all 
-   select 5 union all select 6 union all select 7 union all select 8 union all 
-   select 9 union all select 10 union all select 11 union all select 12 union all 
-   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and isanimi != '' ;
-
-insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
-select distinct emi_id, 'emanimi',   SUBSTRING_INDEX(SUBSTRING_INDEX(replace(replace(unrepeat(UPPER(
-          emanimi
-        )), '-',';'),' ',';'), ';', n.n), ';', -1)
-, 'Jah'
-from kirjed k 
-INNER JOIN
-(select 1 n union all select 2 union all select 3 union all select 4 union all 
-   select 5 union all select 6 union all select 7 union all select 8 union all 
-   select 9 union all select 10 union all select 11 union all select 12 union all 
-   select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and emanimi != '' ;
-
-
-INSERT INTO `y_nimekujud`
+-- 17.
+INSERT IGNORE INTO `y_nimekujud`
 (id, perenimi, eesnimi, isanimi, emanimi, sünd, surm, moonutatud)
 select x0.id, ifnull(x1.v,'') as perenimi, ifnull(x2.v,'') as eesnimi
             , ifnull(x3.v,'') as isanimi, ifnull(x4.v,'') as emanimi
@@ -183,7 +223,10 @@ left join x_nimekujud x5 on x5.id = x0.id and x5.tunnus = 'sünd'
 left join x_nimekujud x6 on x6.id = x0.id and x6.tunnus = 'surm'
 where x0.tunnus = 'id'
 ;
--- INSERT IGNORE INTO y_nimekujud4 SELECT * FROM y_nimekujud3;
+
+
+
+-- INSERT IGNORE INTO y_nimekujud SELECT * FROM y_nimekujud3;
 --
 -- Range vastete otsing
 --
@@ -195,8 +238,8 @@ select concat_ws(',',id1,id2)
      , e1.kirjed as kirjed1, k1.isikukood as isikukood1, k1.kivi as kivi1
      , k2.kivi as kivi2, k2.isikukood as isikukood2, e2.kirjed as kirjed2 
 from (
-  select y1.id as id1, y2.id as id2 from y_nimekujud4 y1
-  left join y_nimekujud4 y2 
+  select y1.id as id1, y2.id as id2 from y_nimekujud y1
+  left join y_nimekujud y2 
          on y2.id < y1.id 
         and y2.perenimi = y1.perenimi 
         and y2.eesnimi = y1.eesnimi 
@@ -229,8 +272,8 @@ select concat_ws(',',id1,id2)
      , e1.kirjed as kirjed1, k1.isikukood as isikukood1, k1.kivi as kivi1
      , k2.kivi as kivi2, k2.isikukood as isikukood2, e2.kirjed as kirjed2 
 from (
-  select y1.id as id1, y2.id as id2 from y_nimekujud4 y1
-  left join y_nimekujud4 y2 
+  select y1.id as id1, y2.id as id2 from y_nimekujud y1
+  left join y_nimekujud y2 
          on y2.id < y1.id 
         and y2.perenimi = y1.perenimi 
         and y2.eesnimi = y1.eesnimi 

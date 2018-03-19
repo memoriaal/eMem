@@ -15,7 +15,7 @@ proc_label:BEGIN
     DECLARE cur1 CURSOR FOR
         SELECT id, emi_id, isikukood1, isikukood2, task, params, created, user
         FROM z_queue WHERE rdy = 0
-        LIMIT 30;
+        LIMIT 130;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
 
     SELECT count(1) INTO @pcnt FROM INFORMATION_SCHEMA.PROCESSLIST 
@@ -33,6 +33,8 @@ proc_label:BEGIN
         IF finished = 1 THEN
             LEAVE read_loop;
         END IF;
+
+        UPDATE z_queue SET rdy = rdy + 1 WHERE id = _id;
 
         IF _params LIKE '%validate_checklist%' THEN
             CALL validate_checklist(_ik1, _ik2);
@@ -65,6 +67,7 @@ proc_label:BEGIN
         call EMI_consolidate_records(_emi_id);
         END IF;
         IF _task = 'Update seosedCSV' THEN
+            -- UPDATE z_queue SET rdy = 100 WHERE id = _id;
             CALL update_seosedCSV(_ik1);
         END IF;
         IF _task = 'Import from RK' THEN
@@ -89,8 +92,8 @@ proc_label:BEGIN
             CALL remove_label(_ik1, _params, _user);
         END IF;
 
-        DELETE FROM z_queue WHERE id = _id;
-        -- UPDATE z_queue SET rdy = rdy + 1 
+        DELETE FROM z_queue WHERE id = _id and rdy = 1;
+        -- UPDATE z_queue SET rdy = rdy + 1 WHERE id = _id;
         --  WHERE ifnull(emi_id, 0) = ifnull(_emi_id, 0)
         --    AND ifnull(isikukood1, '') = ifnull(_ik1, '')
         --    AND ifnull(isikukood2, '') = ifnull(_ik2, '')

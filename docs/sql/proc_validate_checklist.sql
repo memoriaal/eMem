@@ -14,22 +14,29 @@ BEGIN
 
     IF attn1 = '' OR attn2 = '' THEN
         IF kivi1 = '!' AND mittekivi2 = '!' THEN
-            SELECT CONCAT( 'Kirjed (', @eid1, ',', @eid2, '); \'', ik1, '\',\'', ik2, '\' konfliktivad, sest ',
-                ik2, ' on MITTEKIVI, ',
-                ik1, ' on KIVI' ) INTO msg;
+            SELECT CONCAT( 'Kirjed (', IFNULL(@eid1,''), ',', IFNULL(@eid2,''), '); \'', 
+                IFNULL(ik1,''), '\',\'', IFNULL(ik2,''), '\' konfliktivad, sest ',
+                IFNULL(ik2,''), ' on MITTEKIVI, ',
+                IFNULL(ik1,''), ' on KIVI' ) INTO msg;
             SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
         ELSEIF kivi2 = '!' AND mittekivi1 = '!' THEN
-            SELECT CONCAT( 'Kirjed (', @eid1, ',', @eid2, '); \'', ik1, '\',\'', ik2, '\' konfliktivad, sest ',
-                ik1, ' on MITTEKIVI, aga ', ik2, ' on KIVI.' ) INTO msg;
+            SELECT CONCAT( 'Kirjed (', IFNULL(@eid1,''), ',', IFNULL(@eid2,''), '); \'', 
+                IFNULL(ik1,''), '\',\'', IFNULL(ik2,''), '\' konfliktivad, sest ',
+                IFNULL(ik1,''), ' on MITTEKIVI, aga ', 
+                IFNULL(ik2,''), ' on KIVI.' ) INTO msg;
             SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
 
         ELSEIF kivi1 = '!' AND mr2 = '!' THEN
-            SELECT CONCAT( 'Kirjed (', @eid1, ',', @eid2, '); \'', ik1, '\',\'', ik2, '\' konfliktivad, sest ',
-                ik1, ' on KIVI, aga ', ik2, ' on MR.' ) INTO msg;
+            SELECT CONCAT( 'Kirjed (', IFNULL(@eid1,''), ',', IFNULL(@eid2,''), '); \'', 
+                IFNULL(ik1,''), '\',\'', IFNULL(ik2,''), '\' konfliktivad, sest ',
+                IFNULL(ik1,''), ' on KIVI, aga ', 
+                IFNULL(ik2,''), ' on MR.' ) INTO msg;
             SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
         ELSEIF kivi2 = '!' AND mr1 = '!' THEN
-            SELECT CONCAT( 'Kirjed (', @eid1, ',', @eid2, '); \'', ik1, '\',\'', ik2, '\' konfliktivad, sest ',
-                ik1, ' on MR, aga ', ik2, ' on KIVI.' ) INTO msg;
+            SELECT CONCAT( 'Kirjed (', IFNULL(@eid1,''), ',', IFNULL(@eid2,''), '); \'', 
+                IFNULL(ik1,''), '\',\'', IFNULL(ik2,''), '\' konfliktivad, sest ',
+                IFNULL(ik1,''), ' on MR, aga ', 
+                IFNULL(ik2,''), ' on KIVI.' ) INTO msg;
             SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
 
         ELSEIF rel1 = '!' AND mr2 = '!' THEN

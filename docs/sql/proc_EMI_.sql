@@ -106,7 +106,9 @@ BEGIN
     
     IF @emi_id IS NULL THEN
         call EMI_create_id_for(_ik, @emi_id);
-        call EMI_create_ref_for(CAST(_old_emi_id AS UNSIGNED), @emi_id);
+        IF IFNULL(_old_emi_id, '') != '' THEN
+            call EMI_create_ref_for(CAST(_old_emi_id AS UNSIGNED), @emi_id);
+        END IF;
     ELSE
         call EMI_update_id_for(_ik, @emi_id);
     END IF;

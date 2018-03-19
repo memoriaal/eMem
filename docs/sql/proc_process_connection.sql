@@ -18,11 +18,11 @@ BEGIN
     WHERE s.id = _id;
 
     IF @ksugu1 != '' AND @ssugu1 != '' AND @ksugu1 != @ssugu1 THEN
-        SELECT concat(@ik1, ' on "', IFNULL(@ksugu1, ''), '"; ei sobi "', @sl1, '".') INTO msg;
+        SELECT concat(IFNULL(@ik1,''), ' on "', IFNULL(@ksugu1, ''), '"; ei sobi "', IFNULL(@sl1,''), '".') INTO msg;
         SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
     END IF;
     IF @ksugu2 != '' AND @ssugu2 != '' AND @ksugu2 != @ssugu2 THEN
-        SELECT concat(@ik2, ' on "', IFNULL(@ksugu2, ''), '"; ei sobi "', @sl2, '".') INTO msg;
+        SELECT concat(IFNULL(@ik2,''), ' on "', IFNULL(@ksugu2, ''), '"; ei sobi "', IFNULL(@sl2,''), '".') INTO msg;
         SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
     END IF;
     IF @ksugu1 = '' AND @ssugu1 != '' THEN
@@ -67,12 +67,12 @@ BEGIN
     WHERE s.id = _id;
 
     IF @ik1 IS NULL OR @ik2 IS NULL THEN
-        SELECT concat('Katkine seos, ID: ', _id, '.') INTO msg;
+        SELECT concat('Katkine seos, ID: ', IFNULL(_id,''), '.') INTO msg;
         SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
     END IF;
 
     IF @sl1 IS NULL AND @sl2 IS NULL THEN
-        SELECT concat(@ik1, ' ja ', @ik2, ' on määramata seoses.') INTO msg;
+        SELECT concat(IFNULL(@ik1,''), ' ja ', IFNULL(@ik2,''), ' on määramata seoses.') INTO msg;
         SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
     END IF;
     
