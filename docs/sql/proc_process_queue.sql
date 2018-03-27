@@ -113,3 +113,5 @@ CREATE OR REPLACE EVENT `process_queue`
     DO CALL process_queue();
 
 SET GLOBAL event_scheduler=ON;
+
+-- call process_queue();
