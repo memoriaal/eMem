@@ -93,3 +93,28 @@ FROM
 GROUP BY Perenimi, Eesnimi, Sünd, Surm
 HAVING count(1) = 1
 ;
+
+
+
+
+-- 
+--
+CREATE OR REPLACE view `v_publish` AS 
+    SELECT `em`.`id` AS `emi_id`,
+           ucase(substring_index(`em`.`perenimi`,';'        ,1))          AS `Perenimi`,
+           REPLACE(ucase(substring_index(`em`.`eesnimi`,';' ,1)),'-',' ') AS `Eesnimi`,
+           ucase(substring_index(`em`.`isanimi`,';'         ,1))          AS `Isanimi`,
+           LEFT(substring_index(`em`.`sünd`,';'             ,1),4)        AS `Sünd`,
+           LEFT(substring_index(`em`.`surm`,';'             ,1),4)        AS `Surm`,
+           REPLACE(`em`.`kirjed`,'"','\'')                                AS `Kirjed` 
+    FROM   `kylli`.`EMIR` `em` 
+    WHERE  `em`.`id` IN ( SELECT DISTINCT `kylli`.`kirjed`.`emi_id` 
+                          FROM   `kylli`.`kirjed` 
+                          WHERE  `kylli`.`kirjed`.`kivi` = '!' )
+    GROUP BY `em`.`perenimi`,`em`.`eesnimi`,`em`.`isanimi`,`em`.`sünd`,`em`.`surm` 
+    HAVING `eesnimi` > '' 
+       AND `perenimi` > '' 
+       AND (`sünd` > '' OR `surm` > '')
+       -- AND count(1) = 1
+       AND Kirjed IS NOT NULL
+       ;
