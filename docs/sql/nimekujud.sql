@@ -10,7 +10,8 @@ CREATE OR REPLACE TABLE `x_nimekujud` (
 -- 2.
 insert ignore into x_nimekujud (id, tunnus, v)
 select distinct emi_id, 'id', emi_id
-from kirjed;
+from kirjed k
+where k.MR != '!';
 
 -- 3.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
@@ -24,7 +25,8 @@ INNER JOIN
    select 5 union all select 6 union all select 7 union all select 8 union all 
    select 9 union all select 10 union all select 11 union all select 12 union all 
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and perenimi != '' ;
+where allikas != 'Nimekujud' and perenimi != ''
+  and k.MR != '!';
 
 -- 4.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
@@ -38,7 +40,8 @@ INNER JOIN
    select 5 union all select 6 union all select 7 union all select 8 union all 
    select 9 union all select 10 union all select 11 union all select 12 union all 
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and eesnimi != '' ;
+where allikas != 'Nimekujud' and eesnimi != ''
+  and k.MR != '!';
 
 -- 5.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
@@ -52,7 +55,8 @@ INNER JOIN
    select 5 union all select 6 union all select 7 union all select 8 union all 
    select 9 union all select 10 union all select 11 union all select 12 union all 
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and isanimi != '' ;
+where allikas != 'Nimekujud' and isanimi != ''
+  and k.MR != '!';
 
 -- 6.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
@@ -66,7 +70,8 @@ INNER JOIN
    select 5 union all select 6 union all select 7 union all select 8 union all 
    select 9 union all select 10 union all select 11 union all select 12 union all 
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and emanimi != '' ;
+where allikas != 'Nimekujud' and emanimi != ''
+  and k.MR != '!';
 
 -- 7.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
@@ -78,7 +83,8 @@ INNER JOIN
    select 5 union all select 6 union all select 7 union all select 8 union all 
    select 9 union all select 10 union all select 11 union all select 12 union all 
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and sünd != '' ;
+where allikas != 'Nimekujud' and sünd != ''
+  and k.MR != '!';
 
 -- 8.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
@@ -90,7 +96,8 @@ INNER JOIN
    select 5 union all select 6 union all select 7 union all select 8 union all 
    select 9 union all select 10 union all select 11 union all select 12 union all 
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and surm != '' ;
+where allikas != 'Nimekujud' and surm != ''
+  and k.MR != '!';
 
 
 -- Moonutatud nimekujud
@@ -107,7 +114,8 @@ INNER JOIN
    select 5 union all select 6 union all select 7 union all select 8 union all 
    select 9 union all select 10 union all select 11 union all select 12 union all 
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and perenimi != '' ;
+where allikas != 'Nimekujud' and perenimi != ''
+  and k.MR != '!';
 
 -- 10.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
@@ -121,7 +129,8 @@ INNER JOIN
    select 5 union all select 6 union all select 7 union all select 8 union all 
    select 9 union all select 10 union all select 11 union all select 12 union all 
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and eesnimi != '' ;
+where allikas != 'Nimekujud' and eesnimi != ''
+  and k.MR != '!';
 
 -- 11.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
@@ -135,7 +144,8 @@ INNER JOIN
    select 5 union all select 6 union all select 7 union all select 8 union all 
    select 9 union all select 10 union all select 11 union all select 12 union all 
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and isanimi != '' ;
+where allikas != 'Nimekujud' and isanimi != ''
+  and k.MR != '!';
 
 -- 12.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
@@ -149,7 +159,8 @@ INNER JOIN
    select 5 union all select 6 union all select 7 union all select 8 union all 
    select 9 union all select 10 union all select 11 union all select 12 union all 
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and emanimi != '' ;
+where allikas != 'Nimekujud' and emanimi != ''
+  and k.MR != '!';
 
 -- 13.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
@@ -161,7 +172,8 @@ INNER JOIN
    select 5 union all select 6 union all select 7 union all select 8 union all 
    select 9 union all select 10 union all select 11 union all select 12 union all 
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and sünd != '' ;
+where allikas != 'Nimekujud' and sünd != ''
+  and k.MR != '!';
 
 -- 14.
 insert ignore into x_nimekujud (id, tunnus, v, moonutatud)
@@ -173,7 +185,8 @@ INNER JOIN
    select 5 union all select 6 union all select 7 union all select 8 union all 
    select 9 union all select 10 union all select 11 union all select 12 union all 
    select 13 union all select 14 union all select 15 union all select 16 union all select 17) n
-where allikas != 'Nimekujud' and surm != '' ;
+where allikas != 'Nimekujud' and surm != ''
+  and k.MR != '!';
 
 
 -- 15.
@@ -234,18 +247,24 @@ where x0.tunnus = 'id'
 -- create or replace table aruanne_kontrolli_seoseid3
 -- INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task) SELECT k1.isikukood, k2.isikukood, 'Remove connections'
 -- INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task) SELECT k1.isikukood, k2.isikukood, 'Create connections'
-select concat_ws(',',id1,id2)
-     , e1.kirjed as kirjed1, k1.isikukood as isikukood1, k1.kivi as kivi1
-     , k2.kivi as kivi2, k2.isikukood as isikukood2, e2.kirjed as kirjed2 
+select concat('emi_id in (',id1,',',id2,')') as koodid
+     , e1.kirjed as kirjed1
+     , if(s.seos = 'erinevad isikud', 'E', 
+     		if(s.seos = 'kahtlusseos', 'U', NULL)) as kasSama
+     , e2.kirjed as kirjed2
 from (
   select y1.id as id1, y2.id as id2 from y_nimekujud y1
   left join y_nimekujud y2 
          on y2.id < y1.id 
         and y2.perenimi = y1.perenimi 
+        and y2.perenimi != ''
         and y2.eesnimi = y1.eesnimi 
+        and y2.eesnimi != ''
         and y2.isanimi = y1.isanimi
+        and y2.isanimi != ''
         and y2.sünd = y1.sünd 
         and y2.surm = y1.surm
+        and (y1.sünd != '' or y2.surm != '')
   where y2.id is not null
   group by y1.id, y2.id
 ) yy
@@ -253,11 +272,8 @@ left join EMIR e1 on e1.id = yy.id1
 left join EMIR e2 on e2.id = yy.id2
 left join kirjed k1 on k1.emi_id = e1.id
 left join kirjed k2 on k2.emi_id = e2.id
- where k1.eesnimi != ''
-   and k1.perenimi != ''
-   and k1.isanimi != ''
-   and (k1.sünd != '' or k2.surm != '')
-   and k1.emi_id is not null 
+left join seosed s on s.isikukood1 = k1.isikukood and s.isikukood2 = k2.isikukood and s.seos IN ('erinevad isikud','kahtlusseos')
+ where k1.emi_id is not null 
    and k2.emi_id is not null
 group by id1,id2
 ;
