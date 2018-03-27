@@ -108,44 +108,44 @@ WHERE e.ref IS NULL AND kirjed IS NOT NULL
 
 CREATE DEFINER VIEW aruanne_R86_viited AS
 SELECT
-    `ff`.`isikukood`     AS `isikukood`
-  , `ff`.`kivi`          AS `kivi`
-  , `ff`.`mittekivi`     AS `mittekivi`
-  , `ff`.`rel`           AS `rel`
-  , `ff`.`mr`            AS `mr`
-  , `ff`.`nimekiri`      AS `nimekiri`
-  , `ff`.`kirje`         AS `kirje`
-  , `ff`.`emi_id`        AS `emi_id`
-  , `ff`.`kirje_allikad` AS `kirje_allikad`
+    ff.isikukood     AS isikukood
+  , ff.kivi          AS kivi
+  , ff.mittekivi     AS mittekivi
+  , ff.rel           AS rel
+  , ff.mr            AS mr
+  , ff.nimekiri      AS nimekiri
+  , ff.kirje         AS kirje
+  , ff.emi_id        AS emi_id
+  , ff.kirje_allikad AS kirje_allikad
 FROM (
         select 
-            `kr`.`Isikukood` AS `isikukood`
-          , `kr`.`Kivi`      AS `kivi`
-          , `kr`.`Mittekivi` AS `mittekivi`
-          , `kr`.`REL`       AS `rel`
-          , `kr`.`MR`        AS `mr`
-          , `kr`.`Nimekiri`  AS `nimekiri`
-          , `kr`.`Kirje`     AS `kirje`
-          , `k`.`emi_id`     AS `emi_id`
-          , group_concat(distinct `k`.`Allikas` separator ';') 
-                             AS `kirje_allikad` 
+            kr.Isikukood AS isikukood
+          , kr.Kivi      AS kivi
+          , kr.Mittekivi AS mittekivi
+          , kr.REL       AS rel
+          , kr.MR        AS mr
+          , kr.Nimekiri  AS nimekiri
+          , kr.Kirje     AS kirje
+          , k.emi_id     AS emi_id
+          , group_concat(distinct k.Allikas separator ';') 
+                             AS kirje_allikad 
         from (
-                `kylli`.`kirjed` `kr` 
-                left join `kylli`.`kirjed` `k` 
-                       on `kr`.`emi_id` = `k`.`emi_id` 
-                      and `kr`.`Nimekiri` regexp substring_index(`k`.`Allikas`,'-',1)
+                kylli.kirjed kr 
+                left join kylli.kirjed k 
+                       on kr.emi_id = k.emi_id 
+                      and kr.Nimekiri regexp substring_index(k.Allikas,'-',1)
         )
-        where `kr`.`Allikas` = 'R86' 
-        group by `k`.`emi_id`
-) `ff` 
-WHERE `ff`.`kirje_allikad` not regexp `ff`.`nimekiri`;
+        where kr.Allikas = 'R86' 
+        group by k.emi_id
+) ff 
+WHERE ff.kirje_allikad not regexp ff.nimekiri;
 
 
-CREATE or replace TABLE `aruanne_määra_r7_seoseid` (
-  `koodid` varchar(23) DEFAULT NULL,
-  `kirjed1` text DEFAULT NULL,
-  `kasSama` enum('Jah','Ei','Uurida','Arhiiv','Imporditud') DEFAULT NULL,
-  `kirjed2` text DEFAULT NULL
+CREATE or replace TABLE aruanne_määra_r7_seoseid (
+  koodid varchar(23) DEFAULT NULL,
+  kirjed1 text DEFAULT NULL,
+  kasSama enum('Jah','Ei','Uurida','Arhiiv','Imporditud') DEFAULT NULL,
+  kirjed2 text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
 AS
 SELECT koodid.koodid,
@@ -183,3 +183,20 @@ FROM (
 left join EMIR e1 on e1.id = SUBSTRING_INDEX(koodid.koodid, ',', 1)
 left join EMIR e2 on e2.id = SUBSTRING_INDEX(koodid.koodid, ',', -1)
 ;
+
+
+
+CREATE OR REPLACE algorithm=undefined definer=michelek@localhost SQL security definer view aruanne_nimekujud_topelt
+AS 
+  SELECT concat('WHERE emi_id IN (SELECT emi_id FROM kirjed WHERE isikukood IN (', k1.isikukood, ',', k2.isikukood, '))')
+            k1.kirje AS kirje1, 
+            k2.kirje AS kirje2,
+            e.kirjed
+  FROM kirjed k1 
+  LEFT JOIN kirjed k2 ON k1.emi_id = k2.emi_id 
+                     AND k1.isikukood < k2.isikukood
+  LEFT JOIN EMIR e on e.id = k1.emi_id
+  WHERE     k1.allikas = 'Nimekujud' 
+  AND       k2.allikas = 'Nimekujud' 
+  AND       k1.ekslikkanne = '' 
+  AND       k2.ekslikkanne = '';
