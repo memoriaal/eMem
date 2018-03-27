@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EW100 Memoriaal</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <script src="https://cdn.rawgit.com/memoriaal/eMem/master/node_modules/angular/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.23/angular-sanitize.min.js"></script>
+    <script src="https://cdn.rawgit.com/memoriaal/eMem/master/node_modules/elasticsearch-browser/elasticsearch.angular.min.js"></script>
+    <script src="https://cdn.rawgit.com/memoriaal/eMem/master/lib/elastic.js"></script>
+    <script src="https://cdn.rawgit.com/memoriaal/eMem/master/lib/elasticui.min.js"></script>
+    <style>
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            z-index: 1000;
+            display: block;
+            padding: 20px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            background-color: #f5f5f5;
+            border-right: 1px solid #eee;
+        }
+
+        .instructions {
+            display: block;
+            margin: 0 auto;
+            width: 450px;
+        }
+
+        .isikukaart {
+          float:left;
+          padding:0.5em;
+          margin:0.5em;
+          margin-right:0.5em;
+          border:black 1px dashed;
+        }
+        .isikukaart > p {
+          padding: 0px;
+          margin: 0px;
+        }
+        .isikukaart.must {
+          color: white;
+          background-color: black;
+        }
+        .isikukaart.valge {
+          color: dark-gray;
+          background-color: white;
+        }
+        pre {
+          white-space:  pre-wrap;       /* css-3 */
+          white-space:  -moz-pre-wrap;  /* Mozilla, since 1999 */
+          white-space:  -pre-wrap;      /* Opera 4-6 */
+          white-space:  -o-pre-wrap;    /* Opera 7 */
+          word-wrap:    break-word;     /* Internet Explorer 5.5+ */
+          word-break:   break-word;
+          padding-left: 1.5em;
+          text-indent:  -1.5em;
+        }
+        .intro {
+          font-size: 1.2em;
+          font-family: sans-serif;
+          margin-top: 1em;
+          margin-bottom: 1em;
+        }
+        .rong {
+          font-size: 0.5em;
+          font-family: monospace;
+          margin-top: 1em;
+          margin-bottom: 1em;
+        }
+
+    </style>
+    <script>
+        angular
+            .module('tutorial', ['elasticui','ngSanitize'])
+            .constant('euiHost', 'https://reader:reader@94abc9318c712977e8c684628aa5ea0f.us-east-1.aws.found.io:9243');
+    </script>
+    <script>
+        function setFeedback() {
+          document.getElementById('feedback0')
+            .setAttribute('onclick', 'location.href = \'mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt '
+                                + '"' + document.getElementById('query').value + '"'
+                                + '&body='
+                                + document.getElementById('comment').value.replace(/\n/g,'%0D%0A')
+                                + '\''
+            )
+        }
+    </script>
+
+</head>
+<body ng-app="tutorial" eui-index="'kisikud'" eui-highlight="ejs.Highlight(['emi_id']).preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
+      eui-highlight="ejs.Highlight(kirjed).preTags('<b>').postTags('</b>')"
+      eui-enabled="true">
+
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-xs-3 col-lg-2 sidebar">
+                <div eui-and-filter>
+                  <!-- <div><eui-searchbox id="searchbox" field="'allikad.kirje'" ng-click="indexVM.page=1"></eui-searchbox> </div> -->
+                  <input id="query" type="text" eui-query="ejs.DisMaxQuery().queries(ejs.QueryStringQuery(querystring).defaultField('_all').defaultOperator('AND').boost(1.0)).queries(ejs.MatchQuery('_all', querystring).boost(0.1))"
+                    ng-model="querystring" eui-enabled="querystring.length"
+                    ng-click="indexVM.page=1"
+                    placeholder="Otsi"
+                    onchange="setFeedback()"
+                    autofocus />
+                  <!-- <div>Perenimi:<br/><eui-searchbox field="'Perenimi'" ng-click="indexVM.page=1"></eui-searchbox> </div> -->
+                </div>
+
+                <div ng-if="indexVM.results.hits.total > 0">
+                  {{ indexVM.results.hits.total }} kirje{{indexVM.results.hits.total === 1 ? '' : 't'}}
+                </div>
+                <div ng-if="indexVM.results.hits.total === 0">
+                  pole ühtegi
+                </div>
+
+                <hr/>
+                <div class="row form-group">
+                  <textarea id="comment" class="form-control" rows="5"
+                    label="Palun lisage siia puuduva isiku ees-, pere- ja Isanimi ning võimalusel ka sünni- ja surmadaatumid"
+                    placeholder="Palun lisage siia puuduva isiku ees-, pere- ja Isanimi ning võimalusel ka sünni- ja surmadaatumid."
+                    onChange="setFeedback()"></textarea>
+                  <!-- <a id="feedback0" href="">Tagasiside puuduva kirje kohta</a> -->
+                  <input id="feedback0" type="button" class="btn btn-info" value="Tagasiside puuduva kirje kohta" onclick="location.href = 'www.google.com';">
+                </div>
+
+                <!-- <select ng-model="indexVM.pageSize">
+                    <option ng-repeat="item in [10, 20, 50, 100]">{{item}}</option>
+                </select> Kirjet lehel -->
+            </div>
+
+            <div class="col-xs-9 col-xs-offset-3 col-lg-10 col-lg-offset-2 main" ng-if="indexVM.query == null ? true : false">
+
+                <pre class="rong">            __  __                                     _                       _
+    o O O|  \/  |   ___    _ __     ___      _ _    (_)    __ _    __ _     | |
+   o     | |\/| |  / -_)  | '  \   / _ \    | '_|   | |   / _` |  / _` |    | |
+  TS__[O]|_|__|_|  \___|  |_|_|_|  \___/   _|_|_   _|_|_  \__,_|  \__,_|   _|_|_
+ {======|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|
+./o--000'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'
+</pre>
+                <h1>EESTI KOMMUNISMIOHVRID 1940–1991</h1>
+
+                <div class="intro">
+                  2018. aastal avatakse Tallinnas Maarjamäel memoriaal kommunistliku
+                  režiimi terrori ohvritele Eestis 1940-1991. Memoriaali mälestusseinale
+                  kantakse teadaolevalt terrori käigus mõrvatud või hukkunud Eesti
+                  inimeste nimed koos nende sünni- ja surmaajaga. SA Eesti Mälu
+                  Instituut tegeleb ohvrite nimekirjade ja nende andmete
+                  korrastamisega.
+                </div>
+
+                <div class="intro">
+                  Isikute nimed koos sünni- ja surma-aastaga kantakse memoriaalile
+                  alaliselt ning nende hilisem muutmine on väga keerukas. Seetõttu
+                  palume teid eksimuste leidmise korral meiega ühendust võtta, lisades
+                  oma kontaktandmed, et saaksime vajadusel teiega täiendavalt
+                  ühendust võtta. Oleme väga tänulikud teie poolt tehtavate paranduste
+                  ja täienduste eest. Tegemist on ajas muutuva ja täieneva
+                  andmekoguga, mistõttu võib ühe isiku kohta olla mitu kirjet, kui
+                  erinevad allikad on veel sidumata. Nimekiri täieneb ja muutub
+                  jooksvalt min. üks kord nädalas.
+                </div>
+
+                <div class="intro">
+                  Kommunismiohvrite memoriaali puhul <u>käsitletakse terrori ohvritena ja
+                  kantakse mälestusseinale</u> esmajoones isikuid kes:
+                  <ul>
+                    <li>on aastatel 1940-1991 Nõukogude Liidu okupatsioonivõimu poolt
+                      <b>kohtuväliselt represseeritud ja alusetult süüdimõistetud
+                      ning</b> rehabiliteeritud vastavalt Eesti Vabariigi seadusele
+                      kohtuväliselt represseeritud ja alusetult süüdimõistetud isikute
+                      rehabiliteerimise kohta;</li>
+                    <li>on teadaolevalt mõrvatud Nõukogude võimuesindajate vahetu
+                      isikuvastase ründe tagajärjel.</li>
+                  </ul>
+                 
+                </div>
+
+                <div class="intro">
+                  Kommunismiohvrite memoriaali puhul <u>ei käsitleta terrori ohvritena ega
+                  kanta mälestusseinale</u> inimeste nimesid, kes:
+                  <ul>
+                    <li>langesid 1940/1941 metsavennana või Omakaitse liikmena
+                      lahingutes Nõukogude võimuga;</li>
+                    <li>hukkusid sõjaohritena lahingutegevuse tagajärjel;</li>
+                    <li>lahkusid 1941. aasta suvel Eestist evakueeritavatena
+                      Nõukogude tagalasse ja surid seal ilma, et nende suhtes oleks
+                      kohaldatud repressioone;</li>
+                    <li>mobiliseeriti 1941. aasta suvel Punaarmeesse ja surid
+                      Nõukogude tagalas tööpataljonides haiguste, ebainimlike
+                      elamistingimuste või selgelt tuvastamata asjaolude tõttu.
+                      Ohvritena käsitletakse isikuid, kes tööpataljonis olles poliitilistel
+                      põhjustel arreteeriti ning kohtu alla anti;</li>
+                    <li>sõja kestel Punaarmee üksuste koosseisus lahingutegevuses
+                      langenud või muus sõjaolukorras surnud isikuid;</li>
+                    <li>langesid kommunistliku terrori ohvritena, kuid olid ise osalenud
+                      võitlustes Nõukogude hävituspataljonide ridades või astunud
+                      kommunistliku partei liikmeks enne 1954. aastat.</li>
+                  </ul>
+                 
+                </div>
+
+                <div class="intro">
+                  Käesoleva otsingu kaudu on teil võimalus kontrollida, kas teile
+                  teadaolev isik, kes Nõukogude repressioonide käigus (olles vanglas,
+                  laagris või küüditatuna asumispaigas) hukkus, on memoriaali
+                  andmebaasi kantud ning kas tema kohta käivad andmed on teie
+                  teadmiste kohaselt õiged. Kui teie hinnangul on vasakpoolses kastis
+                  esitatud andmetes vigu, teie poolt otsitav isik esineb erinevate
+                  nimekujude all korduvalt vms, siis palun informeerige meid sellest
+                  tagasiside vormi kaudu. 
+                </div>
+
+                <div class="intro">
+                  Kui teie poolt otsitava isiku kohta andmeid üldse ei leidu, siis palun
+                  saatke meile tagasiside puuduva kirje kohta.
+                </div>
+
+                <div class="intro">
+                  Antud andmestik ei sisalda veel isikuid, kes olid represseeritud, kuid
+                  kes vabanesid kinnipidamiskohast või asumiselt. Nende isikute
+                  andmed avatakse tutvumiseks esimesel võimalusel.
+                </div>
+
+                <div class="intro">
+                  Tagasiside tõrgete korral kirjutage palun aadressil:
+                  memoriaal@mnemosyne.ee
+                </div>
+
+                <p><hr>SA Eesti Mälu Instituut<br>
+                Suur-Ameerika 12, 10119, Tallinn<br>
+                E-mail: info@mnemosyne.ee<br>
+                Telefon: 6645039</pre>
+            </div>
+            <div class="col-xs-9 col-xs-offset-3 col-lg-10 col-lg-offset-2 main" ng-if="indexVM.query == null ? false : true">
+                <!-- <h1><eui-simple-paging></eui-simple-paging></h1> -->
+                <ul class="pager">
+                    <li ng-class="{hidden:indexVM.page <= 1}"><a href="" ng-click="indexVM.page=1">Esimene</a></li>
+                    <li ng-class="{hidden:indexVM.page <= 1}"><a href="" ng-click="indexVM.page=indexVM.page - 1">Eelmine</a></li>
+                    <li ng-class="{hidden:indexVM.pageCount <= indexVM.page}"><a href="" ng-click="indexVM.page=indexVM.page + 1">Järgmine</a></li>
+                </ul>
+
+                <div ng-repeat="doc in indexVM.results.hits.hits">
+                    <div class="row">
+                      <div class="isikukaart {{doc._source.kasHukkunud === '1' ? 'must' : 'valge'}}">
+                        <p>p: {{doc._source.Perenimi}}</p>
+                        <p>e: {{doc._source.Eesnimi}}</p>
+                        <!-- <p>i: {{doc._source['Isanimi'] === 'NULL' ? '???' : doc._source['Isanimi']}}</p> -->
+                        <p>{{doc._source['Sünd'] === '' ? '???' : doc._source['Sünd']}}
+                         - {{doc._source['Surm'] === '' ? '???' : doc._source['Surm']}}</p>
+                        <p>id: {{doc._source.emi_id}}</p>
+                        <!-- <pre>{{doc._source}}</pre> -->
+                        <div class="btn-group">
+                          <a class="btn btn-sm active {{doc._source.kasHukkunud === '1' ? 'btn-info' : 'btn-primary'}}" href="mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.Perenimi}}, {{doc._source.Eesnimi}}, {{doc._source.Isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.emi_id}}">Tagasiside selle kirje kohta</a>
+                        </div>
+                      </div>
+                      <div style="overflow: auto;">
+                        <li ng-repeat="allikas in doc._source.allikad">
+                          <span ng-bind-html="allikas.kirje"></span><br/>
+                          <!-- <a href="{{allikas.allikas.href}}">{{ allikas.allikas.text }}</a> -->
+                          <span>[{{ allikas.isikukood }}]</span>
+                          <span>{{ allikas.allikas.text }}</span>
+                        </li>
+                        <!-- <input type="button" class="btn btn-info" value="Tagasiside selle kirje kohta" onclick="location.href = 'mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.Perenimi}}, {{doc._source.Eesnimi}}, {{doc._source.Isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}';"> -->
+                      </div>
+                    </div>
+                    <hr/>
+                </div>
+
+                <ul class="pager">
+                    <li ng-class="{hidden:indexVM.page <= 1}"><a href="" ng-click="indexVM.page=1">Esimene</a></li>
+                    <li ng-class="{hidden:indexVM.page <= 1}"><a href="" ng-click="indexVM.page=indexVM.page - 1">Eelmine</a></li>
+                    <li ng-class="{hidden:indexVM.pageCount <= indexVM.page}"><a href="" ng-click="indexVM.page=indexVM.page + 1">Järgmine</a></li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+</body>
+</html>
