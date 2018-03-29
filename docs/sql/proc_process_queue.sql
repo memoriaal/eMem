@@ -57,6 +57,9 @@ proc_label:BEGIN
         IF _task = 'Remove connection' THEN
             CALL remove_connection(_ik1, _ik2);
         END IF;
+        IF _task = 'Remove record' THEN
+            CALL remove_record(_ik1);
+        END IF;
         IF _task = 'Check EMI record' THEN
             CALL EMI_check_record(_ik1, _params);
         END IF;
@@ -74,7 +77,7 @@ proc_label:BEGIN
             CALL import_from_rk(_ik1);
         END IF;
         IF _task = 'Import from RR' THEN
-            CALL import_from_rahvastikuregiste(_ik1);
+            CALL import_from_rr(_ik1);
         END IF;
         IF _task = 'Import from pereregister' THEN
             CALL import_from_pereregister(_ik1, _ik2, _user);
