@@ -8,6 +8,13 @@ proc_label:BEGIN
 
     SET NEW.user = user();
 
+    IF NEW.kustuta IS NOT NULL 
+    THEN
+        INSERT IGNORE INTO z_queue (isikukood1, task, user)
+        VALUES (NEW.isikukood, 'Remove record', NEW.user);
+        LEAVE proc_label;
+    END IF;
+
     -- Isikukoodi muutmine pole lubatud
     IF NEW.isikukood != OLD.isikukood
     THEN
