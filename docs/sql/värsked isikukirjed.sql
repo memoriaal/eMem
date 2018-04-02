@@ -1,6 +1,6 @@
 
 
-CREATE or replace TABLE `_nk_kirjed` (
+CREATE or replace TABLE `_nk_kirjed2` (
   `kirjekood` varchar(10) NOT NULL,
   `seos` varchar(10) NOT NULL,
   `perenimi` mediumtext CHARACTER SET utf8 COLLATE utf8_estonian_ci DEFAULT NULL,
@@ -48,6 +48,7 @@ INSERT INTO _nk_kirjed
       and k.EkslikKanne = ''
       and k.Puudulik = ''
       and k.Peatatud = ''
+      and k.allikas NOT IN ('Nimekujud', 'R86')
       group by k.emi_id
 ;
 
