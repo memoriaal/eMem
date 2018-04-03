@@ -88,12 +88,12 @@ proc_label:BEGIN
         IF _task = 'Rollback prior to' THEN
             CALL rollback_prior_to(_ik1, _params);
         END IF;
-        IF _task = 'Add label' THEN
-            CALL add_label(_ik1, _params, _user);
+        IF _task = 'Update label' THEN
+            CALL update_label(_ik1, _params, _user);
         END IF;
-        IF _task = 'Remove label' THEN
-            CALL remove_label(_ik1, _params, _user);
-        END IF;
+        -- IF _task = 'Remove label' THEN
+        --     CALL remove_label(_ik1, _params, _user);
+        -- END IF;
 
         DELETE FROM z_queue WHERE id = _id and rdy = 1;
         -- UPDATE z_queue SET rdy = rdy + 1 WHERE id = _id;

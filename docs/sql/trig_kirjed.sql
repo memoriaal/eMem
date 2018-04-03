@@ -119,7 +119,7 @@ proc_label:BEGIN
     IF !ISNULL(NEW.silt)
     THEN
         INSERT IGNORE INTO z_queue (isikukood1, task, params, user)
-        VALUES (NEW.isikukood, 'Add label', NEW.silt, NEW.user);
+        VALUES (NEW.isikukood, 'Update label', NEW.silt, NEW.user);
         SET NEW.silt = NULL;
     END if;
 
