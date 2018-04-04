@@ -60,6 +60,9 @@ proc_label:BEGIN
         IF _task = 'Remove record' THEN
             CALL remove_record(_ik1);
         END IF;
+        IF _task = 'Refresh NK' THEN
+            CALL NK_refresh(_emi_id);
+        END IF;
         IF _task = 'Check EMI record' THEN
             CALL EMI_check_record(_ik1, _params);
         END IF;

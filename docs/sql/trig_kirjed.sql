@@ -123,24 +123,6 @@ proc_label:BEGIN
         SET NEW.silt = NULL;
     END if;
 
-    -- Kui muutunud on nimekuju kirje, siis taasta kirje väli
-    IF NEW.Allikas = 'Nimekujud'
-    THEN
-      SET NEW.kirje = 
-      concat_ws('. '
-        , concat_ws(', '
-          , if(NEW.perenimi='',NULL,NEW.perenimi)
-          , if(NEW.eesnimi='',NULL,NEW.eesnimi)
-          , if(NEW.isanimi='',NULL,NEW.isanimi)
-          , if(NEW.emanimi='',NULL,NEW.emanimi)
-        )
-        , concat_ws(' - '
-          , if(NEW.sünd='', NULL, concat('Sünd ', NEW.sünd))
-          , if(NEW.surm='', NULL, concat('Surm ', NEW.surm))
-        )
-      );
-    END IF;
-
 END;;
 
 
@@ -192,6 +174,11 @@ begin
 
         INSERT IGNORE INTO z_queue (isikukood1, task, params, user)
         VALUES (NEW.isikukood, 'Check EMI record', OLD.emi_id, NEW.user);
+
+        -- Muutunud kirje NK vajab uuendamist
+        INSERT IGNORE INTO z_queue (emi_id, task, params, user)
+        VALUES (NEW.emi_id, 'Refresh NK', NULL, NEW.user);
+
   END IF;
   
   IF OLD.emi_id <> NEW.emi_id
@@ -199,6 +186,7 @@ begin
       INSERT IGNORE INTO z_queue (emi_id, task, params, user)
       VALUES (OLD.emi_id, 'Create EMI reference', NEW.emi_id, NEW.user);
   END IF;
+
 end;;
 
 
