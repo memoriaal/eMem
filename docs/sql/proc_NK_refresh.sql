@@ -3,16 +3,16 @@ CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `NK_refresh`(IN _emi_id 
 proc_label:BEGIN
 
   SET @ik = NULL;
-  
+
   SELECT isikukood INTO @ik
   FROM kirjed
   WHERE emi_id = _emi_id
   AND allikas = 'Nimekujud'
   LIMIT 1;
-  
+
   -- Kui pole NK kirjet
   IF @ik IS NULL THEN
-    
+
     SELECT COUNT(1) INTO @cnt FROM kirjed k
     WHERE k.emi_id = _emi_id
     AND k.MR != '!'
@@ -21,20 +21,20 @@ proc_label:BEGIN
       SELECT Kood FROM allikad
       WHERE nonPerson = 1
     );
-    
+
     IF @cnt = 0 THEN
       LEAVE proc_label;
     END IF;
-    
+
     INSERT INTO kirjed (isikukood, emi_id, allikas)
     SELECT lpad(max(right(isikukood, 7))+1, 10, 'NK-0000000') AS isikukood
-         , 1 as emi_id 
+         , _emi_id as emi_id 
          , 'Nimekujud' as allikas
       FROM kirjed where allikas = 'Nimekujud';
-    
+
   END IF;
-  
-  
+
+
   update kirjed k left join
   (
         SELECT nk.isikukood
@@ -78,7 +78,7 @@ proc_label:BEGIN
     , k.emanimi = ifnull(nimekuju.emanimi, '')
     , k.sünd = ifnull(nimekuju.sünd, '')
     , k.surm = ifnull(nimekuju.surm, '')
-    , kirje = 
+    , kirje =
       concat_ws('. '
         , concat_ws(', '
           , if(nimekuju.perenimi='',NULL,nimekuju.perenimi)
