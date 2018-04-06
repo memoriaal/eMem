@@ -6,10 +6,11 @@ const fs = require('fs')
 var first_line_is_for_labels = true
 
 const ES_CREDENTIALS = process.env.ES_CREDENTIALS
-const INDEX = process.env.INDEX | 'Default'
+const INDEX = process.env.INDEX
 const SOURCE = process.env.SOURCE
 const QUEUE_LENGTH = 1
-const BULK_SIZE = 4100
+const BULK_SIZE = 41
+// const BULK_SIZE = 4100
 const START_TIME = Date.now()
 
 
@@ -24,40 +25,105 @@ const convertLinks = function convertLinks(text) {
 
 var csv = require("fast-csv");
 var labels = []
-csv
-  .fromPath(SOURCE)
-  .on("data", function(data) {
-    if (first_line_is_for_labels) {
-      first_line_is_for_labels = false
-      labels = data
-      return
-    }
-    let isik = {}
-    // console.log(data);
-    for (var i = 0; i < labels.length; i++) {
-      // console.log(data[i]);
-      isik[labels[i]] = data[i].replace(/@/g, '"')
-    }
-
-    save2db(isik, function(error) {
-      if (error) {
-        console.log(error)
-        process.exit(1)
-      } else {
-        // console.log('created ', isik.id)
-      }
-    })
- } )
- .on("end", function(){
-     console.log("done with reading");
- });
 
 
 const elasticsearch = require('elasticsearch')
 const esClient = new elasticsearch.Client({
-  host: 'https://' + process.env.ES_CREDENTIALS + '@94abc9318c712977e8c684628aa5ea0f.us-east-1.aws.found.io:9243',
+  host: 'https://' + ES_CREDENTIALS + '@94abc9318c712977e8c684628aa5ea0f.us-east-1.aws.found.io:9243',
   // log: 'trace'
 })
+
+const kirje2obj = function(kirje) {
+  let o_kirje = {}
+  ksplit = kirje.split('|')
+  o_kirje.kirjekood = ksplit.shift()
+  o_kirje.kirje = ksplit.join('|')
+  return o_kirje
+}
+
+
+console.log('start 0')
+
+
+async.series({
+  delete: function(callback) {
+    esClient.indices.delete(
+      {index: INDEX},
+      function(err,resp,status) {
+        console.log("delete", resp)
+        callback(null, resp)
+      }
+    )
+  },
+  create: function(callback) {
+    esClient.indices.create(
+      {index: INDEX},
+      function(err,resp,status) {
+        if(err) {
+          console.log(err);
+          callback(err)
+        }
+        else {
+          console.log("create", resp);
+          callback(null, resp)
+        }
+      }
+    )
+  },
+  reading: function(callback) {
+    csv
+      .fromPath(SOURCE)
+      .on("data", function(data) {
+        if (first_line_is_for_labels) {
+          first_line_is_for_labels = false
+          labels = data
+          return
+        }
+        let isik = {}
+        // console.log(data);
+        for (var i = 0; i < labels.length; i++) {
+          // console.log('--> ', data[i]);
+          if (data[i] !== undefined) {
+            isik[labels[i]] = data[i].replace(/@/g, '"')
+          }
+        }
+        isik['kirjed'] = isik['kirjed'].split('\n')
+        .filter((kirje) => kirje !== '')
+        .map((kirje) => {
+          return kirje2obj(kirje)
+        })
+        isik['pereseos'] = isik['pereseos'].split('\n')
+        .filter((kirje) => kirje !== '')
+        .map((kirje) => {
+          return kirje2obj(kirje)
+        })
+
+        save2db(isik, function(error) {
+          if (error) {
+            console.log(error)
+            process.exit(1)
+          } else {
+            // console.log('created ', isik.id)
+          }
+        })
+     } )
+     .on("end", function(){
+         console.log("done with reading");
+         callback(null, "done with reading")
+     });
+  },
+  count: function(callback) {
+    esClient.count({index: INDEX},function(err,resp,status) {
+      callback(null, resp);
+    })
+  }
+}, function(err, results) {
+  console.log(results)
+})
+
+console.log('finito 1')
+
+
 
 const queue = require('async/queue')
 let rec_no = 1
@@ -79,8 +145,8 @@ var q = queue(function(tasks, callback) {
   })
 }, QUEUE_LENGTH)
 
-q.drain = function() {
 
+q.drain = function() {
 
   save2db(false, function(error) {
     if (error) {
@@ -88,7 +154,7 @@ q.drain = function() {
       process.exit(1)
     } else {
       console.log('all items have been processed 2')
-      
+
       esClient.count({
         index: INDEX
       }, function (error, response) {

@@ -87,12 +87,20 @@
                                 + '\''
             )
         }
+        function initQuery() {
+          document.getElementById('query').value = window.location.hash.substr(1);
+        }
+        function setQuery(a) {
+          // console.log(a.childNodes[1]);
+          document.getElementById('query')setAttribute('value', a.childNodes[1].innerHTML);
+        }
     </script>
 
 </head>
-<body ng-app="tutorial" eui-index="'kisikud'" eui-highlight="ejs.Highlight(['emi_id']).preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
+<body ng-app="tutorial" eui-index="'persons'" eui-highlight="ejs.Highlight(['emi_id']).preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
       eui-highlight="ejs.Highlight(kirjed).preTags('<b>').postTags('</b>')"
-      eui-enabled="true">
+      eui-enabled="true"
+      onload="initQuery()">
 
     <div class="container-fluid">
 
@@ -139,7 +147,7 @@
   TS__[O]|_|__|_|  \___|  |_|_|_|  \___/   _|_|_   _|_|_  \__,_|  \__,_|   _|_|_
  {======|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|
 ./o--000'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'
-</pre>
+            </pre>
                 <h1>EESTI KOMMUNISMIOHVRID 1940–1991</h1>
 
                 <div class="intro">
@@ -175,7 +183,7 @@
                     <li>on teadaolevalt mõrvatud Nõukogude võimuesindajate vahetu
                       isikuvastase ründe tagajärjel.</li>
                   </ul>
-                 
+
                 </div>
 
                 <div class="intro">
@@ -199,7 +207,7 @@
                       võitlustes Nõukogude hävituspataljonide ridades või astunud
                       kommunistliku partei liikmeks enne 1954. aastat.</li>
                   </ul>
-                 
+
                 </div>
 
                 <div class="intro">
@@ -210,7 +218,7 @@
                   teadmiste kohaselt õiged. Kui teie hinnangul on vasakpoolses kastis
                   esitatud andmetes vigu, teie poolt otsitav isik esineb erinevate
                   nimekujude all korduvalt vms, siis palun informeerige meid sellest
-                  tagasiside vormi kaudu. 
+                  tagasiside vormi kaudu.
                 </div>
 
                 <div class="intro">
@@ -244,27 +252,41 @@
 
                 <div ng-repeat="doc in indexVM.results.hits.hits">
                     <div class="row">
-                      <div class="isikukaart {{doc._source.kasHukkunud === '1' ? 'must' : 'valge'}}">
-                        <p>p: {{doc._source.Perenimi}}</p>
-                        <p>e: {{doc._source.Eesnimi}}</p>
+                      <div class="isikukaart {{doc._source.kivi === '!' ? 'must' : 'valge'}}">
+                        <p>p: {{doc._source.perenimi}}</p>
+                        <p>e: {{doc._source.eesnimi}}</p>
+                        <p>isa: {{doc._source.isanimi}}</p>
+                        <p>ema: {{doc._source.emanimi}}</p>
                         <!-- <p>i: {{doc._source['Isanimi'] === 'NULL' ? '???' : doc._source['Isanimi']}}</p> -->
-                        <p>{{doc._source['Sünd'] === '' ? '???' : doc._source['Sünd']}}
-                         - {{doc._source['Surm'] === '' ? '???' : doc._source['Surm']}}</p>
-                        <p>id: {{doc._source.emi_id}}</p>
+                        <p>{{doc._source['sünd'] === '' ? '???' : doc._source['sünd']}}
+                         - {{doc._source['surm'] === '' ? '???' : doc._source['surm']}}</p>
+                        <p>id: {{doc._source.id}}</p>
                         <!-- <pre>{{doc._source}}</pre> -->
                         <div class="btn-group">
-                          <a class="btn btn-sm active {{doc._source.kasHukkunud === '1' ? 'btn-info' : 'btn-primary'}}" href="mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.Perenimi}}, {{doc._source.Eesnimi}}, {{doc._source.Isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.emi_id}}">Tagasiside selle kirje kohta</a>
+                          <a class="btn btn-sm active {{doc._source.kivi === '!' ? 'btn-info' : 'btn-primary'}}" href="mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.Perenimi}}, {{doc._source.Eesnimi}}, {{doc._source.Isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.emi_id}}">Tagasiside selle kirje kohta</a>
                         </div>
                       </div>
                       <div style="overflow: auto;">
-                        <li ng-repeat="allikas in doc._source.allikad">
-                          <span ng-bind-html="allikas.kirje"></span><br/>
+                        <li ng-repeat="kirje in doc._source.kirjed">
+                          <a href="" onclick="setQuery(this)">
+                            <span ng-bind-html="kirje.kirjekood"></span><br/>
+                            <span ng-bind-html="kirje.kirje"></span><br/>
+                          </a>
                           <!-- <a href="{{allikas.allikas.href}}">{{ allikas.allikas.text }}</a> -->
-                          <span>[{{ allikas.isikukood }}]</span>
-                          <span>{{ allikas.allikas.text }}</span>
+                          <!-- <span>[{{ allikas.isikukood }}]</span> -->
+                          <!-- <span>{{ allikas.allikas.text }}</span> -->
+                        </li>
+                        <hr/>
+                        <li ng-repeat="kirje in doc._source.pereseos">
+                          <span ng-bind-html="kirje.kirjekood"></span><br/>
+                          <span ng-bind-html="kirje.kirje"></span><br/>
+                          <!-- <a href="{{allikas.allikas.href}}">{{ allikas.allikas.text }}</a> -->
+                          <!-- <span>[{{ allikas.isikukood }}]</span> -->
+                          <!-- <span>{{ allikas.allikas.text }}</span> -->
                         </li>
                         <!-- <input type="button" class="btn btn-info" value="Tagasiside selle kirje kohta" onclick="location.href = 'mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.Perenimi}}, {{doc._source.Eesnimi}}, {{doc._source.Isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}';"> -->
                       </div>
+                      <pre>{{doc._source}}</pre>
                     </div>
                     <hr/>
                 </div>

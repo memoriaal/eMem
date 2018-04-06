@@ -8,7 +8,7 @@ const esClient = new elasticsearch.Client({
   // log: 'trace'
 })
 esClient.indices.delete(
-  {index: INDEX}, 
+  {index: INDEX},
   (err, response) => {
     console.log(require('util').inspect(err, { depth: null }))
     console.log(require('util').inspect(response, { depth: null }))
