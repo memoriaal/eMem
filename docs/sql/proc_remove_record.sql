@@ -6,6 +6,11 @@ BEGIN
 
   UPDATE `pereregister` SET seos = isikukood WHERE seos = _ik;
   UPDATE `rahvastikuregister` SET seos = kirjekood WHERE seos = _ik;
+
+  UPDATE `_r86_2017_12` SET seos = isikukood WHERE seos = _ik;
+  UPDATE `_r86_2017_12` SET kahtlusseos = isikukood WHERE kahtlusseos = _ik;
+  UPDATE `_r86_2017_12` SET kahtlusseos2 = isikukood WHERE kahtlusseos2 = _ik;
+
   DELETE FROM `kirjesildid` WHERE `kirjekood` = _ik;
   DELETE FROM seosed WHERE isikukood1 = _ik;
   DELETE FROM seosed WHERE isikukood2 = _ik;

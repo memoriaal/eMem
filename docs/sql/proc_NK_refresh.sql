@@ -2,6 +2,7 @@ DELIMITER ;;
 CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `NK_refresh`(IN _emi_id INT(11) UNSIGNED)
 proc_label:BEGIN
 
+  SET @user = user();
   SET @ik = NULL;
 
   SELECT isikukood INTO @ik
@@ -15,7 +16,7 @@ proc_label:BEGIN
 
     SELECT COUNT(1) INTO @cnt FROM kirjed k
     WHERE k.emi_id = _emi_id
-    AND k.MR != '!'
+    -- AND k.MR != '!'
     AND k.Puudulik != '!'
     AND k.Allikas NOT IN (
       SELECT Kood FROM allikad
@@ -26,11 +27,27 @@ proc_label:BEGIN
       LEAVE proc_label;
     END IF;
 
-    INSERT INTO kirjed (isikukood, emi_id, allikas)
-    SELECT lpad(max(right(isikukood, 7))+1, 10, 'NK-0000000') AS isikukood
-         , _emi_id as emi_id 
-         , 'Nimekujud' as allikas
+    SELECT lpad(max(right(isikukood, 7))+1, 10, 'NK-0000000') INTO @ik
       FROM kirjed where allikas = 'Nimekujud';
+
+    INSERT INTO kirjed (isikukood, emi_id, allikas)
+    VALUES (@ik, _emi_id, 'Nimekujud');
+
+    SELECT isikukood INTO @seos FROM kirjed k
+    WHERE k.emi_id = _emi_id
+    -- AND k.MR != '!'
+    AND k.Puudulik != '!'
+    AND k.Allikas NOT IN (
+      SELECT Kood FROM allikad
+      WHERE nonPerson = 1
+    )
+    AND k.isikukood != @ik
+    LIMIT 1;
+
+    INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, user)
+    VALUES (@ik, @seos, 'Create connections', @user);
+    -- INSERT IGNORE INTO z_queue (emi_id, task, params, user)
+    -- VALUES (_emi_id, 'Refresh NK', NULL, @user);
 
   END IF;
 

@@ -9,11 +9,9 @@ const ES_CREDENTIALS = process.env.ES_CREDENTIALS
 const INDEX = process.env.INDEX
 const SOURCE = process.env.SOURCE
 const QUEUE_LENGTH = 1
-const BULK_SIZE = 27
+const BULK_SIZE = 2000
 // const BULK_SIZE = 4100
 const START_TIME = Date.now()
-
-
 
 
 
@@ -36,50 +34,84 @@ const esClient = new elasticsearch.Client({
 
 const kirje2obj = function(kirje) {
   let o_kirje = {}
-  ksplit = kirje.split('|')
+  let ksplit = kirje.split('#|')
+  if (ksplit.length < 3) {
+    console.log('---\n' + kirje)
+  }
   o_kirje.kirjekood = ksplit.shift()
-  o_kirje.kirje = ksplit.join('|')
+  o_kirje.kirje = ksplit.shift()
+  o_kirje.words = o_kirje.kirje.split(' ').slice(0,3).join(' ').replace(/[.,;]/g,'')
+  o_kirje.kirjesaba = ksplit.shift()
+  o_kirje.allikakood = o_kirje.kirjekood.split('-')[0]
+  o_kirje.perekood = o_kirje.kirjekood.slice(0,-2)
+  o_kirje.allikas = nimekiri_o[o_kirje.allikakood]
   return o_kirje
 }
 
 const nimekiri_o = {
+  EMI:  'Represseeritute nimestik',
+  EVO:  'Kommunistliku terrori läbi hukkunud Eesti ohvitserid',
+  JWMR:  'Kommunismiohvritest Eesti juutide andmebaas',
+  KIVI:  'Kommunismiohvrite Memoriaalile kantavate isikute nimestik',
+  LMSS:  'Herbert Lindmäe, Suvesõda 1941',
+  MM:  'Hukkunud metsavendade nimestik',
+  PR:  'Pereregistri andmebaas',
+  R1:  'Poliitilised arreteerimised Eestis 1940–1988',
+  R2:  'Poliitilised arreteerimised Eestis',
+  R3:  'Poliitilised arreteerimised Eestis',
+  R41:  'Märtsiküüditamine 1949',
+  R42:  'Märtsiküüditamine 1949',
   R5:  'Märtsiküüditamine 1949',
   R61: 'Küüditatud 1940',
   R62: 'Küüditatud juunis & juulis 1941',
   R63: 'Sakslastena küüditatud 15.08.1945',
   R64: 'Vahepealsetel aegadel küüditatud 1945-1953',
-  R65: 'Küüditatud usutunnistuse pärast'
+  R65: 'Küüditatud usutunnistuse pärast',
+  R81:  'Represseeritute lisanimestik 1940-1990 (R8/1)',
+  R82:  'Lisanimestik 1940-1990 (R8/2)',
+  R83:  'Eestist 1945-1953 küüditatute nimekiri (R8/3)',
+  RK:  'Poliitilistel põhjustel süüdimõistetud',
+  RR:  'Rahvastikuregister',
+  SJV:  'Nõukogude sõjavangi- ja filterlaagrites hukkunud eestlased',
+  TS:  'Tagasiside veebist memoriaal.ee',
 }
 
 console.log('start 0')
 
 
 async.series({
-  // delete: function(callback) {
-  //   esClient.indices.delete(
-  //     {index: INDEX},
-  //     function(err,resp,status) {
-  //       console.log("delete", resp)
-  //       callback(null, resp)
-  //     }
-  //   )
-  // },
-  // create: function(callback) {
-  //   esClient.indices.create(
-  //     {index: INDEX},
-  //     function(err,resp,status) {
-  //       if(err) {
-  //         console.log(err);
-  //         callback(err)
-  //       }
-  //       else {
-  //         console.log("create", resp);
-  //         callback(null, resp)
-  //       }
-  //     }
-  //   )
-  // },
+  delete: function(callback) {
+    console.log('Deleting ' + INDEX);
+    esClient.indices.delete(
+      {index: INDEX},
+      function(err,resp,status) {
+        console.log("deleted", resp)
+        callback(null, resp)
+      }
+    )
+  },
+  create: function(callback) {
+    console.log('Creating ' + INDEX);
+    esClient.indices.create(
+      { index: INDEX },
+      function(err,resp,status) {
+        if(err) {
+          console.log(err);
+          callback(err)
+        }
+        else {
+          console.log('created', resp);
+          callback(null, resp)
+        }
+      }
+    )
+  },
+  mapping: function(callback) {
+    console.log('Mapping the limits')
+    callback(null)
+  },
   reading: function(callback) {
+    console.log('Reading ' + SOURCE);
     csv
       .fromPath(SOURCE)
       .on("data", function(data) {
@@ -96,36 +128,41 @@ async.series({
             isik[labels[i]] = data[i].replace(/@/g, '"')
           }
         }
-        isik['kirjed'] = isik['kirjed'].split('\n')
+        if (isik.id === '') {
+          return
+        }
+        isik['kirjed'] = isik['kirjed'].split(';\n')
         .filter((kirje) => kirje !== '')
         .map((kirje) => {
           return kirje2obj(kirje)
         })
-        let pereseosed = isik['pereseos'].split('\n')
+        let pereseosed = isik['pereseos'].split(';\n')
         .filter((kirje) => kirje !== '')
         .map((kirje) => {
           return kirje2obj(kirje)
         })
-        isik['pereseos'] = {}
+        let pered = {}
         pereseosed.forEach((kirje) => {
           let perekood = kirje.kirjekood.slice(0,-2)
-          if (isik.pereseos[perekood] === undefined) {
+          if (pered[perekood] === undefined) {
             let nimekiri = nimekiri_o[perekood.split('-')[0]] || '#N/A'
-            isik.pereseos[perekood] = {
+            pered[perekood] = {
               perekood: perekood,
               nimekiri: nimekiri,
               kirjed: []
             }
           }
-          isik.pereseos[perekood]['kirjed'].push(kirje)
+          pered[perekood]['kirjed'].push(kirje)
         })
+        isik['pereseos'] = Object.values(pered)
+        // console.log('Saving ' + isik.id);
+
 
         save2db(isik, function(error) {
           if (error) {
             console.log(error)
             process.exit(1)
           } else {
-            // console.log('created ', isik.id)
           }
         })
      } )
@@ -148,22 +185,43 @@ console.log('finito 1')
 
 
 const queue = require('async/queue')
-let rec_no = 1
+let rec_no = 0
+
 var q = queue(function(tasks, callback) {
   esClient.bulk({
     body: tasks
   }, function (error, response) {
     if (error) {
+      console.log('Error ' + error.status)
       if (error.status === 408) {
         console.log('Timed out')
         q.push(tasks, callback)
         return // callback next time
       }
+      console.log('E: ' + error.status)
       return callback(error)
     }
-    console.log((rec_no * BULK_SIZE) + ' inserted, speed: ' + Math.floor((rec_no * BULK_SIZE)/(Date.now()-START_TIME)*1000) + '/sec')
-    rec_no = rec_no + 1
-    return callback(null)
+    let waitResults = () => {
+      setTimeout(function () {
+        esClient.count({index: INDEX},function(err,resp,status) {
+          let cnt = resp.count
+          rec_no += 1
+          if (rec_no * BULK_SIZE === cnt) {
+            // process.exit(1)
+            console.log((rec_no * BULK_SIZE) + ' inserted, speed: ' + Math.floor((rec_no * BULK_SIZE)/(Date.now()-START_TIME)*1000) + '/sec')
+            return callback(null)
+          }
+          else {
+            console.log(rec_no * BULK_SIZE + '!==' + cnt)
+            // console.log('Response: ', JSON.stringify(response));
+            // rec_no -= 1
+            return callback(null)
+            // waitResults()
+          }
+        })
+      }, 1000);
+    }
+    waitResults()
   })
 }, QUEUE_LENGTH)
 
