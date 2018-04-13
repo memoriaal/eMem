@@ -56,27 +56,27 @@ proc_label:BEGIN
   (
         SELECT nk.isikukood
         , SUBSTRING_INDEX(group_concat(
-            if(k.perenimi = ''   OR a.prioriteetPerenimi = 0, '', UPPER(k.perenimi))
+            if(k.perenimi = ''   OR a.prioriteetPerenimi = 0,  NULL, UPPER(k.perenimi))
             ORDER BY a.prioriteetPerenimi DESC SEPARATOR ';'), ';', 1)
             AS perenimi
         , SUBSTRING_INDEX(group_concat(
-            if(k.eesnimi = ''    OR a.prioriteetEesnimi  = 0,  '', REPLACE(UPPER(k.eesnimi),'ALEKSANDR','ALEKSANDER'))
+            if(k.eesnimi = ''    OR a.prioriteetEesnimi  = 0,  NULL, REPLACE(UPPER(k.eesnimi),'ALEKSANDR','ALEKSANDER'))
             ORDER BY a.prioriteetEesnimi  DESC SEPARATOR ';'), ';', 1)
             AS eesnimi
         , SUBSTRING_INDEX(group_concat(
-            if(k.isanimi = ''    OR a.prioriteetIsanimi  = 0,  '', UPPER(k.isanimi))
+            if(k.isanimi = ''    OR a.prioriteetIsanimi  = 0,  NULL, UPPER(k.isanimi))
             ORDER BY a.prioriteetIsanimi  DESC SEPARATOR ';'), ';', 1)
             AS isanimi
         , SUBSTRING_INDEX(group_concat(
-            if(k.emanimi = ''    OR a.prioriteetEmanimi  = 0,  '', UPPER(k.emanimi))
+            if(k.emanimi = ''    OR a.prioriteetEmanimi  = 0,  NULL, UPPER(k.emanimi))
             ORDER BY a.prioriteetEmanimi  DESC SEPARATOR ';'), ';', 1)
             AS emanimi
         , SUBSTRING_INDEX(group_concat(
-            if(k.sünd = ''       OR a.prioriteetSünd     = 0,  '', LEFT(k.sünd,4))
+            if(k.sünd = ''       OR a.prioriteetSünd     = 0,  NULL, LEFT(k.sünd,4))
             ORDER BY a.prioriteetSünd     DESC SEPARATOR ';'), ';', 1)
             AS sünd
         , SUBSTRING_INDEX(group_concat(
-            if(k.surm = ''       OR a.prioriteetSurm     = 0,  '', LEFT(k.surm,4))
+            if(k.surm = ''       OR a.prioriteetSurm     = 0,  NULL, LEFT(k.surm,4))
             ORDER BY a.prioriteetSurm     DESC SEPARATOR ';'), ';', 1)
             AS surm
         from kirjed k
@@ -85,7 +85,8 @@ proc_label:BEGIN
         where k.EkslikKanne = ''
         and k.Puudulik = ''
         and k.Peatatud = ''
-        and k.allikas NOT IN ('Nimekujud', 'R86')
+        and k.allikas != 'Nimekujud'
+        and k.allikas NOT IN (select kood from allikad where nonperson = 1)
         and nk.isikukood = @ik
         group by k.emi_id
   ) as nimekuju on nimekuju.isikukood = k.isikukood

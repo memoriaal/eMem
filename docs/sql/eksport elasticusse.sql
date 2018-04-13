@@ -22,7 +22,7 @@ AS
            k.kivi           AS `kivi`,
            IFNULL(REPLACE (
              group_concat( DISTINCT
-               IF(a.prioriteetkirje = 0, NULL, concat(k.isikukood,'#|',k.kirje,'#|',a.nimetus))
+               IF(a.prioriteetkirje = 0, NULL, concat(k.isikukood,'#|', k.kirje,'#|', a.nimetus))
                ORDER BY a.prioriteetkirje DESC SEPARATOR ';\n'
              ),
              '"',
@@ -30,7 +30,7 @@ AS
            ), '')           AS `kirjed`,
            IFNULL(REPLACE(
              group_concat(
-               IF(kp.isikukood IS NULL, NULL, concat_ws('#|',kp.isikukood, kp.kirje, ''))
+               IF(kp.isikukood IS NULL, NULL, concat_ws('#|',kp.isikukood, kp.kirje, a.nimetus, kirjekood2nk(kp.isikukood)))
                ORDER BY kp.isikukood ASC SEPARATOR ';\n'
              ),
              '"',
