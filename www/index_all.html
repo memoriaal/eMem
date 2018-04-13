@@ -100,6 +100,24 @@
             .constant('euiHost', 'https://reader:reader@94abc9318c712977e8c684628aa5ea0f.us-east-1.aws.found.io:9243');
     </script>
     <script>
+        window.addEventListener('keydown',function (event) {
+          console.log(event.keyCode)
+          let modifier = event.ctrlKey || event.metaKey
+          console.log(modifier)
+          if (   (modifier && event.keyCode === 70)
+              || event.keyCode === 114
+          ){
+            console.log('captured ' + event.keyCode)
+            let q_element = document.getElementById('query')
+            if (q_element !== document.activeElement) {
+              event.preventDefault()
+              q_element.focus()
+              q_element.setSelectionRange(0, q_element.value.length)
+            }
+          }
+    })
+    </script>
+    <script>
         function setFeedback() {
           document.getElementById('feedback0')
             .setAttribute('onclick', 'location.href = \'mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt '
@@ -129,7 +147,7 @@
             element.fireEvent("onchange")
           }
           window.scrollTo(0,0)
-          setHash(a)
+          setHash(q)
           // console.log('baz');
         }
 
@@ -278,9 +296,8 @@
                         <p>e: {{doc._source.eesnimi}}</p>
                         <p>isa: {{doc._source.isanimi}}</p>
                         <p>ema: {{doc._source.emanimi}}</p>
-                        <!-- <p>i: {{doc._source['Isanimi'] === 'NULL' ? '???' : doc._source['Isanimi']}}</p> -->
-                        <p>{{doc._source['sünd'] === '' ? '???' : doc._source['sünd']}}
-                         - {{doc._source['surm'] === '' ? '???' : doc._source['surm']}}</p>
+                        <p>sünd: {{doc._source['sünd']}}</p>
+                        <p>surm: {{doc._source['surm']}}</p>
                         <p>id: {{doc._source.id}}</p>
                         <!-- <pre>{{doc._source}}</pre> -->
                         <div class="btn-group">
@@ -298,10 +315,10 @@
                           <!-- <span>{{ allikas.allikas.text }}</span> -->
                         </li>
                         <div ng-repeat="pereseos in doc._source.pereseos" class="perekond">
-                          <p class="perekood">Perekond {{pereseos.perekood}}, {{pereseos.nimekiri}}</p>
+                          <p class="perekood">Perekond {{pereseos.perekood}}, {{pereseos.nimekiri}}<br/><span class="light">{{pereseos.kirjed[0].kirjekood}}</span></p>
                           <li ng-repeat="kirje in pereseos.kirjed">
                             <!-- <a href="" onclick="setQuery('{{kirje.kirje.split(' ').slice(0,3).join(' ')}}')">foo</a> -->
-                            <a href="" onclick="setQuery(this.getAttribute('words'))" words={{kirje.words}}>
+                            <a href="" onclick="setQuery(this.getAttribute('words'))" words="{{kirje.words}} {{kirje.kirjekood}}">
                               <span ng-bind-html="kirje.kirjekood"></span><br/>
                               <span ng-bind-html="kirje.kirje"></span><br/>
                             </a>
