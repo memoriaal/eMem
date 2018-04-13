@@ -56,6 +56,24 @@ proc_label:BEGIN
     SET finished = 0;
 
 END;;
+
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE process_from_steady_queue(IN _lim INT(10) UNSIGNED)
+proc_label:BEGIN
+
+  SET @rdy = 101;
+
+  UPDATE z_queue_b SET rdy = @rdy LIMIT _lim;
+
+  INSERT INTO z_queue(id, emi_id, isikukood1, isikukood2, task, params, created, user)
+  SELECT NULL, emi_id, isikukood1, isikukood2, task, params, created, user
+  FROM z_queue_b
+  LIMIT _lim;
+
+  DELETE FROM z_queue_b WHERE rdy = @rdy;
+
+END;;
+
+
 DELIMITER ;
 
 CREATE OR REPLACE EVENT `process_steady_queue`
