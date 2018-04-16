@@ -171,6 +171,9 @@
 
         <div class="row">
             <div class="col-xs-3 col-lg-2 sidebar">
+              <div class="intro">
+                Otsing kõigi kannatanute andmebaasist
+              </div>
                 <div eui-and-filter>
                   <!-- <div><eui-searchbox id="searchbox" field="'allikad.kirje'" ng-click="indexVM.page=1"></eui-searchbox> </div> -->
                   <input id="query" type="text" eui-query="ejs.DisMaxQuery().queries(ejs.QueryStringQuery(querystring).defaultField('_all').defaultOperator('AND').boost(1.0)).queries(ejs.MatchQuery('_all', querystring).boost(0.1))"
@@ -197,6 +200,10 @@
                     onChange="setFeedback()"></textarea>
                   <!-- <a id="feedback0" href="">Tagasiside puuduva kirje kohta</a> -->
                   <input id="feedback0" type="button" class="btn btn-info" value="Tagasiside puuduva kirje kohta" onclick="location.href = 'www.google.com';">
+                </div>
+
+                <div class="intro">
+                  Tagasiside tõrgete korral kirjutage palun aadressil: memoriaal@mnemosyne.ee.
                 </div>
 
                 <!-- <select ng-model="indexVM.pageSize">
@@ -226,7 +233,7 @@
                   Memoriaali mälestusseinale kantavate isikute lõpliku nimekirjaga saate tutvuda <a class="bg-info" style="font-size: 2em; padding: 0.1em" href="http://memoriaal.ee/Kommunismiohvrite%20memoriaali%20nimekiri.html">siin</a>. Edasised parandused on võimalik sisse viia vaid elektroonilisse väljundisse.
                 </div>
 
-                <h2>Kõigi kannatanute nimekiri</h2>
+                <h2>Kõigi kannatanute andmebaas</h2>
 
                 <div class="intro">
                   Lisaks terrori läbi hukkunutele tehakse elektrooniliselt kättesaadavaks ka kõikide teiste kannatanute nimed, sealhulgas need, kes vangistusest või asumiselt vabanesid; need, kes kuulusid küüditamisele, kuid keda ei küüditatud ja need, kelle saatus on teadmata. Kõigi nende nimed on leitavad siit kodulehelt.
@@ -240,16 +247,12 @@
                   Oleme paranduste ja täienduste eest väga tänulikud. Nendest on juba olnud suur abi hukkunute nimestiku koostamisel. Aktsepteeritud parandused viime sisse jooksvalt, seega täieneb ja muutub nimekiri pidevalt.
                 </div>
 
-                <div class="intro">
-                  Tagasiside tõrgete korral kirjutage palun aadressil: memoriaal@mnemosyne.ee.
-                </div>
-
 
                 <h1>Nimekirjadesse kuulumise alused</h1>
 
-                <h2>Kõigi kannatanute nimekiri</h2>
+                <h2>Kõigi kannatanute andmebaas</h2>
                 <li class="intro">
-                  Nimekirja kantakse aastatel 1940-1991 Nõukogude Liidu okupatsioonivõimu poolt kohtuväliselt represseeritud või alusetult süüdimõistetud ning vastavalt Eesti Vabariigi seadusele kohtuväliselt represseeritud ja alusetult süüdimõistetud isikute rehabiliteerimise kohta rehabiliteerimisele kuulunud isikud, samuti repressioonide käigus hukkunud isikud.
+                  Andmebaasi kantakse aastatel 1940-1991 Nõukogude Liidu okupatsioonivõimu poolt kohtuväliselt represseeritud või alusetult süüdimõistetud ning vastavalt Eesti Vabariigi seadusele kohtuväliselt represseeritud ja alusetult süüdimõistetud isikute rehabiliteerimise kohta rehabiliteerimisele kuulunud isikud, samuti repressioonide käigus hukkunud isikud.
                 </li>
 
 
@@ -259,17 +262,17 @@
                 </li>
 
                 <h2>Kommunismiohvrite memoriaali puhul ei kanta mälestusseinale nende nimesid, kes</h2>
-                <li class="intro">langesid 1940/1941 metsavennana või Omakaitse liikmena lahingutes Nõukogude võimuga
+                <li class="intro">langesid 1940/1941 metsavennana või Omakaitse liikmena lahingutes Nõukogude võimuga;
                 </li>
-                <li class="intro">hukkusid sõjaohvritena lahingutegevuse tagajärjel
+                <li class="intro">hukkusid sõjaohvritena lahingutegevuse tagajärjel;
                 </li>
-                <li class="intro">lahkusid 1941. aasta suvel Eestist evakueeritavatena Nõukogude tagalasse ja surid seal ilma, et nende suhtes oleks kohaldatud repressioone
+                <li class="intro">lahkusid 1941. aasta suvel Eestist evakueeritavatena Nõukogude tagalasse ja surid seal ilma, et nende suhtes oleks kohaldatud repressioone;
                 </li>
-                <li class="intro">mobiliseeriti 1941. aasta suvel Punaarmeesse ja surid Nõukogude tagalas tööpataljonides haiguste, ebainimlike elamistingimuste või selgelt tuvastamata asjaolude tõttu. Ohvritena käsitletakse isikuid, kes tööpataljonis olles poliitilistel põhjustel arreteeriti ning kohtu alla anti
+                <li class="intro">mobiliseeriti 1941. aasta suvel Punaarmeesse ja surid Nõukogude tagalas tööpataljonides haiguste, ebainimlike elamistingimuste või selgelt tuvastamata asjaolude tõttu. Ohvritena käsitletakse isikuid, kes tööpataljonis olles poliitilistel põhjustel arreteeriti ning kohtu alla anti;
                 </li>
-                <li class="intro">sõja kestel Punaarmee üksuste koosseisus lahingutegevuses langenud või muus sõjaolukorras surnud isikuid
+                <li class="intro">sõja kestel Punaarmee üksuste koosseisus lahingutegevuses langenud või muus sõjaolukorras surnud isikuid;
                 </li>
-                <li class="intro">langesid kommunistliku terrori ohvritena, kuid olid ise osalenud võitlustes Nõukogude hävituspataljonide ridades või astunud kommunistliku partei liikmeks enne 1954. aastat
+                <li class="intro">langesid kommunistliku terrori ohvritena, kuid olid ise osalenud võitlustes Nõukogude hävituspataljonide ridades või astunud kommunistliku partei liikmeks enne 1954. aastat.
                 </li>
 
 
@@ -315,7 +318,9 @@
                           <!-- <span>{{ allikas.allikas.text }}</span> -->
                         </li>
                         <div ng-repeat="pereseos in doc._source.pereseos" class="perekond">
-                          <p class="perekood">Perekond {{pereseos.perekood}}, {{pereseos.nimekiri}}<br/><span class="light">{{pereseos.kirjed[0].kirjekood}}</span></p>
+                          <p class="perekood">Perekond {{pereseos.perekood}}, {{pereseos.nimekiri}}<br/>
+                            <!-- <span class="light">{{pereseos.kirjed[0].kirjekood}}</span> -->
+                          </p>
                           <li ng-repeat="kirje in pereseos.kirjed">
                             <!-- <a href="" onclick="setQuery('{{kirje.kirje.split(' ').slice(0,3).join(' ')}}')">foo</a> -->
                             <a href="" onclick="setQuery(this.getAttribute('words'))" words="{{kirje.words}} {{kirje.kirjekood}}">
