@@ -70,7 +70,7 @@ proc_label:BEGIN
             CALL EMI_create_ref_for(                        _emi_id, _params, _user);
         END IF;
         IF _task = 'Consolidate EMI records'     THEN
-            CALL EMI_consolidate_records(                   _emi_id, _user);
+            CALL EMI_consolidate_records(                   _emi_id,          _user);
         END IF;
         IF _task = 'Update seosedCSV'            THEN
             -- UPDATE z_queue SET rdy = 100 WHERE id = _id;

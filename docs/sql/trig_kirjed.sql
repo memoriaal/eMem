@@ -39,7 +39,7 @@ proc_label:BEGIN
         ELSEIF NEW.seoseliik = '-'
         THEN
             SET NEW.seoseliik = '';
-            CALL remove_connection(NEW.isikukood, NEW.seos);
+            CALL remove_connection(NEW.isikukood, NEW.seos, NEW.user);
 
         ELSEIF NEW.seoseliik = '!'
         THEN
