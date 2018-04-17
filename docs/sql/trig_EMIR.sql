@@ -9,7 +9,7 @@ proc_label:BEGIN
     THEN
         LEAVE proc_label;
     END IF;
-    
+
     -- Isikukoodi muutmine pole lubatud
     IF NEW.id != OLD.id
     THEN
@@ -17,8 +17,8 @@ proc_label:BEGIN
         SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
     END IF;
 
-    IF NEW.ts <> OLD.ts 
-    THEN  
+    IF NEW.ts <> OLD.ts
+    THEN
         INSERT IGNORE INTO z_queue (emi_id, task, user)
         VALUES (NEW.id, 'Consolidate EMI records', 'EMIR_AU');
     END IF;
@@ -28,7 +28,7 @@ END;;
 
 CREATE OR REPLACE TRIGGER EMIR_BI BEFORE INSERT ON EMIR FOR EACH ROW
 BEGIN
-    SET NEW.user = user();
+    SET NEW.user = IFNULL(NEW.user, user());
 END;;
 
 

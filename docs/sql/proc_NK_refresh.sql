@@ -1,8 +1,7 @@
 DELIMITER ;;
-CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `NK_refresh`(IN _emi_id INT(11) UNSIGNED)
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `NK_refresh`(IN _emi_id INT(11) UNSIGNED, IN _user VARCHAR(50))
 proc_label:BEGIN
 
-  SET @user = user();
   SET @ik = NULL;
 
   SELECT isikukood INTO @ik
@@ -30,8 +29,8 @@ proc_label:BEGIN
     SELECT lpad(max(right(isikukood, 7))+1, 10, 'NK-0000000') INTO @ik
       FROM kirjed where allikas = 'Nimekujud';
 
-    INSERT INTO kirjed (isikukood, emi_id, allikas)
-    VALUES (@ik, _emi_id, 'Nimekujud');
+    INSERT INTO kirjed (isikukood, emi_id, allikas, user)
+    VALUES (@ik, _emi_id, 'Nimekujud', _user);
 
     SELECT isikukood INTO @seos FROM kirjed k
     WHERE k.emi_id = _emi_id
@@ -45,9 +44,9 @@ proc_label:BEGIN
     LIMIT 1;
 
     INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, user)
-    VALUES (@ik, @seos, 'Create connections', @user);
+    VALUES (@ik, @seos, 'Create connections', _user);
     -- INSERT IGNORE INTO z_queue (emi_id, task, params, user)
-    -- VALUES (_emi_id, 'Refresh NK', NULL, @user);
+    -- VALUES (_emi_id, 'Refresh NK', NULL, _user);
 
   END IF;
 

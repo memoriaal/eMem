@@ -1,6 +1,6 @@
 DELIMITER ;;
 CREATE OR REPLACE PROCEDURE remove_record(
-    _ik char(10)
+    _ik char(10), IN _user VARCHAR(50)
 )
 BEGIN
 

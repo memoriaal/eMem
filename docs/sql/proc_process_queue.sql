@@ -18,13 +18,13 @@ proc_label:BEGIN
         LIMIT 130;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
 
-    SELECT count(1) INTO @pcnt FROM INFORMATION_SCHEMA.PROCESSLIST 
+    SELECT count(1) INTO @pcnt FROM INFORMATION_SCHEMA.PROCESSLIST
     WHERE User = 'queue';
     IF @pcnt > 1
     THEN
         LEAVE proc_label;
     END IF;
-    
+
 
     OPEN cur1;
     read_loop: LOOP
@@ -36,63 +36,63 @@ proc_label:BEGIN
 
         UPDATE z_queue SET rdy = rdy + 1 WHERE id = _id;
 
-        IF _params LIKE '%validate_checklist%' THEN
-            CALL validate_checklist(_ik1, _ik2);
+        -- IF _params LIKE '%validate_checklist%'   THEN
+        --     CALL validate_checklist(           _ik1, _ik2,                    _user);
+        -- END IF;
+        IF _task = 'Propagate checklist'         THEN
+            CALL propagate_checklist(          _ik1, _ik2,                    _user);
         END IF;
-        IF _task = 'Propagate checklist' THEN
-            CALL propagate_checklist(_ik1, _ik2);
+        IF _task = 'Propagate checklists'        THEN
+            CALL propagate_checklists(         _ik1,                          _user);
         END IF;
-        IF _task = 'Synchronize checklist' THEN
-            CALL synchronize_checklist(_ik1, _ik2);
+        IF _task = 'Synchronize checklist'       THEN
+            CALL synchronize_checklist(        _ik1, _ik2,                    _user);
         END IF;
-        IF _task = 'Propagate checklists' THEN
-            CALL propagate_checklists(_ik1);
+        IF _task = 'Process connection'          THEN
+            CALL process_connection(                                 _params, _user);
         END IF;
-        IF _task = 'Process connection' THEN
-            CALL process_connection(_params);
+        IF _task = 'Create connections'          THEN
+            CALL create_connections(           _ik1, _ik2,           _params, _user);
         END IF;
-        IF _task = 'Create connections' THEN
-            CALL create_connections(_ik1, _params, _ik2);
+        IF _task = 'Remove connection'           THEN
+            CALL remove_connection(            _ik1, _ik2,                    _user);
         END IF;
-        IF _task = 'Remove connection' THEN
-            CALL remove_connection(_ik1, _ik2);
+        IF _task = 'Remove record'               THEN
+            CALL remove_record(                _ik1,                          _user);
         END IF;
-        IF _task = 'Remove record' THEN
-            CALL remove_record(_ik1);
+        IF _task = 'Refresh NK'                 THEN
+            CALL NK_refresh(                                _emi_id,          _user);
         END IF;
-        IF _task = 'Refresh NK' THEN
-            CALL NK_refresh(_emi_id);
+        IF _task = 'Check EMI record'            THEN
+            CALL EMI_check_record(             _ik1,                 _params, _user);
         END IF;
-        IF _task = 'Check EMI record' THEN
-            CALL EMI_check_record(_ik1, _params);
+        IF _task = 'Create EMI reference'        THEN
+            CALL EMI_create_ref_for(                        _emi_id, _params, _user);
         END IF;
-        IF _task = 'Create EMI reference' THEN
-            CALL EMI_create_ref_for(_emi_id, _params);
+        IF _task = 'Consolidate EMI records'     THEN
+            CALL EMI_consolidate_records(                   _emi_id, _user);
         END IF;
-        IF _task = 'Consolidate EMI records' THEN
-        call EMI_consolidate_records(_emi_id);
-        END IF;
-        IF _task = 'Update seosedCSV' THEN
+        IF _task = 'Update seosedCSV'            THEN
             -- UPDATE z_queue SET rdy = 100 WHERE id = _id;
-            CALL update_seosedCSV(_ik1);
+            CALL update_seosedCSV(             _ik1,                          _user);
         END IF;
-        IF _task = 'Import from RK' THEN
-            CALL import_from_rk(_ik1);
+        IF _task = 'Import from RK'              THEN
+            CALL import_from_rk(               _ik1,                          _user);
         END IF;
-        IF _task = 'Import from RR' THEN
-            CALL import_from_rr(_ik1);
+        IF _task = 'Import from RR'              THEN
+            CALL import_from_rr(               _ik1,                          _user);
         END IF;
-        IF _task = 'Import from pereregister' THEN
-            CALL import_from_pereregister(_ik1, _ik2, _user);
+        IF _task = 'Import from pereregister'    THEN
+            CALL import_from_pereregister(     _ik1, _ik2,                    _user);
         END IF;
-        IF _task = 'Import from hävituspataljon' THEN
-            CALL import_from_hävituspataljon(_ik1, _ik2, _user);
+        -- IF _task = 'Import from hävituspataljon' THEN
+        --     CALL import_from_hävituspataljon(  _ik1, _ik2,                    _user);
+        -- END IF;
+        IF _task = 'Rollback prior to'           THEN
+            CALL rollback_prior_to(            _ik1,                 _params, _user);
         END IF;
-        IF _task = 'Rollback prior to' THEN
-            CALL rollback_prior_to(_ik1, _params);
-        END IF;
-        IF _task = 'Update label' THEN
-            CALL update_label(_ik1, _params, _user);
+        IF _task = 'Update label'                THEN
+            CALL update_label(                 _ik1,                 _params, _user);
         END IF;
         -- IF _task = 'Remove label' THEN
         --     CALL remove_label(_ik1, _params, _user);

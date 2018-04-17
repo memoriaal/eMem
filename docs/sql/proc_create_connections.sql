@@ -1,5 +1,5 @@
 DELIMITER ;;
-CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `create_connections`(IN ik1 CHAR(10), IN seoseliik VARCHAR(50), IN ik2 CHAR(10))
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `create_connections`(IN ik1 CHAR(10), IN ik2 CHAR(10), IN seoseliik VARCHAR(50), IN _user VARCHAR(50))
 proc_label:BEGIN
     DECLARE msg VARCHAR(200);
     DECLARE _ik1 CHAR(10);
@@ -41,9 +41,9 @@ proc_label:BEGIN
     END IF;
 
     -- Sümmeetrilised seosed
-    IF seoseliik = 'sama isik' OR 
-       seoseliik = 'kahtlusseos' OR 
-       seoseliik = 'abikaasa' OR 
+    IF seoseliik = 'sama isik' OR
+       seoseliik = 'kahtlusseos' OR
+       seoseliik = 'abikaasa' OR
        seoseliik = 'erinevad isikud' THEN
          SET @vastasseos = seoseliik;
     ELSE
@@ -62,18 +62,20 @@ proc_label:BEGIN
 
         IF seoseliik = 'sama isik' THEN
             INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, user)
-            VALUES (_ik1, _ik2, 'Synchronize checklist', 'create_connections');
+            VALUES (_ik1, _ik2, 'Synchronize checklist', _user);
         END IF;
 
         INSERT IGNORE INTO seosed
-            SET isikukood1 = _ik1, seos = seoseliik, vastasseos = @vastasseos, isikukood2 = _ik2;
+            SET isikukood1 = _ik1, seos = seoseliik, vastasseos = @vastasseos, isikukood2 = _ik2, user = _user;
         INSERT IGNORE INTO seosed
-            SET isikukood1 = _ik2, seos = @vastasseos, vastasseos = seoseliik, isikukood2 = _ik1;
+            SET isikukood1 = _ik2, seos = @vastasseos, vastasseos = seoseliik, isikukood2 = _ik1, user = _user;
 
-        INSERT IGNORE INTO z_queue (isikukood1, task, user)
-        VALUES (_ik1, 'Update seosedCSV', 'create_connections');
-        INSERT IGNORE INTO z_queue (isikukood1, task, user)
-        VALUES (_ik2, 'Update seosedCSV', 'create_connections');
+        CALL update_seosedCSV(_ik1, _user);
+        CALL update_seosedCSV(_ik2, _user);
+        -- INSERT IGNORE INTO z_queue (isikukood1, task, user)
+        -- VALUES (_ik1, 'Update seosedCSV', _user);
+        -- INSERT IGNORE INTO z_queue (isikukood1, task, user)
+        -- VALUES (_ik2, 'Update seosedCSV', _user);
 
     END LOOP;
     CLOSE cur1;

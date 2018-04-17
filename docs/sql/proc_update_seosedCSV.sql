@@ -1,5 +1,5 @@
 DELIMITER ;;
-CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE update_seosedCSV(IN _ik CHAR(10))
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE update_seosedCSV(IN _ik CHAR(10), IN _user VARCHAR(50))
 BEGIN
     SET @connstr = NULL;
     SELECT GROUP_CONCAT(conn SEPARATOR '\n') INTO @connstr
@@ -15,7 +15,7 @@ BEGIN
     ) c
     GROUP BY '';
 
-    UPDATE kirjed SET seosedCSV = @connstr
+    UPDATE kirjed SET seosedCSV = @connstr, user = _user
     WHERE isikukood = _ik;
 END;;
 DELIMITER ;

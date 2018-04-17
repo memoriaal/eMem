@@ -3,7 +3,10 @@ DELIMITER ;;
 CREATE OR REPLACE PROCEDURE import_from_pereregister(IN _ik1 CHAR(10), IN _ik2 CHAR(10), IN _user VARCHAR(50))
 BEGIN
 
-    INSERT IGNORE INTO kirjed SET isikukood = _ik1, allikas = 'PR';
+    INSERT IGNORE INTO kirjed
+        SET isikukood = _ik1,
+            allikas = 'PR',
+            user = _user;
 
     SELECT concat_ws('. ',
       concat_ws(', ',
@@ -50,25 +53,26 @@ BEGIN
     WHERE isikukood = _ik1;
 
     UPDATE kirjed k
-    LEFT JOIN pereregister pr on pr.isikukood = k.isikukood 
+    LEFT JOIN pereregister pr on pr.isikukood = k.isikukood
     SET
       k.kirje = @_kirje,
       k.perenimi = pr.isik_perenimi,
       k.eesnimi = pr.isik_eesnimi,
       k.isanimi = pr.isa_eesnimi,
       k.emanimi = pr.ema_eesnimi,
-      k.sünd = ifnull(concat_ws('-', 
-        if(pr.isik_synniaasta = '', NULL, pr.isik_synniaasta), 
-        if(pr.isik_synnikuu = '', NULL, pr.isik_synnikuu), 
+      k.sünd = ifnull(concat_ws('-',
+        if(pr.isik_synniaasta = '', NULL, pr.isik_synniaasta),
+        if(pr.isik_synnikuu = '', NULL, pr.isik_synnikuu),
         if(pr.isik_synnipaev = '', NULL, pr.isik_synnipaev)
       ), ''),
-      k.surm = ifnull(concat_ws('-', 
-        if(pr.isik_surmaaasta = '', NULL, pr.isik_surmaaasta), 
-        if(pr.isik_surmakuu = '', NULL, pr.isik_surmakuu), 
+      k.surm = ifnull(concat_ws('-',
+        if(pr.isik_surmaaasta = '', NULL, pr.isik_surmaaasta),
+        if(pr.isik_surmakuu = '', NULL, pr.isik_surmakuu),
         if(pr.isik_surmapaev = '', NULL, pr.isik_surmapaev)
-      ), '')
+      ), ''),
+      k.user = _user
     WHERE pr.isikukood = _ik1;
-    
+
     IF _ik2 IS NOT NULL THEN
       INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, user)
       VALUES (_ik1, _ik2, 'Create connections', _user);
@@ -76,5 +80,3 @@ BEGIN
 
 END;;
 DELIMITER ;
-
-

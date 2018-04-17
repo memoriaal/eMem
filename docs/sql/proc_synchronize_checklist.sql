@@ -1,10 +1,10 @@
 DELIMITER ;;
-CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `synchronize_checklist`(IN ik1 CHAR(10), IN ik2 CHAR(10))
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `synchronize_checklist`(IN ik1 CHAR(10), IN ik2 CHAR(10), IN _user VARCHAR(50))
 proc_label:BEGIN
     DECLARE kivi1, mittekivi1, rel1, mr1 enum('', '!');
     DECLARE kivi2, mittekivi2, rel2, mr2 enum('', '!');
 
-    CALL validate_checklist(ik1, ik2);
+    CALL validate_checklist(ik1, ik2, _user);
 
     SELECT kivi, mittekivi, rel, mr
       INTO kivi1, mittekivi1, rel1, mr1
@@ -49,7 +49,7 @@ proc_label:BEGIN
     END IF;
 
     UPDATE kirjed
-    SET kivi = @_kivi, mittekivi = @_mittekivi, rel = @_rel, mr = @_mr
+    SET kivi = @_kivi, mittekivi = @_mittekivi, rel = @_rel, mr = @_mr, user = _user
     WHERE isikukood in (ik1, ik2);
 
 END;;

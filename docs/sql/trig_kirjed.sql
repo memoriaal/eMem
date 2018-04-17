@@ -1,14 +1,14 @@
 DELIMITER ;;
 
-CREATE OR REPLACE TRIGGER kirjed_BU BEFORE UPDATE ON kirjed FOR EACH ROW 
+CREATE OR REPLACE TRIGGER kirjed_BU BEFORE UPDATE ON kirjed FOR EACH ROW
 
 proc_label:BEGIN
 
     DECLARE msg VARCHAR(200);
 
-    SET NEW.user = user();
+    SET NEW.user = IFNULL(NEW.user, user());
 
-    IF NEW.kustuta IS NOT NULL 
+    IF NEW.kustuta IS NOT NULL
     THEN
         INSERT IGNORE INTO z_queue (isikukood1, task, user)
         VALUES (NEW.isikukood, 'Remove record', NEW.user);
@@ -32,7 +32,7 @@ proc_label:BEGIN
         IF NEW.seoseliik IS NULL OR NEW.seoseliik = 'sama isik'
         THEN
             SET NEW.seoseliik = '';
-            CALL validate_checklist(NEW.isikukood, NEW.seos);
+            CALL validate_checklist(NEW.isikukood, NEW.seos, _user);
             INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
             VALUES (NEW.isikukood, NEW.seos, 'Create connections', NEW.seoseliik, NEW.user);
 
@@ -126,7 +126,7 @@ proc_label:BEGIN
 END;;
 
 
-CREATE OR REPLACE TRIGGER kirjed_AU AFTER UPDATE ON kirjed FOR EACH ROW 
+CREATE OR REPLACE TRIGGER kirjed_AU AFTER UPDATE ON kirjed FOR EACH ROW
 
 begin
 
@@ -155,7 +155,7 @@ begin
      OR OLD.updated <> NEW.updated
      OR OLD.user <> NEW.user
       THEN
-        INSERT INTO kirjed_audit_log 
+        INSERT INTO kirjed_audit_log
              (   isikukood, emi_id, Kirje
                , Kivi, Mittekivi, SaatusTeadmata, Puudulik
                , Kommentaar, Attn, REL, MR
@@ -180,7 +180,7 @@ begin
         VALUES (NEW.emi_id, 'Refresh NK', NULL, NEW.user);
 
   END IF;
-  
+
   IF OLD.emi_id <> NEW.emi_id
     THEN
       INSERT IGNORE INTO z_queue (emi_id, task, params, user)
@@ -190,11 +190,11 @@ begin
 end;;
 
 
-CREATE OR REPLACE TRIGGER kirjed_BI BEFORE INSERT ON kirjed FOR EACH ROW 
+CREATE OR REPLACE TRIGGER kirjed_BI BEFORE INSERT ON kirjed FOR EACH ROW
 BEGIN
 
-  SET NEW.user = user();
-  
+  SET NEW.user = IFNULL(NEW.user, user());
+
   IF UPPER(IFNULL(NEW.isikukood, '')) IN ('', 'TEST')
   THEN
       SELECT right(max(isikukood), 5)+1 INTO @ik FROM kirjed WHERE allikas = 'TEST';
@@ -221,10 +221,10 @@ BEGIN
 END;;
 
 
-CREATE OR REPLACE TRIGGER kirjed_AI AFTER INSERT ON kirjed FOR EACH ROW 
+CREATE OR REPLACE TRIGGER kirjed_AI AFTER INSERT ON kirjed FOR EACH ROW
 BEGIN
 
-    INSERT INTO kirjed_audit_log 
+    INSERT INTO kirjed_audit_log
          (   isikukood, emi_id, Kirje
            , Kivi, Mittekivi, SaatusTeadmata, Puudulik
            , Kommentaar, Attn, REL, MR

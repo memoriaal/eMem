@@ -1,5 +1,5 @@
 DELIMITER ;;
-CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE remove_connection(IN ik1 CHAR(10), IN ik2 CHAR(10))
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE remove_connection(IN ik1 CHAR(10), IN ik2 CHAR(10), IN _user VARCHAR(50))
 proc_label:BEGIN
     DECLARE _ik1 CHAR(10);
     DECLARE _ik2 CHAR(10);
@@ -26,11 +26,11 @@ proc_label:BEGIN
         WHERE isikukood1 = _ik1 AND isikukood2 = _ik2;
         DELETE FROM seosed
         WHERE isikukood1 = _ik2 AND isikukood2 = _ik1;
-        
+
         INSERT IGNORE INTO z_queue (isikukood1, task, user)
-        VALUES (_ik1, 'Update seosedCSV', 'remove_connection');
+        VALUES (_ik1, 'Update seosedCSV', _user);
         INSERT IGNORE INTO z_queue (isikukood1, task, user)
-        VALUES (_ik2, 'Update seosedCSV', 'remove_connection');
+        VALUES (_ik2, 'Update seosedCSV', _user);
     END LOOP;
     CLOSE cur1;
     SET finished = 0;
