@@ -6,7 +6,10 @@ proc_label:BEGIN
 
     DECLARE msg VARCHAR(200);
 
-    SET NEW.user = IFNULL(NEW.user, user());
+    IF user() != 'event_scheduler@localhost'
+    THEN
+        SET NEW.user = user();
+    END IF;
 
     IF NEW.kustuta IS NOT NULL
     THEN
@@ -32,7 +35,7 @@ proc_label:BEGIN
         IF NEW.seoseliik IS NULL OR NEW.seoseliik = 'sama isik'
         THEN
             SET NEW.seoseliik = '';
-            CALL validate_checklist(NEW.isikukood, NEW.seos, _user);
+            CALL validate_checklist(NEW.isikukood, NEW.seos, NEW.user);
             INSERT IGNORE INTO z_queue (isikukood1, isikukood2, task, params, user)
             VALUES (NEW.isikukood, NEW.seos, 'Create connections', NEW.seoseliik, NEW.user);
 

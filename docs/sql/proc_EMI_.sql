@@ -7,11 +7,11 @@ BEGIN
     UPDATE kirjed k
     LEFT JOIN seosed s ON s.isikukood2 = k.isikukood
                        AND s.seos = 'sama isik'
-    SET k.emi_id = _emi_id, user = _user
+    SET k.emi_id = _emi_id, k.user = _user
     WHERE s.isikukood1 = _ik
     ;
     UPDATE kirjed k
-    SET k.emi_id = _emi_id, user = _user
+    SET k.emi_id = _emi_id, k.user = _user
     WHERE k.isikukood = _ik
     ;
 END;;
