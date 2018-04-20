@@ -71,11 +71,11 @@ proc_label:BEGIN
             ORDER BY a.prioriteetEmanimi  DESC SEPARATOR ';'), ';', 1)
             AS emanimi
         , SUBSTRING_INDEX(group_concat(
-            if(k.sünd = ''       OR a.prioriteetSünd     = 0,  NULL, LEFT(k.sünd,4))
+            if(k.sünd = ''       OR a.prioriteetSünd     = 0,  NULL, k.sünd)
             ORDER BY a.prioriteetSünd     DESC SEPARATOR ';'), ';', 1)
             AS sünd
         , SUBSTRING_INDEX(group_concat(
-            if(k.surm = ''       OR a.prioriteetSurm     = 0,  NULL, LEFT(k.surm,4))
+            if(k.surm = ''       OR a.prioriteetSurm     = 0,  NULL, k.surm)
             ORDER BY a.prioriteetSurm     DESC SEPARATOR ';'), ';', 1)
             AS surm
         from kirjed k
