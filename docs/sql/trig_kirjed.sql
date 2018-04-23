@@ -122,8 +122,14 @@ proc_label:BEGIN
     IF !ISNULL(NEW.silt)
     THEN
         INSERT IGNORE INTO z_queue (isikukood1, task, params, user)
-        VALUES (NEW.isikukood, 'Update label', NEW.silt, NEW.user);
+        VALUES (NEW.isikukood, 'Update silt', NEW.silt, NEW.user);
         SET NEW.silt = NULL;
+    END if;
+    IF !ISNULL(NEW.lipik)
+    THEN
+        INSERT IGNORE INTO z_queue (isikukood1, task, params, user)
+        VALUES (NEW.isikukood, 'Update lipik', NEW.lipik, NEW.user);
+        SET NEW.lipik = NULL;
     END if;
 
 END;;
@@ -155,7 +161,7 @@ begin
      OR OLD.Nimekiri <> NEW.Nimekiri
      OR OLD.EkslikKanne <> NEW.EkslikKanne
      OR OLD.created <> NEW.created
-     OR OLD.updated <> NEW.updated
+     -- OR OLD.updated <> NEW.updated
      OR OLD.user <> NEW.user
       THEN
         INSERT INTO kirjed_audit_log

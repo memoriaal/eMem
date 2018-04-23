@@ -91,8 +91,11 @@ proc_label:BEGIN
         IF _task = 'Rollback prior to'           THEN
             CALL rollback_prior_to(            _ik1,                 _params, _user);
         END IF;
-        IF _task = 'Update label'                THEN
-            CALL update_label(                 _ik1,                 _params, _user);
+        IF _task = 'Update silt'                 THEN
+            CALL update_silt(                  _ik1,                 _params, _user);
+        END IF;
+        IF _task = 'Update lipik'                THEN
+            CALL update_lipik(                 _ik1,                 _params, _user);
         END IF;
         -- IF _task = 'Remove label' THEN
         --     CALL remove_label(_ik1, _params, _user);
