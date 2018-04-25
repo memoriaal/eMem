@@ -1,5 +1,5 @@
 DELIMITER ;;
-CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `NK_refresh`(IN _emi_id INT(11) UNSIGNED, IN _user VARCHAR(50))
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE `update_NK`(IN _emi_id INT(11) UNSIGNED, IN _user VARCHAR(50))
 proc_label:BEGIN
 
   SET @ik = NULL;
@@ -51,6 +51,16 @@ proc_label:BEGIN
   END IF;
 
 
+  CALL NK_refresh(@ik);
+
+END;;
+DELIMITER ;
+
+
+
+DELIMITER ;;
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE NK_refresh(IN _ik CHAR(10))
+BEGIN
   update kirjed k left join
   (
         SELECT nk.isikukood
@@ -86,7 +96,7 @@ proc_label:BEGIN
         and k.Peatatud = ''
         and k.allikas != 'Nimekujud'
         and k.allikas NOT IN (select kood from allikad where nonperson = 1)
-        and nk.isikukood = @ik
+        and nk.isikukood = _ik
         group by k.emi_id
   ) as nimekuju on nimekuju.isikukood = k.isikukood
   set k.perenimi = ifnull(nimekuju.perenimi, '')
@@ -108,9 +118,38 @@ proc_label:BEGIN
           , if(nimekuju.surm='', NULL, concat('Surm ', nimekuju.surm))
         )
       )
-  where k.isikukood = @ik
+  where k.isikukood = _ik
   and k.allikas = 'Nimekujud';
 
 
+END;;
+DELIMITER ;
+
+
+DELIMITER ;;
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE NK_refresh_all()
+BEGIN
+
+    DECLARE _ik CHAR(10);
+    DECLARE finished INTEGER DEFAULT 0;
+
+    DECLARE cur1 CURSOR FOR
+        SELECT isikukood
+        FROM kirjed
+        WHERE allikas = 'Nimekujud';
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+
+    OPEN cur1;
+    read_loop: LOOP
+        FETCH cur1 INTO _ik;
+        IF finished = 1 THEN
+            LEAVE read_loop;
+        END IF;
+
+        CALL NK_refresh(_ik);
+
+    END LOOP;
+    CLOSE cur1;
+    SET finished = 0;
 END;;
 DELIMITER ;
