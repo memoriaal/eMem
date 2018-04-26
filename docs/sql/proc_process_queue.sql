@@ -61,7 +61,7 @@ proc_label:BEGIN
             CALL remove_record(                _ik1,                          _user);
         END IF;
         IF _task = 'Refresh NK'                 THEN
-            CALL NK_refresh(                                _emi_id,          _user);
+            CALL update_NK(                                _emi_id,          _user);
         END IF;
         IF _task = 'Check EMI record'            THEN
             CALL EMI_check_record(             _ik1,                 _params, _user);
