@@ -1,8 +1,60 @@
 UPDATE ohvrite_nimekiri_2018_02_21 o
-left join EMIR e on o.emi_id != e.id AND find_in_set(o.emi_id, e.id_set) and e.ref is null
-SET o.emi_id = e.id
-WHERE e.id is not null;
+left join kirjed k on k.emi_id = o.emi_id and k.allikas = 'Nimekujud'
+set o.persoon = k.isikukood
+WHERE o.persoon IS NULL;
 
+DELIMITER ;;
+CREATE OR REPLACE PROCEDURE tmp()
+BEGIN
+    DECLARE finished INTEGER DEFAULT 0;
+    DECLARE _emi_id INTEGER(11) UNSIGNED DEFAULT NULL;
+
+    DECLARE cur1 CURSOR FOR
+        SELECT emi_id FROM ohvrite_nimekiri_2018_02_21 WHERE persoon IS NULL;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+
+    DROP TABLE IF EXISTS otmp;
+    CREATE TABLE otmp(
+      `emi_id` int(11) unsigned DEFAULT NULL,
+      `isikukood` char(10) DEFAULT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+    OPEN cur1;
+    read_loop: LOOP
+    	SET _emi_id = NULL;
+    	SET @ik = NULL;
+
+        FETCH cur1 INTO _emi_id;
+
+        INSERT INTO otmp (emi_id, isikukood)
+        VALUES (_emi_id, NULL);
+
+        SET @ik = find_by_eid(_emi_id);
+
+        IF @ik IS NOT NULL THEN
+            UPDATE otmp SET isikukood = @ik;
+            WHERE emi_id = _emi_id;
+        END IF;
+
+        IF finished = 1 THEN
+            LEAVE read_loop;
+        END IF;
+
+    END LOOP;
+    CLOSE cur1;
+    SET finished = 0;
+
+END;;
+DELIMITER ;
+
+
+CALL tmp();
+
+UPDATE ohvrite_nimekiri_2018_02_21 o
+RIGHT JOIN otmp t on o.emi_id = t.emi_id
+set o.persoon = t.isikukood
+WHERE o.persoon IS NULL;
 
 
 
