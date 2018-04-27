@@ -1,3 +1,11 @@
+UPDATE ohvrite_nimekiri_2018_02_21 o
+left join EMIR e on o.emi_id != e.id AND find_in_set(o.emi_id, e.id_set) and e.ref is null
+SET o.emi_id = e.id
+WHERE e.id is not null;
+
+
+
+
 CREATE OR REPLACE VIEW aruanne_muutused_peale_publitseerimist_02_13 AS
 SELECT o.emi_id, o.perenimi, o.eesnimi, o.isanimi, o.sünd, o.surm, o.kirjed, p.emi_id AS Pemi_id, p.perenimi AS Pperenimi, p.eesnimi AS Peesnimi, p.isanimi AS Pisanimi, p.sünd AS Psünd, p.surm AS Psurm, p.kirjed AS Pkirjed
 FROM ohvrite_nimekiri_2018_02_13 o
@@ -118,7 +126,7 @@ SELECT
   , ff.emi_id        AS emi_id
   , ff.kirje_allikad AS kirje_allikad
 FROM (
-        select 
+        select
             kr.Isikukood AS isikukood
           , kr.Kivi      AS kivi
           , kr.Mittekivi AS mittekivi
@@ -127,17 +135,17 @@ FROM (
           , kr.Nimekiri  AS nimekiri
           , kr.Kirje     AS kirje
           , k.emi_id     AS emi_id
-          , group_concat(distinct k.Allikas separator ';') 
-                             AS kirje_allikad 
+          , group_concat(distinct k.Allikas separator ';')
+                             AS kirje_allikad
         from (
-                kylli.kirjed kr 
-                left join kylli.kirjed k 
-                       on kr.emi_id = k.emi_id 
+                kylli.kirjed kr
+                left join kylli.kirjed k
+                       on kr.emi_id = k.emi_id
                       and kr.Nimekiri regexp substring_index(k.Allikas,'-',1)
         )
-        where kr.Allikas = 'R86' 
+        where kr.Allikas = 'R86'
         group by k.emi_id
-) ff 
+) ff
 WHERE ff.kirje_allikad not regexp ff.nimekiri;
 
 
@@ -152,7 +160,7 @@ SELECT koodid.koodid,
        e1.kirjed kirjed1, NULL as kasSama, e2.kirjed kirjed2
 FROM (
   select group_concat(distinct eid separator ',') koodid
-  from 
+  from
   (
     select _r7.memento, _r7.eR1 AS eid from _r7 where _r7.eR1 is not NULL
     UNION ALL
@@ -187,16 +195,16 @@ left join EMIR e2 on e2.id = SUBSTRING_INDEX(koodid.koodid, ',', -1)
 
 
 CREATE OR REPLACE algorithm=undefined definer=michelek@localhost SQL security definer view aruanne_nimekujud_topelt
-AS 
+AS
   SELECT concat('WHERE emi_id IN (SELECT emi_id FROM kirjed WHERE isikukood IN (', k1.isikukood, ',', k2.isikukood, '))')
-            k1.kirje AS kirje1, 
+            k1.kirje AS kirje1,
             k2.kirje AS kirje2,
             e.kirjed
-  FROM kirjed k1 
-  LEFT JOIN kirjed k2 ON k1.emi_id = k2.emi_id 
+  FROM kirjed k1
+  LEFT JOIN kirjed k2 ON k1.emi_id = k2.emi_id
                      AND k1.isikukood < k2.isikukood
   LEFT JOIN EMIR e on e.id = k1.emi_id
-  WHERE     k1.allikas = 'Nimekujud' 
-  AND       k2.allikas = 'Nimekujud' 
-  AND       k1.ekslikkanne = '' 
+  WHERE     k1.allikas = 'Nimekujud'
+  AND       k2.allikas = 'Nimekujud'
+  AND       k1.ekslikkanne = ''
   AND       k2.ekslikkanne = '';
