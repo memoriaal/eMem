@@ -9,7 +9,8 @@ BEGIN
 	from kirjed nk
 	right join kirjed k on k.emi_id = nk.emi_id
 	where k.isikukood = _kk
-	and nk.allikas = 'Nimekujud';
+	and nk.allikas = 'Nimekujud'
+  limit 1;
 
     RETURN @nk;
 END;;

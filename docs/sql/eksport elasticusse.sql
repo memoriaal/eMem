@@ -1,4 +1,4 @@
-CREATE or replace view `web_export`
+CREATE or replace view `web_export_v`
 AS
   SELECT   nk.isikukood AS `id`,
            substring_index(substring_index(group_concat(
@@ -46,6 +46,8 @@ WHERE k.ekslikkanne = ''
   AND k.peatatud = ''
   AND nk.isikukood IS NOT NULL
 GROUP BY k.emi_id;
+
+CREATE OR REPLACE TABLE web_export SELECT * FROM web_export_v;
 
 
 
