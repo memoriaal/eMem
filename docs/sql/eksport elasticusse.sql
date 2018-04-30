@@ -29,7 +29,7 @@ AS
              '\''
            ), '')           AS `kirjed`,
            IFNULL(REPLACE(
-             group_concat(
+             group_concat( DISTINCT
                IF(kp.isikukood IS NULL, NULL, concat_ws('#|',kp.isikukood, kp.kirje, a.nimetus, kirjekood2nk(kp.isikukood)))
                ORDER BY kp.isikukood ASC SEPARATOR ';\n'
              ),
