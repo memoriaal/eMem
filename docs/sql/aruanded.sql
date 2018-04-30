@@ -3,6 +3,58 @@ left join kirjed k on k.emi_id = o.emi_id and k.allikas = 'Nimekujud'
 set o.persoon = k.isikukood
 WHERE o.persoon IS NULL;
 
+
+
+CREATE OR REPLACE VIEW aruanne_muutused_peale_publitseerimist_02_21 AS
+SELECT
+   o.emi_id AS emi_id,
+   o.Perenimi AS perenimi,
+   o.Eesnimi AS eesnimi,
+   o.Sünd AS sünd,
+   o.Surm AS surm,
+   p.emi_id AS Pemi_id,
+   p.Perenimi AS Pperenimi,
+   p.Eesnimi AS Peesnimi,
+   p.Sünd AS Psünd,
+   p.Surm AS Psurm
+FROM ohvrite_nimekiri_2018_02_21 o
+left join v_publish p on o.emi_id = p.emi_id
+where o.Perenimi <> p.Perenimi
+    or o.Eesnimi <> p.Eesnimi
+    or o.Sünd <> p.Sünd
+    or o.Surm <> p.Surm
+
+union
+select
+  o2.emi_id AS emi_id,
+  o2.Perenimi AS perenimi,
+  o2.Eesnimi AS eesnimi,
+  o2.Sünd AS sünd,
+  o2.Surm AS surm,
+NULL,
+NULL,
+NULL,
+NULL,
+NULL
+from ohvrite_nimekiri_2018_02_21 o2
+where o2.emi_id not in (select p2.emi_id from v_publish as p2)
+
+union
+select
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  p3.emi_id AS emi_id,
+  p3.Perenimi AS perenimi,
+  p3.Eesnimi AS eesnimi,
+  p3.Sünd AS sünd,
+  p3.Surm AS surm
+from v_publish as p3
+where p3.emi_id not in (select o3.emi_id from ohvrite_nimekiri_2018_02_21 AS o3);
+
+
 DELIMITER ;;
 CREATE OR REPLACE PROCEDURE tmp()
 BEGIN
