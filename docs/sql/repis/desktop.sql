@@ -29,14 +29,18 @@ proc_label:BEGIN
     SET NEW.created_by = user();
   END IF;
 
-  IF NEW.allikas = 'EMI' THEN
+  IF NEW.kirjekood = 'EMI' THEN
     SELECT lpad(max(right(kirjekood, 6))+1, 10, 'EMI-000000') INTO @ik
-      FROM repis.kirjed where allikas = NEW.allikas;
-    SET NEW.persoon = @ik, NEW.allikas = 'EMI';
-  ELSEIF NEW.allikas = 'TS' THEN
+      FROM repis.kirjed WHERE allikas = 'EMI';
+    SET NEW.kirjekood = @ik, NEW.allikas = 'EMI';
+  ELSEIF NEW.kirjekood = 'TS' THEN
     SELECT lpad(max(right(kirjekood, 7))+1, 10, 'TS-0000000') INTO @ik
-      FROM repis.kirjed where allikas = NEW.allikas;
-    SET NEW.persoon = @ik, NEW.allikas = 'TS';
+      FROM repis.kirjed WHERE allikas = 'TS';
+    SET NEW.kirjekood = @ik, NEW.allikas = 'TS';
+  ELSEIF NEW.persoon IN ('Nimekujud', 'NK') THEN
+    SELECT lpad(max(right(kirjekood, 7))+1, 10, 'NK-0000000') INTO @ik
+      FROM repis.kirjed WHERE allikas = 'Nimekujud';
+    SET NEW.persoon = @ik, NEW.kirjekood = @ik, NEW.allikas = 'Nimekujud';
   ELSEIF NEW.allikas IS NULL AND user() != 'queue@localhost' THEN
     INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,    task,                  params, created_by)
     VALUES                           (NEW.persoon, NEW.kirjekood, 'desktop_collect', NULL,   NEW.created_by);
@@ -52,6 +56,8 @@ CREATE OR REPLACE DEFINER=queue@localhost TRIGGER repis.desktop_BU BEFORE UPDATE
 proc_label:BEGIN
 
   DECLARE msg VARCHAR(2000);
+
+  SET NEW.created_by = OLD.created_by;
 
   IF OLD.allikas regexp '⌃EMI$|⌃TS$' THEN
     SET NEW.allikas = OLD.allikas;
@@ -80,26 +86,20 @@ proc_label:BEGIN
         NEW.kirje != OLD.kirje OR
         NEW.allikas != OLD.allikas
     THEN
-      SELECT concat_ws('; ''Registri kirjetel saab muuta ainult persooni koodi!',
-        NEW.kirjekood, OLD.kirjekood ,
-        NEW.perenimi, OLD.perenimi ,
-        NEW.eesnimi, OLD.eesnimi ,
-        NEW.isanimi, OLD.isanimi ,
-        NEW.emanimi, OLD.emanimi ,
-        NEW.sünd, OLD.sünd ,
-        NEW.surm, OLD.surm ,
-        NEW.jutt, OLD.jutt ,
-        NEW.kirje, OLD.kirje ,
-        NEW.allikas, OLD.allikas) INTO msg;
+      SELECT concat_ws('\n'
+        , 'Registri kirjetel saab muuta ainult persooni koodi!'
+      ) INTO msg;
       SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
   END IF;
 
 
-  IF NEW.valmis = 1 THEN
-    INSERT IGNORE INTO repis.z_queue (kirjekood1, kirjekood2, task,                params, created_by)
-    VALUES                           (NULL,       NULL,       'desktop_flush', NULL,   user());
-
-    LEAVE proc_label;
+  IF NEW.valmis = 1 and NEW.created_by = user() THEN
+    INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,            params, created_by)
+    VALUES                           (NEW.persoon, NULL,       'desktop_flush', NULL,   user());
+  ELSEIF NEW.valmis = 1 and NEW.created_by != user() THEN
+    SET NEW.valmis = 0;
+    SELECT concat_ws('; ', 'Valmis saab märkida ainult oma tehtud ridu!') INTO msg;
+    SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
   END IF;
 
 END;;
@@ -146,7 +146,9 @@ CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.q_desktop_flush(
   IN _task VARCHAR(50), IN _params VARCHAR(200), IN _created_by VARCHAR(50))
 proc_label:BEGIN
 
-  DELETE FROM repis.desktop;
+  DELETE FROM repis.desktop
+  WHERE created_by = _created_by
+    AND persoon = _kirjekood1;
 
 END;;
 
