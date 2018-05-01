@@ -31,16 +31,16 @@ AS
               '', k.surm
             ) ORDER BY a.prioriteetsurm     DESC SEPARATOR ';'
           ),';',1 ),';',-1 ) AS surm,
-          ifnull( REPLACE( group_concat(
-            DISTINCT
-            IF(
-              a.prioriteetkirje = 0,
-              NULL,
-              concat(k.kirjekood,'#|',k.kirje,'#|',a.nimetus)
-            )
-            ORDER BY a.prioriteetkirje DESC
-            SEPARATOR ';\n'
-          ),'"','\''),'')    AS kirjed
+          -- ifnull( REPLACE( group_concat(
+          --   DISTINCT
+          --   IF(
+          --     a.prioriteetkirje = 0,
+          --     NULL,
+          --     concat(k.kirjekood,'#|',k.kirje,'#|',a.nimetus)
+          --   )
+          --   ORDER BY a.prioriteetkirje DESC
+          --   SEPARATOR ';\n'
+          -- ),'"','\''),'')    AS kirjed
   FROM  kirjed k
         RIGHT JOIN kirjed nk ON nk.persoon = k.persoon
                             AND nk.allikas = 'Nimekujud'
@@ -50,3 +50,8 @@ AS
    AND  k.peatatud = ''
    AND  nk.persoon IS NOT NULL
  GROUP BY nk.persoon;
+
+
+CREATE OR REPLACE VIEW repis.my_desktop
+AS
+SELECT * FROM repis.desktop WHERE created_by = user();
