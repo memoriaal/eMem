@@ -48,34 +48,41 @@ VALUES
 
 
 CREATE TABLE repis.kirjed (
-  persoon char(10) COLLATE utf8_estonian_ci DEFAULT NULL,
-  kirjekood char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  emi_id int(11) unsigned DEFAULT NULL,
-  Kirje text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  Perenimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  Eesnimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  Isanimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  Emanimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  Sünd varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  Surm varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  Perekood varchar(20) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  Sugu enum('M','N','') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  Rahvus varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  Allikas varchar(20) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  Nimekiri varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  Puudulik enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  EkslikKanne enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  Peatatud enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  kustuta char(1) COLLATE utf8_estonian_ci DEFAULT NULL,
-  created_at timestamp NULL DEFAULT current_timestamp(),
-  created_by varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
-  updated_at timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
-  updated_by varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
-  PRIMARY KEY (kirjekood),
-  KEY persoon (persoon),
-  KEY emi_id (emi_id),
-  CONSTRAINT kirjed_ibfk_1 FOREIGN KEY (persoon) REFERENCES repis.kirjed (kirjekood) ON UPDATE CASCADE,
-  CONSTRAINT kirjed_ibfk_2 FOREIGN KEY (Allikas) REFERENCES repis.allikad (Kood) ON UPDATE CASCADE
+  persoon     char(10)                  DEFAULT NULL,
+  kirjekood   char(10)         NOT NULL DEFAULT '',
+  emi_id      int(11) unsigned          DEFAULT NULL,
+  Kirje       text             NOT NULL DEFAULT '',
+  Perenimi    varchar(50)      NOT NULL DEFAULT '',
+  Eesnimi     varchar(50)      NOT NULL DEFAULT '',
+  Isanimi     varchar(50)      NOT NULL DEFAULT '',
+  Emanimi     varchar(50)      NOT NULL DEFAULT '',
+  Sünd        varchar(50)      NOT NULL DEFAULT '',
+  Surm        varchar(50)      NOT NULL DEFAULT '',
+  Perekood    varchar(20)      NOT NULL DEFAULT '',
+  Sugu        enum('M','N','') NOT NULL DEFAULT '',
+  Rahvus      varchar(50)      NOT NULL DEFAULT '',
+  Allikas     varchar(20)      NOT NULL DEFAULT '',
+  Nimekiri    varchar(50)      NOT NULL DEFAULT '',
+  Puudulik    enum('','!')     NOT NULL DEFAULT '',
+  EkslikKanne enum('','!')     NOT NULL DEFAULT '',
+  Peatatud    enum('','!')     NOT NULL DEFAULT '',
+  kustuta     char(1)                   DEFAULT NULL,
+  created_at  timestamp            NULL DEFAULT current_timestamp(),
+  created_by  varchar(50)               DEFAULT NULL,
+  updated_at  timestamp            NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  updated_by  varchar(50)               DEFAULT NULL,
+  UNIQUE  KEY (kirjekood),
+          KEY persoon_persoon (persoon),
+          KEY persoon_allikas (Allikas),
+          KEY persoon_emi_id (emi_id),
+  CONSTRAINT  kirjed_persoon_fk_kirjed_kirjekood
+              FOREIGN KEY (persoon)
+              REFERENCES repis.kirjed (kirjekood)
+              ON UPDATE CASCADE,
+  CONSTRAINT  kirjed_allika_fk_allikas_kood
+              FOREIGN KEY (Allikas)
+              REFERENCES repis.allikad (Kood)
+              ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
 
