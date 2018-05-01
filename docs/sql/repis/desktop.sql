@@ -30,21 +30,53 @@ proc_label:BEGIN
   END IF;
 
   IF NEW.kirjekood = 'EMI' THEN
-    SELECT lpad(max(right(kirjekood, 6))+1, 10, 'EMI-000000') INTO @ik
-      FROM repis.kirjed WHERE allikas = 'EMI';
-    SET NEW.kirjekood = @ik, NEW.allikas = 'EMI';
+    SET NEW.kirjekood = repis.desktop_next_id('EMI'), NEW.allikas = 'EMI';
+
   ELSEIF NEW.kirjekood = 'TS' THEN
-    SELECT lpad(max(right(kirjekood, 7))+1, 10, 'TS-0000000') INTO @ik
-      FROM repis.kirjed WHERE allikas = 'TS';
-    SET NEW.kirjekood = @ik, NEW.allikas = 'TS';
+    SET NEW.kirjekood = repis.desktop_next_id('TS'), NEW.allikas = 'TS';
+
   ELSEIF NEW.persoon IN ('Nimekujud', 'NK') THEN
-    SELECT lpad(max(right(kirjekood, 7))+1, 10, 'NK-0000000') INTO @ik
-      FROM repis.kirjed WHERE allikas = 'Nimekujud';
-    SET NEW.persoon = @ik, NEW.kirjekood = @ik, NEW.allikas = 'Nimekujud';
+    SET @ik = repis.desktop_next_id('Nimekujud');
+    SET NEW.persoon = @ik,
+        NEW.kirjekood = @ik,
+        NEW.allikas = 'Nimekujud';
+
   ELSEIF NEW.allikas IS NULL AND user() != 'queue@localhost' THEN
     INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,    task,                  params, created_by)
     VALUES                           (NEW.persoon, NEW.kirjekood, 'desktop_collect', NULL,   NEW.created_by);
+
   END IF;
+END;;
+
+DELIMITER ;
+
+
+DELIMITER ;; -- desktop_next_id()
+
+CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.desktop_next_id(
+    _allikas VARCHAR(50)
+) RETURNS CHAR(10) CHARSET utf8
+func_label:BEGIN
+
+  SELECT lühend INTO @c FROM repis.allikad WHERE kood = _allikas;
+
+  SET @max_k = NULL;
+  SELECT max(kirjekood) INTO @max_k
+  FROM repis.kirjed
+  WHERE allikas = _allikas;
+
+  SET @max_d = NULL;
+  SELECT max(kirjekood) INTO @max_d
+  FROM repis.desktop
+  WHERE allikas = _allikas;
+
+  SET @id = lpad(
+    RIGHT(IF(@max_k >= IFNuLL(@max_d, @max_k), @max_k, @max_d), 9-length(@c)) + 1,
+    10,
+    concat_ws('-', @c, rpad('0', 9-length(@c), '0'))
+  );
+
+  RETURN @id;
 END;;
 
 DELIMITER ;
@@ -59,7 +91,7 @@ proc_label:BEGIN
 
   SET NEW.created_by = OLD.created_by;
 
-  IF OLD.allikas regexp '⌃EMI$|⌃TS$' THEN
+  IF OLD.allikas in ('EMI', 'TS') THEN
     SET NEW.allikas = OLD.allikas;
     SET NEW.kirje =
       concat_ws('. ',
@@ -74,8 +106,9 @@ proc_label:BEGIN
         if(NEW.jutt = '', NULL, NEW.jutt)
       )
     ;
-  -- ELSEIF IFNULL(OLD.kirjekood, '') = '' THEN
-  ELSEIF NEW.kirjekood != OLD.kirjekood OR
+
+  ELSEIF user() != 'queue@localhost' AND (
+        NEW.kirjekood != OLD.kirjekood OR
         NEW.perenimi != OLD.perenimi OR
         NEW.eesnimi != OLD.eesnimi OR
         NEW.isanimi != OLD.isanimi OR
@@ -84,12 +117,13 @@ proc_label:BEGIN
         NEW.surm != OLD.surm OR
         NEW.jutt != OLD.jutt OR
         NEW.kirje != OLD.kirje OR
-        NEW.allikas != OLD.allikas
+        NEW.allikas != OLD.allikas)
     THEN
       SELECT concat_ws('\n'
         , 'Registri kirjetel saab muuta ainult persooni koodi!'
       ) INTO msg;
       SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
+
   END IF;
 
 

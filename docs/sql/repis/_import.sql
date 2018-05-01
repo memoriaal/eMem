@@ -16,6 +16,7 @@ CREATE TABLE repis.allikad (
   `Allikas` varchar(255) DEFAULT NULL,
   `Nimetus` varchar(255) DEFAULT NULL,
   `Kood` varchar(255) DEFAULT NULL,
+  `Lühend` char(10) DEFAULT NULL,
   `Avaldatud` varchar(255) DEFAULT NULL,
   `Nimekiri` varchar(255) DEFAULT NULL,
   `Kirjeid allikas` varchar(255) DEFAULT NULL,
