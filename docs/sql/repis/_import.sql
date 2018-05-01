@@ -66,9 +66,10 @@ CREATE TABLE repis.kirjed (
   EkslikKanne enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   Peatatud enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   kustuta char(1) COLLATE utf8_estonian_ci DEFAULT NULL,
-  created timestamp NULL DEFAULT current_timestamp(),
-  updated timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
-  user varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
+  created_at timestamp NULL DEFAULT current_timestamp(),
+  created_by varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
+  updated_at timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  updated_by varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
   PRIMARY KEY (kirjekood),
   KEY persoon (persoon),
   KEY emi_id (emi_id),
@@ -100,9 +101,9 @@ INSERT INTO repis.kirjed (
       , EkslikKanne
       , Peatatud
       , kustuta
-      , created
-      , updated
-      , user
+      , created_at
+      , updated_at
+      , created_by
 )
 SELECT  NULL
       , Isikukood
@@ -114,9 +115,9 @@ SELECT  NULL
       , Emanimi
       , Sünd
       , Surm
+      , Perekood
       , Sugu
       , Rahvus
-      , Perekood
       , Allikas
       , Nimekiri
       , Puudulik
