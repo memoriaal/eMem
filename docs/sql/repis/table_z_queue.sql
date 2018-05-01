@@ -77,8 +77,4 @@ ALTER EVENT repis.process_queue DISABLE;
 SET GLOBAL event_scheduler=ON;
 -- SET GLOBAL event_scheduler=OFF;
 
-INSERT INTO desktop (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, jutt, kirje, allikas, valmis, created_at, created_by) VALUES ('NK-0091094', '', '', '', '', '', '', '', '', '', NULL, '0', current_timestamp(), '');
-
-INSERT INTO desktop (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, jutt, kirje, allikas, valmis, created_at, created_by) VALUES ('', 'NK-0091094', '', '', '', '', '', '', '', '', NULL, '0', current_timestamp(), '');
-
 -- call repis.process_queue();

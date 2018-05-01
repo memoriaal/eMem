@@ -1,6 +1,7 @@
 CREATE OR REPLACE TABLE repis.desktop (
   persoon char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   kirjekood char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  kirje text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   perenimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   eesnimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   isanimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
@@ -8,7 +9,6 @@ CREATE OR REPLACE TABLE repis.desktop (
   sünd varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   surm varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   jutt text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  kirje text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   allikas varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
   valmis tinyint(1) unsigned NOT NULL DEFAULT 0,
   created_at timestamp NOT NULL DEFAULT current_timestamp(),
@@ -187,9 +187,3 @@ proc_label:BEGIN
 END;;
 
 DELIMITER ;
-
-
-
-INSERT INTO desktop (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, jutt, kirje, allikas, valmis, created_at, created_by) VALUES ('NK-0091094', '', '', '', '', '', '', '', '', '', NULL, '0', current_timestamp(), '');
-
-INSERT INTO desktop (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, jutt, kirje, allikas, valmis, created_at, created_by) VALUES ('', 'NK-0091094', '', '', '', '', '', '', '', '', NULL, '0', current_timestamp(), '');
