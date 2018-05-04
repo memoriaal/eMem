@@ -22,62 +22,62 @@ CREATE OR REPLACE TABLE repis.desktop (
 --
 DELIMITER ;; -- desktop_BI
 
-CREATE OR REPLACE DEFINER=queue@localhost  TRIGGER repis.desktop_BI BEFORE INSERT ON repis.desktop FOR EACH ROW
-proc_label:BEGIN
+  CREATE OR REPLACE DEFINER=queue@localhost  TRIGGER repis.desktop_BI BEFORE INSERT ON repis.desktop FOR EACH ROW
+  proc_label:BEGIN
 
-  IF NEW.created_by = '' THEN
-    SET NEW.created_by = user();
-  END IF;
+    IF NEW.created_by = '' THEN
+      SET NEW.created_by = user();
+    END IF;
 
-  IF NEW.kirjekood = 'EMI' THEN
-    SET NEW.kirjekood = repis.desktop_next_id('EMI'), NEW.allikas = 'EMI';
+    IF NEW.kirjekood = 'EMI' THEN
+      SET NEW.kirjekood = repis.desktop_next_id('EMI'), NEW.allikas = 'EMI';
 
-  ELSEIF NEW.kirjekood = 'TS' THEN
-    SET NEW.kirjekood = repis.desktop_next_id('TS'), NEW.allikas = 'TS';
+    ELSEIF NEW.kirjekood = 'TS' THEN
+      SET NEW.kirjekood = repis.desktop_next_id('TS'), NEW.allikas = 'TS';
 
-  ELSEIF NEW.persoon IN ('Nimekujud', 'NK') THEN
-    SET @ik = repis.desktop_next_id('Nimekujud');
-    SET NEW.persoon = @ik,
-        NEW.kirjekood = @ik,
-        NEW.allikas = 'Nimekujud';
+    ELSEIF NEW.persoon IN ('Nimekujud', 'NK') THEN
+      SET @ik = repis.desktop_next_id('Nimekujud');
+      SET NEW.persoon = @ik,
+          NEW.kirjekood = @ik,
+          NEW.allikas = 'Nimekujud';
 
-  ELSEIF NEW.allikas IS NULL AND user() != 'queue@localhost' THEN
-    INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,    task,                  params, created_by)
-    VALUES                           (NEW.persoon, NEW.kirjekood, 'desktop_collect', NULL,   NEW.created_by);
+    ELSEIF NEW.allikas IS NULL AND user() != 'queue@localhost' THEN
+      INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,    task,                  params, created_by)
+      VALUES                           (NEW.persoon, NEW.kirjekood, 'desktop_collect', NULL,   NEW.created_by);
 
-  END IF;
-END;;
+    END IF;
+  END;;
 
 DELIMITER ;
 
 
 DELIMITER ;; -- desktop_next_id()
 
-CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.desktop_next_id(
-    _allikas VARCHAR(50)
-) RETURNS CHAR(10) CHARSET utf8
-func_label:BEGIN
+  CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.desktop_next_id(
+      _allikas VARCHAR(50)
+  ) RETURNS CHAR(10) CHARSET utf8
+  func_label:BEGIN
 
-  SELECT lühend INTO @c FROM repis.allikad WHERE kood = _allikas;
+    SELECT lühend INTO @c FROM repis.allikad WHERE kood = _allikas;
 
-  SET @max_k = NULL;
-  SELECT max(kirjekood) INTO @max_k
-  FROM repis.kirjed
-  WHERE allikas = _allikas;
+    SET @max_k = NULL;
+    SELECT max(kirjekood) INTO @max_k
+    FROM repis.kirjed
+    WHERE allikas = _allikas;
 
-  SET @max_d = NULL;
-  SELECT max(kirjekood) INTO @max_d
-  FROM repis.desktop
-  WHERE allikas = _allikas;
+    SET @max_d = NULL;
+    SELECT max(kirjekood) INTO @max_d
+    FROM repis.desktop
+    WHERE allikas = _allikas;
 
-  SET @id = lpad(
-    RIGHT(IF(@max_k >= IFNuLL(@max_d, @max_k), @max_k, @max_d), 9-length(@c)) + 1,
-    10,
-    concat_ws('-', @c, rpad('0', 9-length(@c), '0'))
-  );
+    SET @id = lpad(
+      RIGHT(IF(@max_k >= IFNuLL(@max_d, @max_k), @max_k, @max_d), 9-length(@c)) + 1,
+      10,
+      concat_ws('-', @c, rpad('0', 9-length(@c), '0'))
+    );
 
-  RETURN @id;
-END;;
+    RETURN @id;
+  END;;
 
 DELIMITER ;
 
@@ -89,7 +89,15 @@ proc_label:BEGIN
 
   DECLARE msg VARCHAR(2000);
 
-  SET NEW.created_by = OLD.created_by;
+  SET NEW.created_by = OLD.created_by; -- no meddling
+
+  IF  NEW.kirjekood != OLD.kirjekood THEN -- cant change the identifier
+    SELECT concat_ws('\n'
+      , 'Kirjekoode ei saa muuta.'
+      , 'Mitte kuidagi ei saa.'
+    ) INTO msg;
+    SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
+  END IF;
 
   IF OLD.allikas in ('EMI', 'TS') THEN
     SET NEW.allikas = OLD.allikas;
