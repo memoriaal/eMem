@@ -116,6 +116,7 @@ proc_label:BEGIN
 END;;
 DELIMITER ;
 
+ALTER EVENT `process_queue` ENABLE;
 ALTER EVENT `process_queue` DISABLE;
 SET GLOBAL event_scheduler=OFF;
 
