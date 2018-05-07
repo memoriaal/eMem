@@ -45,7 +45,8 @@ WHERE k.ekslikkanne = ''
   AND k.puudulik = ''
   AND k.peatatud = ''
   AND nk.isikukood IS NOT NULL
-GROUP BY k.emi_id;
+GROUP BY k.emi_id
+HAVING perenimi != '';
 
 CREATE OR REPLACE TABLE web_export SELECT * FROM web_export_v;
 
