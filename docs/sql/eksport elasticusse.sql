@@ -1,4 +1,4 @@
-CREATE or replace view `web_export`
+CREATE or replace view `web_export_v`
 AS
   SELECT   nk.isikukood AS `id`,
            substring_index(substring_index(group_concat(
@@ -29,7 +29,7 @@ AS
              '\''
            ), '')           AS `kirjed`,
            IFNULL(REPLACE(
-             group_concat(
+             group_concat( DISTINCT
                IF(kp.isikukood IS NULL, NULL, concat_ws('#|',kp.isikukood, kp.kirje, a.nimetus, kirjekood2nk(kp.isikukood)))
                ORDER BY kp.isikukood ASC SEPARATOR ';\n'
              ),
@@ -45,7 +45,10 @@ WHERE k.ekslikkanne = ''
   AND k.puudulik = ''
   AND k.peatatud = ''
   AND nk.isikukood IS NOT NULL
-GROUP BY k.emi_id;
+GROUP BY k.emi_id
+HAVING perenimi != '';
+
+CREATE OR REPLACE TABLE web_export SELECT * FROM web_export_v;
 
 
 

@@ -5,7 +5,7 @@ BEGIN
     SET kirjekood = _ik, silt = _silt, user = _user;
     -- ON DUPLICATE KEY UPDATE kustutatud = mod(kustutatud+1,2), user = _user;
 
-    CALL silt_refresh(_ik, _user);
+    CALL silt_refresh(_ik);
 END;;
 DELIMITER ;
 

@@ -1,3 +1,115 @@
+UPDATE ohvrite_nimekiri_2018_02_21 o
+left join kirjed k on k.emi_id = o.emi_id and k.allikas = 'Nimekujud'
+set o.persoon = k.isikukood
+WHERE o.persoon IS NULL;
+
+
+
+CREATE OR REPLACE VIEW aruanne_muutused_peale_publitseerimist_02_21 AS
+SELECT
+   o.emi_id AS emi_id,
+   o.Perenimi AS perenimi,
+   o.Eesnimi AS eesnimi,
+   o.Sünd AS sünd,
+   o.Surm AS surm,
+   p.emi_id AS Pemi_id,
+   p.Perenimi AS Pperenimi,
+   p.Eesnimi AS Peesnimi,
+   p.Sünd AS Psünd,
+   p.Surm AS Psurm
+FROM ohvrite_nimekiri_2018_02_21 o
+left join v_publish p on o.emi_id = p.emi_id
+where o.Perenimi <> p.Perenimi
+    or o.Eesnimi <> p.Eesnimi
+    or o.Sünd <> p.Sünd
+    or o.Surm <> p.Surm
+
+union
+select
+  o2.emi_id AS emi_id,
+  o2.Perenimi AS perenimi,
+  o2.Eesnimi AS eesnimi,
+  o2.Sünd AS sünd,
+  o2.Surm AS surm,
+NULL,
+NULL,
+NULL,
+NULL,
+NULL
+from ohvrite_nimekiri_2018_02_21 o2
+where o2.emi_id not in (select p2.emi_id from v_publish as p2)
+
+union
+select
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  p3.emi_id AS emi_id,
+  p3.Perenimi AS perenimi,
+  p3.Eesnimi AS eesnimi,
+  p3.Sünd AS sünd,
+  p3.Surm AS surm
+from v_publish as p3
+where p3.emi_id not in (select o3.emi_id from ohvrite_nimekiri_2018_02_21 AS o3);
+
+
+DELIMITER ;;
+CREATE OR REPLACE PROCEDURE tmp()
+BEGIN
+    DECLARE finished INTEGER DEFAULT 0;
+    DECLARE _emi_id INTEGER(11) UNSIGNED DEFAULT NULL;
+
+    DECLARE cur1 CURSOR FOR
+        SELECT emi_id FROM ohvrite_nimekiri_2018_02_21 WHERE persoon IS NULL;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+
+    DROP TABLE IF EXISTS otmp;
+    CREATE TABLE otmp(
+      `emi_id` int(11) unsigned DEFAULT NULL,
+      `isikukood` char(10) DEFAULT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+    OPEN cur1;
+    read_loop: LOOP
+    	SET _emi_id = NULL;
+    	SET @ik = NULL;
+
+        FETCH cur1 INTO _emi_id;
+
+        INSERT INTO otmp (emi_id, isikukood)
+        VALUES (_emi_id, NULL);
+
+        SET @ik = find_by_eid(_emi_id);
+
+        IF @ik IS NOT NULL THEN
+            UPDATE otmp SET isikukood = @ik;
+            WHERE emi_id = _emi_id;
+        END IF;
+
+        IF finished = 1 THEN
+            LEAVE read_loop;
+        END IF;
+
+    END LOOP;
+    CLOSE cur1;
+    SET finished = 0;
+
+END;;
+DELIMITER ;
+
+
+CALL tmp();
+
+UPDATE ohvrite_nimekiri_2018_02_21 o
+RIGHT JOIN otmp t on o.emi_id = t.emi_id
+set o.persoon = t.isikukood
+WHERE o.persoon IS NULL;
+
+
+
 CREATE OR REPLACE VIEW aruanne_muutused_peale_publitseerimist_02_13 AS
 SELECT o.emi_id, o.perenimi, o.eesnimi, o.isanimi, o.sünd, o.surm, o.kirjed, p.emi_id AS Pemi_id, p.perenimi AS Pperenimi, p.eesnimi AS Peesnimi, p.isanimi AS Pisanimi, p.sünd AS Psünd, p.surm AS Psurm, p.kirjed AS Pkirjed
 FROM ohvrite_nimekiri_2018_02_13 o
@@ -118,7 +230,7 @@ SELECT
   , ff.emi_id        AS emi_id
   , ff.kirje_allikad AS kirje_allikad
 FROM (
-        select 
+        select
             kr.Isikukood AS isikukood
           , kr.Kivi      AS kivi
           , kr.Mittekivi AS mittekivi
@@ -127,17 +239,17 @@ FROM (
           , kr.Nimekiri  AS nimekiri
           , kr.Kirje     AS kirje
           , k.emi_id     AS emi_id
-          , group_concat(distinct k.Allikas separator ';') 
-                             AS kirje_allikad 
+          , group_concat(distinct k.Allikas separator ';')
+                             AS kirje_allikad
         from (
-                kylli.kirjed kr 
-                left join kylli.kirjed k 
-                       on kr.emi_id = k.emi_id 
+                kylli.kirjed kr
+                left join kylli.kirjed k
+                       on kr.emi_id = k.emi_id
                       and kr.Nimekiri regexp substring_index(k.Allikas,'-',1)
         )
-        where kr.Allikas = 'R86' 
+        where kr.Allikas = 'R86'
         group by k.emi_id
-) ff 
+) ff
 WHERE ff.kirje_allikad not regexp ff.nimekiri;
 
 
@@ -152,7 +264,7 @@ SELECT koodid.koodid,
        e1.kirjed kirjed1, NULL as kasSama, e2.kirjed kirjed2
 FROM (
   select group_concat(distinct eid separator ',') koodid
-  from 
+  from
   (
     select _r7.memento, _r7.eR1 AS eid from _r7 where _r7.eR1 is not NULL
     UNION ALL
@@ -187,16 +299,16 @@ left join EMIR e2 on e2.id = SUBSTRING_INDEX(koodid.koodid, ',', -1)
 
 
 CREATE OR REPLACE algorithm=undefined definer=michelek@localhost SQL security definer view aruanne_nimekujud_topelt
-AS 
+AS
   SELECT concat('WHERE emi_id IN (SELECT emi_id FROM kirjed WHERE isikukood IN (', k1.isikukood, ',', k2.isikukood, '))')
-            k1.kirje AS kirje1, 
+            k1.kirje AS kirje1,
             k2.kirje AS kirje2,
             e.kirjed
-  FROM kirjed k1 
-  LEFT JOIN kirjed k2 ON k1.emi_id = k2.emi_id 
+  FROM kirjed k1
+  LEFT JOIN kirjed k2 ON k1.emi_id = k2.emi_id
                      AND k1.isikukood < k2.isikukood
   LEFT JOIN EMIR e on e.id = k1.emi_id
-  WHERE     k1.allikas = 'Nimekujud' 
-  AND       k2.allikas = 'Nimekujud' 
-  AND       k1.ekslikkanne = '' 
+  WHERE     k1.allikas = 'Nimekujud'
+  AND       k2.allikas = 'Nimekujud'
+  AND       k1.ekslikkanne = ''
   AND       k2.ekslikkanne = '';
