@@ -1,9 +1,9 @@
 DELIMITER ;;
 CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE update_lipik(IN _ik CHAR(10), IN _lipik VARCHAR(50), IN _user VARCHAR(50))
 BEGIN
-    INSERT INTO kirjelipikud
-    SET kirjekood = _ik, lipik = _lipik, user = _user
-    ON DUPLICATE KEY UPDATE kustutatud = mod(kustutatud+1,2), user = _user;
+    INSERT IGNORE INTO kirjelipikud
+    SET kirjekood = _ik, lipik = _lipik, user = _user;
+    -- ON DUPLICATE KEY UPDATE kustutatud = mod(kustutatud+1,2), user = _user;
 
     CALL lipik_refresh(_ik);
 END;;
