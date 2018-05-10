@@ -7,8 +7,6 @@ DROP TABLE IF EXISTS repis.seosed;
 
 DROP TABLE IF EXISTS kirjed;
 DROP TABLE IF EXISTS allikad;
-DROP TABLE IF EXISTS sildid;
-DROP TABLE IF EXISTS lipikud;
 
 CREATE TABLE repis.allikad (
   `id` int(10) unsigned NOT NULL DEFAULT 0,
@@ -235,7 +233,7 @@ CREATE TABLE repis.v_kirjesildid (
   created_by varchar(50) NOT NULL DEFAULT '',
   deleted_at timestamp NULL DEFAULT NULL,
   deleted_by varchar(50) NOT NULL DEFAULT '',
-  PRIMARY KEY (kirjekood,silt),
+  PRIMARY KEY (kirjekood,silt,deleted_at),
   KEY silt (silt),
   CONSTRAINT v_kirjesildid_ibfk_1 FOREIGN KEY (silt) REFERENCES c_sildid (silt),
   CONSTRAINT v_kirjesildid_ibfk_2 FOREIGN KEY (kirjekood) REFERENCES kirjed (kirjekood)
@@ -244,7 +242,8 @@ SELECT ks.kirjekood AS kirjekood,
        ks.silt AS silt,
        ks.created AS created_at,
        ks.user AS created_by,
-       if(ks.kustutatud = 1, now(), NULL) AS deleted_at
+       if(ks.kustutatud = 1, now(), NULL) AS deleted_at,
+       '' AS deleted_by
 FROM kylli.kirjesildid ks;
 
 CREATE TABLE repis.v_kirjelipikud (
@@ -254,7 +253,7 @@ CREATE TABLE repis.v_kirjelipikud (
   created_by varchar(50) NOT NULL DEFAULT '',
   deleted_at timestamp NULL DEFAULT NULL,
   deleted_by varchar(50) NOT NULL DEFAULT '',
-  PRIMARY KEY (kirjekood,lipik),
+  PRIMARY KEY (kirjekood,lipik,deleted_at),
   KEY lipik (lipik),
   CONSTRAINT v_kirjelipikud_ibfk_1 FOREIGN KEY (lipik) REFERENCES c_lipikud (lipik),
   CONSTRAINT v_kirjelipikud_ibfk_2 FOREIGN KEY (kirjekood) REFERENCES kirjed (kirjekood)
@@ -263,7 +262,8 @@ SELECT k.kirjekood AS kirjekood,
        k.lipik AS lipik,
        k.created AS created_at,
        k.user AS created_by,
-       if(k.kustutatud = 1, now(), NULL) AS deleted_at
+       if(k.kustutatud = 1, now(), NULL) AS deleted_at,
+       '' AS deleted_by
 FROM kylli.kirjelipikud k;
 
 
@@ -323,3 +323,4 @@ SELECT NULL AS id,
       timestamp AS created_at,
       user AS created_by
 FROM kylli.seosed
+WHERE seos != 'sama isik';
