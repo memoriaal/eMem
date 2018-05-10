@@ -107,9 +107,9 @@ proc_label:BEGIN
         concat_ws('. '
           , concat_ws(', '
             , if(nimekuju.perenimi='',NULL,nimekuju.perenimi)
-            , if(nimekuju.eesnimi='',NULL,nimekuju.eesnimi)
-            , if(nimekuju.isanimi='',NULL,nimekuju.isanimi)
-            , if(nimekuju.emanimi='',NULL,nimekuju.emanimi)
+            , if(nimekuju.eesnimi='','-',nimekuju.eesnimi)
+            , if(nimekuju.isanimi='',NULL,concat('isa ', nimekuju.isanimi))
+            , if(nimekuju.emanimi='',NULL,concat('ema ', nimekuju.emanimi))
           )
           , concat_ws(' - '
             , if(nimekuju.sünd='', NULL, concat('Sünd ', nimekuju.sünd))
