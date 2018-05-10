@@ -1,20 +1,41 @@
--- CREATE OR REPLACE TABLE repis.desktop (
---   persoon char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
---   kirjekood char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
---   kirje text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
---   perenimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
---   eesnimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
---   isanimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
---   emanimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
---   sünd varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
---   surm varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
---   jutt text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
---   allikas varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
---   valmis enum('','Valmis','Untsus') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
---   created_at timestamp NOT NULL DEFAULT current_timestamp(),
---   created_by varchar(50) NOT NULL DEFAULT '',
---   PRIMARY KEY (kirjekood,created_by)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+CREATE OR REPLACE TABLE repis.desktop (
+  persoon char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  kirjekood char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  jutt text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  perenimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  eesnimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  isanimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  emanimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  sünd varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  surm varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  kirje text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  välisviide varchar(2000) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  allikas varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
+  valmis enum('','Valmis','Untsus') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  created_at timestamp NOT NULL DEFAULT current_timestamp(),
+  created_by varchar(50) NOT NULL DEFAULT '',
+  PRIMARY KEY (kirjekood,created_by)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+
+
+CREATE OR REPLACE VIEW `my_desktop`
+AS SELECT
+   `desktop`.`persoon` AS `persoon`,
+   `desktop`.`kirjekood` AS `kirjekood`,
+   `desktop`.`jutt` AS `jutt`,
+   `desktop`.`perenimi` AS `perenimi`,
+   `desktop`.`eesnimi` AS `eesnimi`,
+   `desktop`.`isanimi` AS `isanimi`,
+   `desktop`.`emanimi` AS `emanimi`,
+   `desktop`.`sünd` AS `sünd`,
+   `desktop`.`surm` AS `surm`,
+   `desktop`.`kirje` AS `kirje`,
+   `desktop`.`välisviide` AS `välisviide`,
+   `desktop`.`allikas` AS `allikas`,
+   `desktop`.`valmis` AS `valmis`,
+   `desktop`.`created_at` AS `created_at`,
+   `desktop`.`created_by` AS `created_by`
+FROM `desktop` where `desktop`.`created_by` = user();
 
 
 --
@@ -29,18 +50,18 @@ DELIMITER ;; -- desktop_BI
       SET NEW.created_by = user();
     END IF;
 
-    IF NEW.kirjekood = 'EMI' THEN
-      SET NEW.kirjekood = repis.desktop_next_id('EMI'), NEW.allikas = 'EMI';
+    SET @new_code = IF(NEW.kirjekood = '', NEW.persoon, NEW.kirjekood);
 
-    ELSEIF NEW.kirjekood = 'TS' THEN
-      SET NEW.kirjekood = repis.desktop_next_id('TS'), NEW.allikas = 'TS';
+    IF @new_code IN ('EMI', 'TS') THEN
+      SET NEW.persoon = '',
+          NEW.kirjekood = repis.desktop_next_id(@new_code),
+          NEW.allikas = @new_code;
 
-    ELSEIF NEW.kirjekood IN ('Nimekujud', 'NK') OR
-           NEW.persoon IN ('Nimekujud', 'NK') THEN
-      SET @ik = repis.desktop_next_id('Nimekujud');
+    ELSEIF @new_code = '0' THEN
+      SET @ik = repis.desktop_next_id('Persoon');
       SET NEW.persoon = @ik,
           NEW.kirjekood = @ik,
-          NEW.allikas = 'Nimekujud';
+          NEW.allikas = 'Persoon';
 
     ELSEIF NEW.allikas IS NULL AND user() != 'queue@localhost' THEN
       INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,    task,                  params, created_by)
@@ -98,7 +119,7 @@ DELIMITER ;; -- desktop_BU
       END IF;
 
     -- cant change anything but person for original records
-      IF OLD.allikas NOT IN ('EMI', 'TS', 'Nimekujud')
+      IF OLD.allikas NOT IN ('EMI', 'TS', 'Persoon')
         AND user() != 'queue@localhost'
         AND ( NEW.kirjekood != OLD.kirjekood OR
               NEW.perenimi != OLD.perenimi OR
@@ -108,6 +129,7 @@ DELIMITER ;; -- desktop_BU
               NEW.sünd != OLD.sünd OR
               NEW.surm != OLD.surm OR
               NEW.jutt != OLD.jutt OR
+              NEW.välisviide != OLD.välisviide OR
               NEW.kirje != OLD.kirje OR
               NEW.allikas != OLD.allikas ) THEN
         SELECT concat_ws('\n'
@@ -118,21 +140,48 @@ DELIMITER ;; -- desktop_BU
 
 
     --
+    -- Prefill names'n'dates
+    --
+    IF OLD.allikas IN ('EMI', 'TS')
+       AND OLD.persoon = '' AND NEW.persoon != '' THEN
+      IF NEW.perenimi = '' AND NEW.eesnimi  = ''
+         AND NEW.isanimi  = '' AND NEW.emanimi  = ''
+         AND NEW.sünd     = '' AND NEW.surm     = '' THEN
+            SELECT k.perenimi, k.eesnimi
+                 , k.isanimi, k.emanimi
+                 , k.sünd, k.surm
+              INTO @perenimi, @eesnimi
+                 , @isanimi, @emanimi
+                 , @sünd, @surm
+              FROM kirjed k
+             WHERE k.kirjekood = NEW.persoon;
+
+             SET NEW.perenimi = @perenimi, NEW.eesnimi = @eesnimi,
+                 NEW.isanimi = @isanimi, NEW.emanimi = @emanimi,
+                 NEW.sünd = @sünd, NEW.surm = @surm;
+      END IF;
+    END IF;
+
+
+    --
     -- Recalculate current record
     --
-    SET NEW.kirje =
-      concat_ws('. ',
-        concat_ws(', ',
-          if(NEW.perenimi = '', NULL, NEW.perenimi),
-          if(NEW.eesnimi = '', NULL, NEW.eesnimi),
-          if(NEW.isanimi = '', NULL, NEW.isanimi),
-          if(NEW.emanimi = '', NULL, concat('ema eesnimi ', NEW.emanimi))
-        ),
-        if(NEW.sünd = '', NULL, concat('Sünd ', NEW.sünd)),
-        if(NEW.surm = '', NULL, concat('Surm ', NEW.surm)),
-        if(NEW.jutt = '', NULL, NEW.jutt)
-      )
-    ;
+    IF OLD.allikas IN ('EMI', 'TS', 'Persoon') THEN
+      SET NEW.kirje =
+        concat_ws('. ',
+          concat_ws(', ',
+            if(NEW.perenimi = '', NULL, NEW.perenimi),
+            if(NEW.eesnimi  = '', NULL, NEW.eesnimi),
+            if(NEW.isanimi  = '', NULL, NEW.isanimi),
+            if(NEW.emanimi  = '', NULL, concat('ema eesnimi ', NEW.emanimi))
+          ),
+          if(NEW.sünd       = '', NULL, concat('Sünd ', NEW.sünd)),
+          if(NEW.surm       = '', NULL, concat('Surm ', NEW.surm)),
+          if(NEW.jutt       = '', NULL, NEW.jutt),
+          if(NEW.välisviide = '', NULL, NEW.välisviide)
+        )
+      ;
+    END IF;
 
 
     --
@@ -157,7 +206,7 @@ DELIMITER ;; -- desktop_BU
         SET @refresh_requested = 1;
       END IF;
 
-      IF NEW.kirje != OLD.kirje AND NEW.allikas != 'Nimekujud' AND @refresh_requested = 0 THEN
+      IF NEW.kirje != OLD.kirje AND NEW.allikas != 'Persoon' AND @refresh_requested = 0 THEN
         INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,            params, created_by)
         VALUES                           (NEW.persoon, NULL,       'desktop_NK_refresh', '2',   user());
         SET @refresh_requested = 1;
@@ -187,12 +236,12 @@ DELIMITER ;; -- desktop_BU
         created_at, created_by)
       SELECT d.persoon, d.kirjekood, d.kirje, d.perenimi, d.eesnimi,
              d.isanimi, d.emanimi, d.sünd, d.surm, d.allikas,
-             now(), d.created_by
+             now(), SUBSTRING_INDEX(user(), '@', 1)
       FROM repis.desktop d
       LEFT JOIN repis.kirjed k ON k.kirjekood = d.kirjekood
       WHERE k.persoon IS NULL
       AND d.persoon = d.kirjekood
-      AND d.created_by = SUBSTRING_INDEX(user(), '@', 1);
+      AND d.created_by = user();
 
       -- Save new records to new persons if any
       INSERT INTO repis.kirjed (
@@ -201,12 +250,12 @@ DELIMITER ;; -- desktop_BU
         created_at, created_by)
       SELECT d.persoon, d.kirjekood, d.kirje, d.perenimi, d.eesnimi,
              d.isanimi, d.emanimi, d.sünd, d.surm, d.allikas,
-             now(), d.created_by
+             now(), SUBSTRING_INDEX(user(), '@', 1)
       FROM repis.desktop d
       LEFT JOIN repis.kirjed k ON k.kirjekood = d.kirjekood
       WHERE k.persoon IS NULL
       AND d.persoon != d.kirjekood
-      AND d.created_by = SUBSTRING_INDEX(user(), '@', 1);
+      AND d.created_by = user();
 
       -- Update changed persons
       UPDATE repis.kirjed k
@@ -254,7 +303,10 @@ DELIMITER ;; -- desktop_next_id()
     SET @id = lpad(
       RIGHT(IF(@max_k >= IFNuLL(@max_d, @max_k), @max_k, @max_d), 9-length(@c)) + 1,
       10,
-      concat_ws('-', @c, rpad('0', 9-length(@c), '0'))
+      if(_allikas = 'Persoon',
+        rpad('0', 10, '0'),
+        concat_ws('-', @c, rpad('0', 9-length(@c), '0'))
+      )
     );
 
     RETURN @id;
@@ -334,10 +386,10 @@ DELIMITER ;; -- desktop_NK_refresh
     WHERE created_by = _created_by
       AND kirjekood = _persoon;
 
-    IF @allikas != 'Nimekujud'
+    IF @allikas != 'Persoon'
     THEN
         SELECT concat(
-          'Nimekuju saab arvutada ainult NK kirjele!'
+          'Nimekuju saab arvutada ainult persoonikirjele!'
           , '\n', _persoon
           , '\n', @allikas
         ) INTO msg;

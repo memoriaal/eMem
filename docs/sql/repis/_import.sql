@@ -44,6 +44,8 @@ VALUES
     NULL, NULL, 'testimiseks', NULL,
     'testimiseks', '0', '0', '0', '0', '0', '0', '0');
 
+UPDATE allikad SET Kood = 'Persoon', lühend = '' WHERE Kood = 'Nimekujud' LIMIT 1;
+
 
 CREATE TABLE repis.kirjed (
   persoon     char(10)                  DEFAULT NULL,
@@ -59,6 +61,7 @@ CREATE TABLE repis.kirjed (
   Perekood    varchar(20)      NOT NULL DEFAULT '',
   Sugu        enum('M','N','') NOT NULL DEFAULT '',
   Rahvus      varchar(50)      NOT NULL DEFAULT '',
+  Välisviide  varchar(2000)    NOT NULL DEFAULT '',
   Allikas     varchar(20)      NOT NULL DEFAULT '',
   Nimekiri    varchar(50)      NOT NULL DEFAULT '',
   Puudulik    enum('','!')     NOT NULL DEFAULT '',
@@ -101,6 +104,7 @@ INSERT INTO repis.kirjed (
       , Perekood
       , Sugu
       , Rahvus
+      , Välisviide
       , Allikas
       , Nimekiri
       , Puudulik
@@ -112,7 +116,7 @@ INSERT INTO repis.kirjed (
       , created_by
 )
 SELECT  NULL
-      , Isikukood
+      , replace(Isikukood, 'NK-', '000') AS persoon
       , emi_id
       , Kirje
       , Perenimi
@@ -124,7 +128,8 @@ SELECT  NULL
       , Perekood
       , Sugu
       , Rahvus
-      , Allikas
+      , Välisviide
+      , replace(Allikas, 'Nimekujud', 'Persoon') as allikas
       , Nimekiri
       , Puudulik
       , EkslikKanne
@@ -143,7 +148,7 @@ from kylli.kirjed k
 UPDATE repis.kirjed k1
 RIGHT JOIN repis.kirjed k0 ON k0.emi_id = k1.emi_id
   SET k1.persoon = k0.kirjekood
-WHERE k0.allikas = 'Nimekujud'
+WHERE k0.allikas = 'Persoon'
 ;
 
 
@@ -238,7 +243,7 @@ CREATE TABLE repis.v_kirjesildid (
   CONSTRAINT v_kirjesildid_ibfk_1 FOREIGN KEY (silt) REFERENCES c_sildid (silt),
   CONSTRAINT v_kirjesildid_ibfk_2 FOREIGN KEY (kirjekood) REFERENCES kirjed (kirjekood)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci
-SELECT ks.kirjekood AS kirjekood,
+SELECT replace(ks.kirjekood, 'NK-', '000') AS kirjekood,
        ks.silt AS silt,
        ks.created AS created_at,
        ks.user AS created_by,
@@ -258,7 +263,7 @@ CREATE TABLE repis.v_kirjelipikud (
   CONSTRAINT v_kirjelipikud_ibfk_1 FOREIGN KEY (lipik) REFERENCES c_lipikud (lipik),
   CONSTRAINT v_kirjelipikud_ibfk_2 FOREIGN KEY (kirjekood) REFERENCES kirjed (kirjekood)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci
-SELECT k.kirjekood AS kirjekood,
+SELECT replace(k.kirjekood, 'NK-', '000') AS kirjekood,
        k.lipik AS lipik,
        k.created AS created_at,
        k.user AS created_by,
@@ -289,9 +294,9 @@ CREATE TABLE repis.c_seoseliigid (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci
 SELECT * FROM kylli.seoseliigid;
 
-ALTER TABLE `c_seoseliigid` ADD FOREIGN KEY (`seoseliik_1M`) REFERENCES `c_seoseliigid` (`seoseliik`) ON UPDATE CASCADE;
-ALTER TABLE `c_seoseliigid` ADD FOREIGN KEY (`seoseliik_1N`) REFERENCES `c_seoseliigid` (`seoseliik`) ON UPDATE CASCADE;
-ALTER TABLE `c_seoseliigid` ADD FOREIGN KEY (`seoseliik_1X`) REFERENCES `c_seoseliigid` (`seoseliik`) ON UPDATE CASCADE;
+ALTER TABLE c_seoseliigid ADD FOREIGN KEY (seoseliik_1M) REFERENCES c_seoseliigid (seoseliik) ON UPDATE CASCADE;
+ALTER TABLE c_seoseliigid ADD FOREIGN KEY (seoseliik_1N) REFERENCES c_seoseliigid (seoseliik) ON UPDATE CASCADE;
+ALTER TABLE c_seoseliigid ADD FOREIGN KEY (seoseliik_1X) REFERENCES c_seoseliigid (seoseliik) ON UPDATE CASCADE;
 
 
 
@@ -316,10 +321,10 @@ CREATE TABLE repis.seosed (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci
 
 SELECT NULL AS id,
-      isikukood1 AS kirjekood1,
+      replace(isikukood1, 'NK-', '000') AS kirjekood1,
       seos AS seos,
       vastasseos AS vastasseos,
-      isikukood2 AS kirjekood2,
+      replace(isikukood2, 'NK-', '000') AS kirjekood2,
       timestamp AS created_at,
       user AS created_by
 FROM kylli.seosed

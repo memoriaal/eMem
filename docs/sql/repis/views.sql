@@ -4,7 +4,7 @@ AS
        , group_concat(concat(kk.kirjekood, ': ', kk.kirje) SEPARATOR '\n') as Kirjed
   FROM kirjed kn
   LEFT JOIN kirjed kk ON kk.persoon = kn.persoon AND kk.kirjekood != kn.kirjekood
-  WHERE kn.allikas = 'Nimekujud'
+  WHERE kn.allikas = 'Persoon'
   GROUP BY kn.persoon;
 
 
