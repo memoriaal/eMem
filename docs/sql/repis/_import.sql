@@ -156,6 +156,48 @@ ALTER TABLE repis.kirjed DROP emi_id;
 
 
 --
+-- Kirjed Triggers
+--
+DELIMITER ;;
+
+  --
+  -- kirjed_BI
+  --
+  CREATE OR REPLACE DEFINER=queue@localhost  TRIGGER repis.kirjed_BI BEFORE INSERT ON repis.kirjed FOR EACH ROW
+  proc_label:BEGIN
+
+    DECLARE msg VARCHAR(2000);
+
+    IF user() != 'queue@localhost' THEN
+      SELECT concat_ws('\n'
+        , 'Kirjetesse otse uusi kirjeid lisada ei saa.'
+      ) INTO msg;
+      SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
+    END IF;
+
+  END;;
+
+  --
+  -- kirjed_BU
+  --
+  CREATE OR REPLACE DEFINER=queue@localhost  TRIGGER repis.kirjed_BU BEFORE UPDATE ON repis.kirjed FOR EACH ROW
+  proc_label:BEGIN
+
+    DECLARE msg VARCHAR(2000);
+
+    IF user() != 'queue@localhost' THEN
+      SELECT concat_ws('\n'
+        , 'Kirjeid otse muuta ei saa.'
+      ) INTO msg;
+      SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
+    END IF;
+
+  END;;
+
+DELIMITER ;
+
+
+--
 -- sildid/lipikud klassifikaatorid
 --
 DROP TABLE IF EXISTS repis.v_kirjesildid;

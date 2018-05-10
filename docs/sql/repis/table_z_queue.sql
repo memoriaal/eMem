@@ -13,8 +13,8 @@ CREATE OR REPLACE TABLE repis.z_queue (
 
 
 DELIMITER ;;
-CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.process_queue()
-proc_label:BEGIN
+  CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.process_queue()
+  proc_label:BEGIN
     DECLARE _id INT(11) UNSIGNED;
     DECLARE _kirjekood1 CHAR(10);
     DECLARE _kirjekood2 CHAR(10);
@@ -26,49 +26,51 @@ proc_label:BEGIN
     DECLARE finished INTEGER DEFAULT 0;
 
     DECLARE cur1 CURSOR FOR
-        SELECT id, kirjekood1, kirjekood2, task, params, created_by
-        FROM repis.z_queue WHERE erred_at IS NULL
-        -- LIMIT 130
-        ;
+      SELECT id, kirjekood1, kirjekood2, task, params, created_by
+      FROM repis.z_queue WHERE erred_at IS NULL
+      -- LIMIT 130
+      ;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
 
     SELECT count(1) INTO @pcnt FROM INFORMATION_SCHEMA.PROCESSLIST
     WHERE User = 'queue';
-    IF @pcnt > 1
-    THEN
-        LEAVE proc_label;
+    IF @pcnt > 1 THEN
+      LEAVE proc_label;
     END IF;
 
 
     OPEN cur1;
     read_loop: LOOP
-        -- LEAVE read_loop;
-        FETCH cur1 INTO _id, _kirjekood1, _kirjekood2, _task, _params, _created_by;
-        IF finished = 1 THEN
-            LEAVE read_loop;
-        END IF;
+      -- LEAVE read_loop;
+      FETCH cur1 INTO _id, _kirjekood1, _kirjekood2, _task, _params, _created_by;
+      IF finished = 1 THEN
+          LEAVE read_loop;
+      END IF;
 
-        UPDATE repis.z_queue SET msg = 'errored' WHERE id = _id;
+      UPDATE repis.z_queue SET msg = 'errored' WHERE id = _id;
 
-        IF _task = 'desktop_flush' THEN
-            CALL repis.q_desktop_flush(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-            DELETE FROM repis.z_queue WHERE id = _id;
-        END IF;
-        IF _task = 'desktop_collect' THEN
-            CALL repis.q_desktop_collect(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-            DELETE FROM repis.z_queue WHERE id = _id;
-        END IF;
+      IF _task = 'desktop_flush' THEN
+        CALL repis.q_desktop_flush(_kirjekood1, _kirjekood2, _task, _params, _created_by);
+        DELETE FROM repis.z_queue WHERE id = _id;
+      ELSEIF _task = 'desktop_collect' THEN
+        CALL repis.q_desktop_collect(_kirjekood1, _kirjekood2, _task, _params, _created_by);
+        DELETE FROM repis.z_queue WHERE id = _id;
+      ELSEIF _task = 'desktop_NK_refresh' THEN
+        UPDATE repis.z_queue SET msg = concat('CALL repis.q_desktop_NK_refresh(\'',_kirjekood1,'\', \'',_kirjekood2,'\', \'',_task,'\', \'',_params,'\', \'',_created_by,'\');') WHERE id = _id;
+        CALL repis.q_desktop_NK_refresh(_kirjekood1, _kirjekood2, _task, _params, _created_by);
+        DELETE FROM repis.z_queue WHERE id = _id;
+      END IF;
 
     END LOOP;
     CLOSE cur1;
     SET finished = 0;
 
-END;;
+  END;;
 DELIMITER ;
 
 
 CREATE OR REPLACE EVENT repis.process_queue
-    ON SCHEDULE EVERY 1 SECOND STARTS '2017-11-19 01:00:00'
+    ON SCHEDULE EVERY 100 SECOND STARTS '2017-11-19 01:00:00'
     ON COMPLETION PRESERVE ENABLE
     DO CALL repis.process_queue();
 
