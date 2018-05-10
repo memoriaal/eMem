@@ -1,15 +1,15 @@
-CREATE OR REPLACE TABLE repis.z_queue (
-  id INT(11) unsigned NOT NULL AUTO_INCREMENT,
-  kirjekood1 CHAR(10) NOT NULL DEFAULT '',
-  kirjekood2 CHAR(10) NOT NULL DEFAULT '',
-  task VARCHAR(50) NOT NULL DEFAULT '',
-  params VARCHAR(200) NOT NULL DEFAULT '',
-  created_at TIMESTAMP NOT NULL DEFAULT current_timestamp(),
-  created_by VARCHAR(50) NOT NULL DEFAULT '',
-  erred_at timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
-  msg VARCHAR(100) DEFAULT NULL,
-  PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+-- CREATE OR REPLACE TABLE repis.z_queue (
+--   id INT(11) unsigned NOT NULL AUTO_INCREMENT,
+--   kirjekood1 CHAR(10) NOT NULL DEFAULT '',
+--   kirjekood2 CHAR(10) NOT NULL DEFAULT '',
+--   task VARCHAR(50) NOT NULL DEFAULT '',
+--   params VARCHAR(200) NOT NULL DEFAULT '',
+--   created_at TIMESTAMP NOT NULL DEFAULT current_timestamp(),
+--   created_by VARCHAR(50) NOT NULL DEFAULT '',
+--   erred_at timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+--   msg VARCHAR(100) DEFAULT NULL,
+--   PRIMARY KEY (id)
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 DELIMITER ;;
@@ -25,19 +25,30 @@ DELIMITER ;;
 
     DECLARE finished INTEGER DEFAULT 0;
 
+    -- Declare variables to hold diagnostics area information
+    DECLARE code CHAR(5) DEFAULT '00000';
+    DECLARE msg TEXT;
+
     DECLARE cur1 CURSOR FOR
       SELECT id, kirjekood1, kirjekood2, task, params, created_by
       FROM repis.z_queue WHERE erred_at IS NULL
       -- LIMIT 130
       ;
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+
+    -- Declare exception handler for failed insert
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+      BEGIN
+        GET DIAGNOSTICS CONDITION 1
+          code = RETURNED_SQLSTATE, msg = MESSAGE_TEXT;
+        INSERT INTO z_queue (task, params) values (code, msg);
+      END;
+
 
     SELECT count(1) INTO @pcnt FROM INFORMATION_SCHEMA.PROCESSLIST
     WHERE User = 'queue';
     IF @pcnt > 1 THEN
       LEAVE proc_label;
     END IF;
-
 
     OPEN cur1;
     read_loop: LOOP
@@ -48,6 +59,7 @@ DELIMITER ;;
       END IF;
 
       UPDATE repis.z_queue SET msg = 'errored' WHERE id = _id;
+      SELECT concat(_id, ': CALL repis.q_', _task, '(\'',_kirjekood1,'\', \'',_kirjekood2,'\', \'',_task,'\', \'',_params,'\', \'',_created_by,'\');');
 
       IF _task = 'desktop_flush' THEN
         CALL repis.q_desktop_flush(_kirjekood1, _kirjekood2, _task, _params, _created_by);
@@ -70,7 +82,7 @@ DELIMITER ;
 
 
 CREATE OR REPLACE DEFINER=queue@localhost EVENT repis.process_queue
-    ON SCHEDULE EVERY 100 SECOND STARTS '2017-11-19 01:00:00'
+    ON SCHEDULE EVERY 1 SECOND STARTS '2017-11-19 01:00:00'
     ON COMPLETION PRESERVE ENABLE
     DO CALL repis.process_queue();
 

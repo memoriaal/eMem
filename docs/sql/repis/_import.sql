@@ -166,9 +166,9 @@ DELIMITER ;;
 
     DECLARE msg VARCHAR(2000);
 
-    IF user() != 'queue@localhost' THEN
+    IF NEW.created_by != SUBSTRING_INDEX(user(), '@', 1) THEN
       SELECT concat_ws('\n'
-        , 'Kirjetesse otse uusi kirjeid lisada ei saa.'
+        , 'Kirjeid saab lisada ainult töölaualt.'
       ) INTO msg;
       SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
     END IF;
@@ -183,9 +183,9 @@ DELIMITER ;;
 
     DECLARE msg VARCHAR(2000);
 
-    IF user() != 'queue@localhost' THEN
+    IF NEW.updated_by != SUBSTRING_INDEX(user(), '@', 1) THEN
       SELECT concat_ws('\n'
-        , 'Kirjeid otse muuta ei saa.'
+        , 'Kirjeid saab muuta ainult töölaual.'
       ) INTO msg;
       SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
     END IF;
