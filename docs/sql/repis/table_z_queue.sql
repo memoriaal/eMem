@@ -69,7 +69,7 @@ DELIMITER ;;
 DELIMITER ;
 
 
-CREATE OR REPLACE EVENT repis.process_queue
+CREATE OR REPLACE DEFINER=queue@localhost EVENT repis.process_queue
     ON SCHEDULE EVERY 100 SECOND STARTS '2017-11-19 01:00:00'
     ON COMPLETION PRESERVE ENABLE
     DO CALL repis.process_queue();
