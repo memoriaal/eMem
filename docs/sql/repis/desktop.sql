@@ -1,4 +1,5 @@
 CREATE OR REPLACE TABLE repis.desktop (
+  valmis enum('','Valmis','Untsus') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   persoon char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   kirjekood char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   jutt text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
@@ -11,7 +12,6 @@ CREATE OR REPLACE TABLE repis.desktop (
   kirje text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   välisviide varchar(2000) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   allikas varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
-  valmis enum('','Valmis','Untsus') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   created_at timestamp NOT NULL DEFAULT current_timestamp(),
   created_by varchar(50) NOT NULL DEFAULT '',
   PRIMARY KEY (kirjekood,created_by)
@@ -147,6 +147,9 @@ DELIMITER ;; -- desktop_BU
       IF NEW.perenimi = '' AND NEW.eesnimi  = ''
          AND NEW.isanimi  = '' AND NEW.emanimi  = ''
          AND NEW.sünd     = '' AND NEW.surm     = '' THEN
+            SET @perenimi = '', @eesnimi = ''
+               , @isanimi = '', @emanimi = ''
+               , @sünd = '', @surm = '';
             SELECT k.perenimi, k.eesnimi
                  , k.isanimi, k.emanimi
                  , k.sünd, k.surm
@@ -172,8 +175,8 @@ DELIMITER ;; -- desktop_BU
           concat_ws(', ',
             if(NEW.perenimi = '', NULL, NEW.perenimi),
             if(NEW.eesnimi  = '', NULL, NEW.eesnimi),
-            if(NEW.isanimi  = '', NULL, NEW.isanimi),
-            if(NEW.emanimi  = '', NULL, concat('ema eesnimi ', NEW.emanimi))
+            if(NEW.isanimi  = '', NULL, concat('isa ', NEW.isanimi)),
+            if(NEW.emanimi  = '', NULL, concat('ema ', NEW.emanimi))
           ),
           if(NEW.sünd       = '', NULL, concat('Sünd ', NEW.sünd)),
           if(NEW.surm       = '', NULL, concat('Surm ', NEW.surm)),
@@ -246,14 +249,14 @@ DELIMITER ;; -- desktop_BU
       -- Save new records to new persons if any
       INSERT INTO repis.kirjed (
         persoon, kirjekood, kirje, perenimi, eesnimi,
-        isanimi, emanimi, sünd, surm, allikas,
+        isanimi, emanimi, sünd, surm, allikas, välisviide,
         created_at, created_by)
       SELECT d.persoon, d.kirjekood, d.kirje, d.perenimi, d.eesnimi,
-             d.isanimi, d.emanimi, d.sünd, d.surm, d.allikas,
+             d.isanimi, d.emanimi, d.sünd, d.surm, d.allikas, d.välisviide,
              now(), SUBSTRING_INDEX(user(), '@', 1)
       FROM repis.desktop d
       LEFT JOIN repis.kirjed k ON k.kirjekood = d.kirjekood
-      WHERE k.persoon IS NULL
+      WHERE k.kirjekood IS NULL
       AND d.persoon != d.kirjekood
       AND d.created_by = user();
 
@@ -265,7 +268,7 @@ DELIMITER ;; -- desktop_BU
           k.kirje = d.kirje,
           k.perenimi = d.perenimi, k.eesnimi = d.eesnimi,
           k.isanimi = d.isanimi, k.emanimi = d.emanimi,
-          k.sünd = d.sünd, k.surm = d.surm, k.allikas = d.allikas,
+          k.sünd = d.sünd, k.surm = d.surm, k.allikas = d.allikas, k.välisviide = d.välisviide,
           k.updated_at = now(), updated_by = SUBSTRING_INDEX(user(), '@', 1);
 
       -- Clean desktop
@@ -446,8 +449,8 @@ DELIMITER ;; -- desktop_NK_refresh
           , concat_ws(', '
             , if(nimekuju.perenimi = '', NULL, nimekuju.perenimi)
             , if(nimekuju.eesnimi  = '', NULL, nimekuju.eesnimi)
-            , if(nimekuju.isanimi  = '', NULL, nimekuju.isanimi)
-            , if(nimekuju.emanimi  = '', NULL, nimekuju.emanimi)
+            , if(nimekuju.isanimi  = '', NULL, concat('isa ', nimekuju.isanimi))
+            , if(nimekuju.emanimi  = '', NULL, concat('ema ', nimekuju.emanimi))
           )
           , concat_ws(' - '
             , if(nimekuju.sünd = '', NULL, concat('Sünd ', nimekuju.sünd))
