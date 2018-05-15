@@ -62,6 +62,7 @@ CREATE TABLE repis.kirjed (
   Sugu        enum('M','N','') NOT NULL DEFAULT '',
   Rahvus      varchar(50)      NOT NULL DEFAULT '',
   Välisviide  varchar(2000)    NOT NULL DEFAULT '',
+  Kommentaar  varchar(2000)    NOT NULL DEFAULT '',
   Allikas     varchar(20)      NOT NULL DEFAULT '',
   Nimekiri    varchar(50)      NOT NULL DEFAULT '',
   Puudulik    enum('','!')     NOT NULL DEFAULT '',
@@ -106,6 +107,7 @@ INSERT INTO repis.kirjed (
       , Rahvus
       , Välisviide
       , Allikas
+      , Kommentaar
       , Nimekiri
       , Puudulik
       , EkslikKanne
@@ -130,6 +132,7 @@ SELECT  NULL
       , Rahvus
       , Välisviide
       , replace(Allikas, 'Nimekujud', 'Persoon') as allikas
+      , Kommentaar
       , Nimekiri
       , Puudulik
       , EkslikKanne
@@ -188,11 +191,25 @@ DELIMITER ;;
 
     DECLARE msg VARCHAR(2000);
 
-    IF NEW.updated_by != SUBSTRING_INDEX(user(), '@', 1) THEN
-      SELECT concat_ws('\n'
-        , 'Kirjeid saab muuta ainult töölaual.'
-      ) INTO msg;
-      SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
+    IF NEW.kommentaar != OLD.kommentaar THEN
+      SET NEW.persoon = OLD.persoon
+        , NEW.kirjekood = OLD.kirjekood
+        , NEW.perenimi = OLD.perenimi
+        , NEW.eesnimi = OLD.eesnimi
+        , NEW.isanimi = OLD.isanimi
+        , NEW.emanimi = OLD.emanimi
+        , NEW.sünd = OLD.sünd
+        , NEW.surm = OLD.surm
+        , NEW.updated_at = now()
+        , NEW.updated_by = SUBSTRING_INDEX(user(), '@', 1);
+    ELSE
+      IF NEW.updated_by != SUBSTRING_INDEX(user(), '@', 1) THEN
+        SELECT concat_ws('\n'
+          , 'Kirjeid saab muuta ainult töölaual.'
+        ) INTO msg;
+        SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
+      END IF;
+
     END IF;
 
   END;;
