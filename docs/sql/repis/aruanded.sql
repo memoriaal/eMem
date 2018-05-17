@@ -35,3 +35,22 @@ AS SELECT
    k1.Surm AS surm,
    k1.kommentaar AS kommentaar
 FROM ((repis.v_kirjesildid s left join repis.kirjed k on(s.kirjekood = k.persoon and s.silt = 'x - kivi' and k.Allikas = 'KIVI')) left join repis.kirjed k1 on(k1.kirjekood = s.kirjekood)) where s.silt = 'x - kivi' and k.kirjekood is null and k1.Perenimi <> '' and k1.Eesnimi <> '';
+
+
+CREATE OR REPLACE VIEW topelt_kivikirjed
+AS SELECT DISTINCT
+   k2.persoon AS persoon,
+   k2.kirjekood AS kirjekood,
+   k2.Perenimi AS perenimi,
+   k2.Eesnimi AS eesnimi,
+   k2.Isanimi AS isanimi,
+   k2.Emanimi AS emanimi,
+   k2.Sünd AS sünd,
+   k2.Surm AS surm,
+   k2.kommentaar AS kommentaar
+FROM repis.kirjed k0
+LEFT JOIN repis.kirjed k1 ON k0.persoon = k1.persoon AND k0.kirjekood != k1.kirjekood AND k1.allikas = 'KIVI'
+LEFT JOIN repis.kirjed k2 ON k2.persoon = k1.persoon AND k2.allikas = 'KIVI'
+WHERE k0.allikas = 'KIVI'
+AND k1.persoon IS NOT NULL
+;
