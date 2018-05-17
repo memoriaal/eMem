@@ -50,7 +50,7 @@ DELIMITER ;; -- desktop_BI
       SET NEW.created_by = user();
     END IF;
 
-    SET @new_code = IF(NEW.kirjekood = '', NEW.persoon, NEW.kirjekood);
+    SET @new_code = UPPER(IF(NEW.kirjekood = '', NEW.persoon, NEW.kirjekood));
 
     IF @new_code IN ('EMI', 'TS') THEN
       SET NEW.persoon = '',
@@ -92,6 +92,7 @@ DELIMITER ;; -- desktop_BU
     -- no meddling
       SET NEW.created_by = OLD.created_by;
       SET NEW.allikas = OLD.allikas;
+      SET NEW.jutt = IF(OLD.jutt = ' - - - ', ' - - - ', NEW.jutt);
 
     -- cant change the identifier
       IF  NEW.kirjekood != OLD.kirjekood THEN
@@ -140,7 +141,7 @@ DELIMITER ;; -- desktop_BU
 
 
     --
-    -- Prefill names'n'dates
+    -- Prefill names'n'dates'n'kirje
     --
     IF OLD.allikas IN ('EMI', 'TS')
        AND OLD.persoon = '' AND NEW.persoon != '' THEN
@@ -149,19 +150,42 @@ DELIMITER ;; -- desktop_BU
          AND NEW.sünd     = '' AND NEW.surm     = '' THEN
             SET @perenimi = '', @eesnimi = ''
                , @isanimi = '', @emanimi = ''
-               , @sünd = '', @surm = '';
+               , @sünd = '', @surm = ''
+               , @kirje = '', @allikas = '';
             SELECT k.perenimi, k.eesnimi
                  , k.isanimi, k.emanimi
                  , k.sünd, k.surm
+                 , k.kirje, k.allikas
               INTO @perenimi, @eesnimi
                  , @isanimi, @emanimi
                  , @sünd, @surm
+                 , @kirje, @allikas
               FROM kirjed k
              WHERE k.kirjekood = NEW.persoon;
 
-             SET NEW.perenimi = @perenimi, NEW.eesnimi = @eesnimi,
-                 NEW.isanimi = @isanimi, NEW.emanimi = @emanimi,
-                 NEW.sünd = @sünd, NEW.surm = @surm;
+            SET @nimekirje = concat(
+              repis.desktop_person_text(
+                @perenimi, @eesnimi, @isanimi, @emanimi, @sünd, @surm
+              ) collate utf8_estonian_ci,
+              '. '
+            );
+
+            SET @match = @kirje LIKE concat(@nimekirje, '%') COLLATE utf8_estonian_ci;
+
+            SET NEW.perenimi = @perenimi, NEW.eesnimi = @eesnimi,
+                NEW.isanimi = @isanimi, NEW.emanimi = @emanimi,
+                NEW.sünd = @sünd, NEW.surm = @surm;
+                -- NEW.jutt = IF(@allikas IN ('TS','EMI'),
+                --   IF(@match,
+                --     REPLACE(
+                --       @kirje,
+                --       @nimekirje,
+                --       ''
+                --     ),
+                --     @kirje
+                --   ),
+                --   ' - - - '
+                -- );
       END IF;
     END IF;
 
@@ -172,15 +196,12 @@ DELIMITER ;; -- desktop_BU
     IF OLD.allikas IN ('EMI', 'TS', 'Persoon') THEN
       SET NEW.kirje =
         concat_ws('. ',
-          concat_ws(', ',
-            if(NEW.perenimi = '', NULL, NEW.perenimi),
-            if(NEW.eesnimi  = '', NULL, NEW.eesnimi),
-            if(NEW.isanimi  = '', NULL, concat('isa ', NEW.isanimi)),
-            if(NEW.emanimi  = '', NULL, concat('ema ', NEW.emanimi))
-          ),
-          if(NEW.sünd       = '', NULL, concat('Sünd ', NEW.sünd)),
-          if(NEW.surm       = '', NULL, concat('Surm ', NEW.surm)),
-          if(NEW.jutt       = '', NULL, NEW.jutt),
+          repis.desktop_person_text(
+              NEW.perenimi, NEW.eesnimi,
+              NEW.isanimi, NEW.emanimi,
+              NEW.sünd, NEW.surm
+            ) collate utf8_estonian_ci,
+          if(NEW.jutt IN('', ' - - - '), NULL, NEW.jutt),
           if(NEW.välisviide = '', NULL, NEW.välisviide)
         )
       ;
@@ -318,6 +339,34 @@ DELIMITER ;; -- desktop_next_id()
 DELIMITER ;
 
 
+DELIMITER ;; -- desktop_person_text()
+
+  CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.desktop_person_text(
+      _perenimi VARCHAR(50),
+      _eesnimi VARCHAR(50),
+      _isanimi VARCHAR(50),
+      _emanimi VARCHAR(50),
+      _sünd VARCHAR(50),
+      _surm VARCHAR(50)
+  ) RETURNS varchar(2000) CHARSET utf8 COLLATE  utf8_estonian_ci
+  func_label:BEGIN
+
+    RETURN concat_ws('. ',
+      concat_ws(', ',
+        if(_perenimi = '', NULL, _perenimi),
+        if(_eesnimi  = '', NULL, _eesnimi),
+        if(_isanimi  = '', NULL, concat('isa ', _isanimi)),
+        if(_emanimi  = '', NULL, concat('ema ', _emanimi))
+      ),
+      if(_sünd       = '', NULL, concat('Sünd ', _sünd)),
+      if(_surm       = '', NULL, concat('Surm ', _surm))
+    );
+
+  END;;
+
+DELIMITER ;
+
+
 --
 -- Procedures
 --
@@ -333,16 +382,40 @@ DELIMITER ;; -- desktop_collect
 
       DELETE FROM repis.desktop WHERE persoon = _persoon AND allikas IS NULL AND created_by = _created_by;
       INSERT IGNORE INTO repis.desktop
-      (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, created_by)
+      (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, created_by
+        , jutt)
       SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, _created_by
+        , IF(allikas IN ('TS','EMI'),
+            IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') collate utf8_estonian_ci,
+              REPLACE(
+                kirje,
+                concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. ') collate utf8_estonian_ci,
+                ''
+              ),
+              kirje
+            ),
+            ' - - - '
+          )
       FROM repis.kirjed k
       WHERE k.persoon = @p_id;
 
     ELSEIF _kirjekood2 != '' THEN
       DELETE FROM repis.desktop WHERE kirjekood = _kirjekood2 AND allikas IS NULL AND created_by = _created_by;
       INSERT IGNORE INTO repis.desktop
-      (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, created_by)
+      (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, created_by
+        , jutt)
       SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, _created_by
+        , IF(allikas IN ('TS','EMI'),
+            IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') collate utf8_estonian_ci,
+              REPLACE(
+                kirje,
+                concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. ') collate utf8_estonian_ci,
+                ''
+              ),
+              kirje
+            ),
+            ' - - - '
+          )
       FROM repis.kirjed k
       WHERE k.kirjekood = _kirjekood2;
     END IF;
@@ -442,21 +515,13 @@ DELIMITER ;; -- desktop_NK_refresh
       , d.eesnimi = ifnull(nimekuju.eesnimi, '')
       , d.isanimi = ifnull(nimekuju.isanimi, '')
       , d.emanimi = ifnull(nimekuju.emanimi, '')
-      , d.sünd = ifnull(nimekuju.sünd, '')
-      , d.surm = ifnull(nimekuju.surm, '')
-      , kirje =
-        concat_ws('. '
-          , concat_ws(', '
-            , if(nimekuju.perenimi = '', NULL, nimekuju.perenimi)
-            , if(nimekuju.eesnimi  = '', NULL, nimekuju.eesnimi)
-            , if(nimekuju.isanimi  = '', NULL, concat('isa ', nimekuju.isanimi))
-            , if(nimekuju.emanimi  = '', NULL, concat('ema ', nimekuju.emanimi))
-          )
-          , concat_ws(' - '
-            , if(nimekuju.sünd = '', NULL, concat('Sünd ', nimekuju.sünd))
-            , if(nimekuju.surm = '', NULL, concat('Surm ', nimekuju.surm))
-          )
-        )
+      , d.sünd = ifnull(if(nimekuju.sünd = '-', '', nimekuju.sünd), '')
+      , d.surm = ifnull(if(nimekuju.surm = '-', '', nimekuju.surm), '')
+      , d.kirje = repis.desktop_person_text(
+          nimekuju.perenimi, nimekuju.eesnimi,
+          nimekuju.isanimi, nimekuju.emanimi,
+          nimekuju.sünd, nimekuju.surm
+        ) collate utf8_estonian_ci
     WHERE d.kirjekood = _persoon;
 
   END;;
