@@ -9,7 +9,7 @@ const ES_CREDENTIALS = process.env.ES_CREDENTIALS
 const INDEX = process.env.INDEX
 const SOURCE = process.env.SOURCE
 const QUEUE_LENGTH = 1
-const BULK_SIZE = 2000
+const BULK_SIZE = 4100
 // const BULK_SIZE = 4100
 const START_TIME = Date.now()
 
@@ -131,12 +131,12 @@ async.series({
         if (isik.id === '') {
           return
         }
-        isik['kirjed'] = isik['kirjed'].split(';\n')
+        isik['kirjed'] = isik['kirjed'].split(';_\n')
         .filter((kirje) => kirje !== '')
         .map((kirje) => {
           return kirje2obj(kirje)
         })
-        let pereseosed = isik['pereseos'].split(';\n')
+        let pereseosed = isik['pereseos'].split(';_\n')
         .filter((kirje) => kirje !== '')
         .map((kirje) => {
           return kirje2obj(kirje)

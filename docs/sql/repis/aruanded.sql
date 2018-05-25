@@ -119,3 +119,65 @@ SELECT DISTINCT
    k2.updated_at AS updated_at,
    k2.updated_by AS updated_by
 FROM ((`repis`.`kirjed` `k2` join `repis`.`kirjed` `k1`) join `repis`.`kirjed` `k0`) where `k0`.`persoon` = `k1`.`persoon` and `k0`.`kirjekood` <> `k1`.`kirjekood` and `k1`.`Allikas` = 'KIVI' and `k2`.`persoon` = `k1`.`persoon` and `k2`.`Allikas` = 'KIVI' and `k0`.`Allikas` = 'KIVI' and `k1`.`persoon` is not null;
+
+
+CREATE OR REPLACE TABLE aruanded.memoriaal_ee (
+  id CHAR(10) COLLATE utf8_estonian_ci DEFAULT '',
+  perenimi LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
+  eesnimi LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
+  isanimi LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
+  emanimi LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
+  sünd LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
+  surm LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
+  kivi VARCHAR(1) COLLATE utf8_estonian_ci NOT NULL,
+  kirjed LONGTEXT COLLATE utf8_estonian_ci NOT NULL,
+  pereseosd VARCHAR(4000) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  PRIMARY KEY (id)
+) ENGINE=INNODB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci AS
+SELECT   nk.kirjekood AS id,
+         substring_index(substring_index(group_concat(
+           IF(k.perenimi = '' OR a.prioriteetperenimi = 0, '', ucase(k.perenimi)) ORDER BY a.prioriteetperenimi DESC SEPARATOR ';'
+         ),';',1),';',-1) AS perenimi,
+         substring_index(substring_index(group_concat(
+           IF(k.eesnimi = '' OR a.prioriteeteesnimi = 0, '', REPLACE(ucase(k.eesnimi),'ALEKSANDR','ALEKSANDER')) ORDER BY a.prioriteeteesnimi DESC SEPARATOR ';'
+         ),';',1),';',-1) AS eesnimi,
+         substring_index(substring_index(group_concat(
+           IF(k.isanimi = '' OR a.prioriteetisanimi = 0, '', ucase(k.isanimi)) ORDER BY a.prioriteetisanimi DESC SEPARATOR ';'
+         ),';',1),';',-1) AS isanimi,
+         substring_index(substring_index(group_concat(
+           IF(k.emanimi = '' OR a.prioriteetemanimi = 0, '', ucase(k.emanimi)) ORDER BY a.prioriteetemanimi DESC SEPARATOR ';'
+         ),';',1),';',-1) AS emanimi,
+         substring_index(substring_index(group_concat(
+           IF(k.sünd = '' OR a.prioriteetsünd = 0, '', LEFT(k.sünd,4)) ORDER BY a.prioriteetsünd DESC SEPARATOR ';'
+         ),';',1),';',-1) AS sünd,
+         substring_index(substring_index(group_concat(
+           IF(k.surm = '' OR a.prioriteetsurm = 0, '', LEFT(k.surm,4)) ORDER BY a.prioriteetsurm DESC SEPARATOR ';'
+         ),';',1),';',-1) AS surm,
+         IF(ks.silt IS NULL, '', '!') AS kivi,
+         IFNULL(REPLACE (
+           group_concat( DISTINCT
+             IF(a.prioriteetkirje = 0, NULL, concat(k.kirjekood,'#|', k.kirje,'#|', a.nimetus))
+             ORDER BY a.prioriteetkirje DESC SEPARATOR ';_\n'
+           ),
+           '"',
+           '\''
+         ), '')           AS kirjed,
+         IFNULL(REPLACE(
+           group_concat( DISTINCT
+             IF(kp.kirjekood IS NULL, NULL, concat_ws('#|',kp.kirjekood, kp.kirje, a.nimetus, kp.persoon))
+             ORDER BY kp.kirjekood ASC SEPARATOR ';_\n'
+           ),
+           '"',
+           '\''
+         ), '')           AS pereseos
+FROM repis.kirjed AS k
+LEFT JOIN repis.allikad AS a ON a.kood = k.allikas
+LEFT JOIN repis.kirjed AS kp ON kp.perekood <> '' AND kp.perekood = k.perekood
+LEFT JOIN repis.kirjed AS nk ON nk.persoon = k.persoon AND nk.allikas = 'Persoon'
+LEFT JOIN repis.v_kirjesildid AS ks ON ks.kirjekood = nk.persoon AND ks.silt = 'x - kivi'
+WHERE k.ekslikkanne = ''
+AND k.puudulik = ''
+AND k.peatatud = ''
+AND nk.persoon IS NOT NULL
+GROUP BY k.persoon
+HAVING perenimi != '';
