@@ -121,6 +121,13 @@ SELECT DISTINCT
 FROM ((`repis`.`kirjed` `k2` join `repis`.`kirjed` `k1`) join `repis`.`kirjed` `k0`) where `k0`.`persoon` = `k1`.`persoon` and `k0`.`kirjekood` <> `k1`.`kirjekood` and `k1`.`Allikas` = 'KIVI' and `k2`.`persoon` = `k1`.`persoon` and `k2`.`Allikas` = 'KIVI' and `k0`.`Allikas` = 'KIVI' and `k1`.`persoon` is not null;
 
 
+--            __  __                                     _                       _
+--      o O O|  \/  |   ___    _ __     ___      _ _    (_)    __ _    __ _     | |
+--     o     | |\/| |  / -_)  | '  \   / _ \    | '_|   | |   / _` |  / _` |    | |
+--    TS__[O]|_|__|_|  \___|  |_|_|_|  \___/   _|_|_   _|_|_  \__,_|  \__,_|   _|_|_
+--   {======|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|
+--  ./o--000'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'
+
 CREATE OR REPLACE TABLE aruanded.memoriaal_ee (
   id CHAR(10) COLLATE utf8_estonian_ci DEFAULT '',
   perenimi LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
