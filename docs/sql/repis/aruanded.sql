@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW endised_kivikirjed
+CREATE OR REPLACE VIEW aruanded.endised_kivikirjed
 AS SELECT
    k.kirjekood AS K_kirjekood,
    k.Perenimi AS K_perenimi,
@@ -8,10 +8,10 @@ AS SELECT
    k.persoon AS persoon,
    k.kommentaar AS kommentaar
 FROM (repis.kirjed k
-  left join repis.v_kirjesildid s on(s.kirjekood = k.persoon and s.silt = 'x - kivi'))
+  left join repis.v_kirjesildid s on(s.kirjekood = k.persoon and s.silt = 'x - kivi' AND s.deleted_at = '0000-00-00 00:00:00'))
   where k.Allikas = 'KIVI' and s.silt is null;
 
-CREATE OR REPLACE VIEW muutunud_kivikirjed
+CREATE OR REPLACE VIEW aruanded.muutunud_kivikirjed
 AS SELECT
    k.kirjekood AS K_kirjekood,
    k.Perenimi AS K_perenimi,
@@ -27,9 +27,9 @@ AS SELECT
 FROM ((repis.v_kirjesildid s
   left join repis.kirjed k on(s.kirjekood = k.persoon))
   left join repis.kirjed nk on(nk.persoon = k.persoon and nk.kirjekood = nk.persoon))
-  where s.silt = 'x - kivi' and k.Allikas = 'KIVI' and (replace(nk.Perenimi,'-',' ') <> k.Perenimi or replace(nk.Eesnimi,'-',' ') <> k.Eesnimi or nk.Isanimi <> k.Isanimi and k.Isanimi <> '' or left(nk.Sünd,4) <> k.Sünd or left(nk.Surm,4) <> k.Surm);
+  where s.silt = 'x - kivi' AND s.deleted_at = '0000-00-00 00:00:00' and k.Allikas = 'KIVI' and (replace(nk.Perenimi,'-',' ') <> k.Perenimi or replace(nk.Eesnimi,'-',' ') <> k.Eesnimi or nk.Isanimi <> k.Isanimi and k.Isanimi <> '' or left(nk.Sünd,4) <> k.Sünd or left(nk.Surm,4) <> k.Surm);
 
-CREATE OR REPLACE VIEW uued_kivikirjed
+CREATE OR REPLACE VIEW aruanded.uued_kivikirjed
 AS SELECT
    k1.persoon AS persoon,
    k1.Perenimi AS perenimi,
@@ -40,12 +40,12 @@ AS SELECT
    k1.Surm AS surm,
    k1.kommentaar AS kommentaar
 FROM ((repis.v_kirjesildid s
-  left join repis.kirjed k on(s.kirjekood = k.persoon and s.silt = 'x - kivi' and k.Allikas = 'KIVI'))
+  left join repis.kirjed k on(s.kirjekood = k.persoon and s.silt = 'x - kivi' AND s.deleted_at = '0000-00-00 00:00:00' and k.Allikas = 'KIVI'))
   left join repis.kirjed k1 on(k1.kirjekood = s.kirjekood))
-  where s.silt = 'x - kivi' and k.kirjekood is null and k1.Perenimi <> '' and k1.Eesnimi <> '';
+  where s.silt = 'x - kivi' AND s.deleted_at = '0000-00-00 00:00:00' and k.kirjekood is null and k1.Perenimi <> '' and k1.Eesnimi <> '';
 
 
-  CREATE OR REPLACE VIEW `topelt_kivikirjed`
+  CREATE OR REPLACE VIEW aruanded.topelt_kivikirjed
   AS SELECT
      k2.persoon AS persoon,
      k2.kirjekood AS kirjekood,
@@ -82,7 +82,7 @@ FROM ((repis.v_kirjesildid s
   -- GROUP BY k1.kirjekood;
   ;
 
-  CREATE OR REPLACE VIEW `topelt_kivikirjed_b`
+  CREATE OR REPLACE VIEW aruanded.topelt_kivikirjed_b
   AS SELECT
      k.persoon AS persoon,
      k.kirjekood AS kirjekood,
@@ -135,28 +135,17 @@ CREATE OR REPLACE TABLE aruanded.memoriaal_ee (
   surm LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
   kivi VARCHAR(1) COLLATE utf8_estonian_ci NOT NULL,
   kirjed LONGTEXT COLLATE utf8_estonian_ci NOT NULL,
-  pereseosd VARCHAR(4000) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  pereseos VARCHAR(8000) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   PRIMARY KEY (id)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci AS
+
 SELECT   nk.kirjekood AS id,
-         substring_index(substring_index(group_concat(
-           IF(k.perenimi = '' OR a.prioriteetperenimi = 0, '', ucase(k.perenimi)) ORDER BY a.prioriteetperenimi DESC SEPARATOR ';'
-         ),';',1),';',-1) AS perenimi,
-         substring_index(substring_index(group_concat(
-           IF(k.eesnimi = '' OR a.prioriteeteesnimi = 0, '', REPLACE(ucase(k.eesnimi),'ALEKSANDR','ALEKSANDER')) ORDER BY a.prioriteeteesnimi DESC SEPARATOR ';'
-         ),';',1),';',-1) AS eesnimi,
-         substring_index(substring_index(group_concat(
-           IF(k.isanimi = '' OR a.prioriteetisanimi = 0, '', ucase(k.isanimi)) ORDER BY a.prioriteetisanimi DESC SEPARATOR ';'
-         ),';',1),';',-1) AS isanimi,
-         substring_index(substring_index(group_concat(
-           IF(k.emanimi = '' OR a.prioriteetemanimi = 0, '', ucase(k.emanimi)) ORDER BY a.prioriteetemanimi DESC SEPARATOR ';'
-         ),';',1),';',-1) AS emanimi,
-         substring_index(substring_index(group_concat(
-           IF(k.sünd = '' OR a.prioriteetsünd = 0, '', LEFT(k.sünd,4)) ORDER BY a.prioriteetsünd DESC SEPARATOR ';'
-         ),';',1),';',-1) AS sünd,
-         substring_index(substring_index(group_concat(
-           IF(k.surm = '' OR a.prioriteetsurm = 0, '', LEFT(k.surm,4)) ORDER BY a.prioriteetsurm DESC SEPARATOR ';'
-         ),';',1),';',-1) AS surm,
+         nk.perenimi,
+         nk.eesnimi,
+         nk.isanimi,
+         nk.emanimi,
+         LEFT(nk.sünd,4) AS sünd,
+         LEFT(nk.surm,4) AS surm,
          IF(ks.silt IS NULL, '', '!') AS kivi,
          IFNULL(REPLACE (
            group_concat( DISTINCT
@@ -178,10 +167,15 @@ FROM repis.kirjed AS k
 LEFT JOIN repis.allikad AS a ON a.kood = k.allikas
 LEFT JOIN repis.kirjed AS kp ON kp.perekood <> '' AND kp.perekood = k.perekood
 LEFT JOIN repis.kirjed AS nk ON nk.persoon = k.persoon AND nk.allikas = 'Persoon'
-LEFT JOIN repis.v_kirjesildid AS ks ON ks.kirjekood = nk.persoon AND ks.silt = 'x - kivi'
+LEFT JOIN repis.v_kirjesildid AS ks ON ks.kirjekood = nk.persoon AND ks.silt = 'x - kivi' AND s.deleted_at = '0000-00-00 00:00:00'
 WHERE k.ekslikkanne = ''
 AND k.puudulik = ''
 AND k.peatatud = ''
 AND nk.persoon IS NOT NULL
 GROUP BY k.persoon
-HAVING perenimi != '';
+HAVING perenimi != ''
+-- ;
+INTO OUTFILE '/home/michelek/scripts/memoriaal_ee.csv'
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
