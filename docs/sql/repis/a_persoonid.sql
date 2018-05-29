@@ -55,7 +55,7 @@ proc_label:BEGIN
     DECLARE cur1 CURSOR FOR
         SELECT kirjekood FROM repis.kirjed
         WHERE persoon = kirjekood;
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET _finished = 1;
 
     OPEN cur1;
     read_loop: LOOP
@@ -115,7 +115,7 @@ proc_label:BEGIN
 
     DECLARE cur1 CURSOR FOR
         SELECT kirjekood FROM repis.v_kirjelipikud WHERE deleted_at = '0000-00-00 00:00:00';
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET _finished = 1;
 
     OPEN cur1;
     read_loop: LOOP
@@ -176,7 +176,7 @@ proc_label:BEGIN
 
     DECLARE cur1 CURSOR FOR
         SELECT kirjekood FROM repis.v_kirjesildid WHERE deleted_at = '0000-00-00 00:00:00';
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET _finished = 1;
 
     OPEN cur1;
     read_loop: LOOP
