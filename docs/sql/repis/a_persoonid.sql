@@ -22,8 +22,8 @@ CREATE OR REPLACE TABLE repis.a_sildid (
 
 
 
-DELIMITER ;; -- repis.a_kirjed
-CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE repis.a_kirjed(IN _kirjekood CHAR(10))
+DELIMITER ;; -- repis.aggr_kirjed
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE repis.aggr_kirjed(IN _kirjekood CHAR(10))
 proc_label:BEGIN
 
     SET @persoon = NULL, @kirjed = NULL;
@@ -65,7 +65,7 @@ proc_label:BEGIN
         END IF;
 
         FETCH cur1 INTO _kirjekood;
-        CALL repis.a_kirjed(_kirjekood);
+        CALL repis.aggr_kirjed(_kirjekood);
 
     END LOOP;
     CLOSE cur1;
@@ -82,7 +82,7 @@ DROP PROCEDURE repis.init_kirjed;
 --
 
 DELIMITER ;;
-CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE repis.a_lipikud(IN _kirjekood CHAR(10))
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE repis.aggr_lipikud(IN _kirjekood CHAR(10))
 proc_label:BEGIN
 
     SET @persoon = NULL, @lipikud = NULL;
@@ -101,7 +101,7 @@ proc_label:BEGIN
       ON DUPLICATE KEY UPDATE persoon = @persoon, lipikud = @lipikud;
     END IF;
 
-    -- CALL repis.a_persoonid(@persoon);
+    -- CALL repis.aggr_persoonid(@persoon);
 
 END;;
 DELIMITER ;
@@ -125,7 +125,7 @@ proc_label:BEGIN
         END IF;
 
         FETCH cur1 INTO _kirjekood;
-        CALL repis.a_lipikud(_kirjekood);
+        CALL repis.aggr_lipikud(_kirjekood);
 
     END LOOP;
     CLOSE cur1;
@@ -142,7 +142,7 @@ DROP PROCEDURE repis.init_a_lipikud;
 --
 
 DELIMITER ;;
-CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE repis.a_sildid(IN _kirjekood CHAR(10))
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE repis.aggr_sildid(IN _kirjekood CHAR(10))
 proc_label:BEGIN
 
     SET @persoon = NULL, @sildid = NULL;
@@ -162,7 +162,7 @@ proc_label:BEGIN
       ON DUPLICATE KEY UPDATE persoon = @persoon, sildid = @sildid;
     END IF;
 
-    -- CALL repis.a_persoonid(@persoon);
+    -- CALL repis.aggr_persoonid(@persoon);
 
 END;;
 DELIMITER ;
@@ -186,7 +186,7 @@ proc_label:BEGIN
         END IF;
 
         FETCH cur1 INTO _kirjekood;
-        CALL repis.a_sildid(_kirjekood);
+        CALL repis.aggr_sildid(_kirjekood);
 
     END LOOP;
     CLOSE cur1;
@@ -231,7 +231,7 @@ AS
 
 
 DELIMITER ;;
-CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE repis.a_persoonid(IN _persoon CHAR(10))
+CREATE OR REPLACE DEFINER=`queue`@`localhost` PROCEDURE repis.aggr_persoonid(IN _persoon CHAR(10))
 proc_label:BEGIN
 
     SELECT kn.persoon, kn.perenimi, kn.eesnimi, kn.isanimi, kn.emanimi, kn.sünd, kn.surm
@@ -265,28 +265,28 @@ DELIMITER ;
 DELIMITER ;; -- repis.kirjed_AI
   CREATE OR REPLACE TRIGGER repis.kirjed_AI AFTER INSERT ON repis.kirjed FOR EACH ROW
   BEGIN
-    CALL repis.a_kirjed(NEW.persoon);
+    CALL repis.aggr_kirjed(NEW.persoon);
   END;;
 DELIMITER ;
 DELIMITER ;; -- repis.kirjed_AU
   CREATE OR REPLACE TRIGGER repis.kirjed_AU AFTER UPDATE ON repis.kirjed FOR EACH ROW
   BEGIN
-    CALL repis.a_kirjed(OLD.persoon);
-    CALL repis.a_kirjed(NEW.persoon);
-    CALL repis.a_lipikud(OLD.persoon);
-    CALL repis.a_lipikud(NEW.persoon);
-    CALL repis.a_sildid(OLD.persoon);
-    CALL repis.a_sildid(NEW.persoon);
-    CALL repis.a_persoonid(OLD.persoon);
-    CALL repis.a_persoonid(NEW.persoon);
+    CALL repis.aggr_kirjed(OLD.persoon);
+    CALL repis.aggr_kirjed(NEW.persoon);
+    CALL repis.aggr_lipikud(OLD.persoon);
+    CALL repis.aggr_lipikud(NEW.persoon);
+    CALL repis.aggr_sildid(OLD.persoon);
+    CALL repis.aggr_sildid(NEW.persoon);
+    CALL repis.aggr_persoonid(OLD.persoon);
+    CALL repis.aggr_persoonid(NEW.persoon);
   END;;
 DELIMITER ;
 DELIMITER ;; -- repis.kirjed_AD
   CREATE OR REPLACE TRIGGER repis.kirjed_AD AFTER DELETE ON repis.kirjed FOR EACH ROW
   BEGIN
-    CALL repis.a_kirjed(OLD.persoon);
-    CALL repis.a_lipikud(OLD.persoon);
-    CALL repis.a_sildid(OLD.persoon);
+    CALL repis.aggr_kirjed(OLD.persoon);
+    CALL repis.aggr_lipikud(OLD.persoon);
+    CALL repis.aggr_sildid(OLD.persoon);
   END;;
 DELIMITER ;
 
@@ -294,19 +294,22 @@ DELIMITER ;
 DELIMITER ;; -- repis.v_kirjesildid_AI
   CREATE OR REPLACE TRIGGER repis.v_kirjesildid_AI AFTER INSERT ON v_kirjesildid FOR EACH ROW
   BEGIN
-    CALL repis.a_sildid(NEW.kirjekood);
+    CALL repis.aggr_sildid(NEW.kirjekood);
+    CALL repis.aggr_persoonid(NEW.kirjekood);
   END;;
 DELIMITER ;
 DELIMITER ;; -- repis.v_kirjesildid_AU
   CREATE OR REPLACE TRIGGER repis.v_kirjesildid_AU AFTER UPDATE ON v_kirjesildid FOR EACH ROW
   BEGIN
-    CALL repis.a_sildid(OLD.kirjekood);
+    CALL repis.aggr_sildid(OLD.kirjekood);
+    CALL repis.aggr_persoonid(OLD.kirjekood);
   END;;
 DELIMITER ;
 DELIMITER ;; -- repis.v_kirjesildid_AD
   CREATE OR REPLACE TRIGGER repis.v_kirjesildid_AD AFTER DELETE ON v_kirjesildid FOR EACH ROW
   BEGIN
-    CALL repis.a_lipikud(OLD.kirjekood);
+    CALL repis.aggr_lipikud(OLD.kirjekood);
+    CALL repis.aggr_persoonid(OLD.kirjekood);
   END;;
 DELIMITER ;
 
@@ -314,18 +317,21 @@ DELIMITER ;
 DELIMITER ;; -- repis.v_kirjelipikud_AI
   CREATE OR REPLACE TRIGGER repis.v_kirjelipikud_AI AFTER INSERT ON v_kirjelipikud FOR EACH ROW
   BEGIN
-    CALL repis.a_lipikud(NEW.kirjekood);
+    CALL repis.aggr_lipikud(NEW.kirjekood);
+    CALL repis.aggr_persoonid(NEW.kirjekood);
   END;;
 DELIMITER ;
 DELIMITER ;; -- repis.v_kirjelipikud_AU
   CREATE OR REPLACE TRIGGER repis.v_kirjelipikud_AU AFTER UPDATE ON v_kirjelipikud FOR EACH ROW
   BEGIN
-    CALL repis.a_lipikud(OLD.kirjekood);
+    CALL repis.aggr_lipikud(OLD.kirjekood);
+    CALL repis.aggr_persoonid(OLD.kirjekood);
   END;;
 DELIMITER ;
 DELIMITER ;; -- repis.v_kirjelipikud_AD
   CREATE OR REPLACE TRIGGER repis.v_kirjelipikud_AD AFTER DELETE ON v_kirjelipikud FOR EACH ROW
   BEGIN
-    CALL repis.a_lipikud(OLD.kirjekood);
+    CALL repis.aggr_lipikud(OLD.kirjekood);
+    CALL repis.aggr_persoonid(OLD.kirjekood);
   END;;
 DELIMITER ;

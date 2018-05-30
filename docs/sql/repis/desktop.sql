@@ -12,6 +12,8 @@ CREATE OR REPLACE TABLE repis.desktop (
   kirje text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   välisviide varchar(2000) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   allikas varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
+  EkslikKanne enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  Kustuta enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   created_at timestamp NOT NULL DEFAULT current_timestamp(),
   created_by varchar(50) NOT NULL DEFAULT '',
   PRIMARY KEY (kirjekood,created_by)
@@ -22,6 +24,7 @@ CREATE OR REPLACE VIEW `my_desktop`
 AS SELECT
    `desktop`.`persoon` AS `persoon`,
    `desktop`.`kirjekood` AS `kirjekood`,
+   `desktop`.`valmis` AS `valmis`,
    `desktop`.`jutt` AS `jutt`,
    `desktop`.`perenimi` AS `perenimi`,
    `desktop`.`eesnimi` AS `eesnimi`,
@@ -32,7 +35,8 @@ AS SELECT
    `desktop`.`kirje` AS `kirje`,
    `desktop`.`välisviide` AS `välisviide`,
    `desktop`.`allikas` AS `allikas`,
-   `desktop`.`valmis` AS `valmis`,
+   `desktop`.`EkslikKanne` AS `EkslikKanne`,
+   `desktop`.`Kustuta` AS `Kustuta`,
    `desktop`.`created_at` AS `created_at`,
    `desktop`.`created_by` AS `created_by`
 FROM `desktop` where `desktop`.`created_by` = user();
@@ -64,8 +68,15 @@ DELIMITER ;; -- desktop_BI
           NEW.allikas = 'Persoon';
 
     ELSEIF NEW.allikas IS NULL AND user() != 'queue@localhost' THEN
-      INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,    task,                  params, created_by)
+      INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,    task,              params, created_by)
       VALUES                           (NEW.persoon, NEW.kirjekood, 'desktop_collect', NULL,   NEW.created_by);
+      IF @new_code LIKE 'PR-%' THEN
+        INSERT IGNORE INTO repis.z_queue (kirjekood1, kirjekood2,   task,                        params, created_by)
+        VALUES                           (@new_code,  NULL,         'repis.q_desktop_PR_import', NULL,   NEW.created_by);
+      ELSEIF @new_code LIKE 'RK-%' THEN
+        INSERT IGNORE INTO repis.z_queue (kirjekood1, kirjekood2,   task,                        params, created_by)
+        VALUES                           (@new_code,  NULL,         'repis.q_desktop_RK_import', NULL,   NEW.created_by);
+      END IF;
 
     END IF;
   END;;
@@ -78,10 +89,13 @@ DELIMITER ;; -- desktop_BU
   CREATE OR REPLACE DEFINER=queue@localhost TRIGGER repis.desktop_BU BEFORE UPDATE ON repis.desktop FOR EACH ROW
   proc_label:BEGIN
 
-    DECLARE msg VARCHAR(2000);
+    DECLARE msg TEXT;
 
     -- can change only owned records
-      IF  OLD.created_by != user() AND user() != 'event_scheduler@localhost' THEN
+      IF  OLD.created_by != user()
+        AND user() != 'queue@localhost'
+        AND user() != 'event_scheduler@localhost'
+        THEN
         SELECT concat_ws('\n'
           , 'Mängi oma liivakastis!'
           , user()
@@ -119,9 +133,10 @@ DELIMITER ;; -- desktop_BU
         SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
       END IF;
 
-    -- cant change anything but person for original records
+    -- cant change almost anything but person for original records
       IF OLD.allikas NOT IN ('EMI', 'TS', 'Persoon')
         AND user() != 'queue@localhost'
+        AND user() != 'event_scheduler@localhost'
         AND ( NEW.kirjekood != OLD.kirjekood OR
               NEW.perenimi != OLD.perenimi OR
               NEW.eesnimi != OLD.eesnimi OR
@@ -201,8 +216,8 @@ DELIMITER ;; -- desktop_BU
               NEW.isanimi, NEW.emanimi,
               NEW.sünd, NEW.surm
             ) collate utf8_estonian_ci,
-          if(NEW.jutt IN('', ' - - - '), NULL, NEW.jutt),
-          if(NEW.välisviide = '', NULL, NEW.välisviide)
+          if(NEW.jutt IN('', ' - - - '), NULL, NEW.jutt)
+          -- , if(NEW.välisviide = '', NULL, NEW.välisviide)
         )
       ;
     END IF;
@@ -226,18 +241,26 @@ DELIMITER ;; -- desktop_BU
 
       IF NEW.persoon != OLD.persoon AND @refresh_requested = 0 THEN
         INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,            params, created_by)
-        VALUES                           (NEW.persoon, NULL,       'desktop_NK_refresh', '2',   user());
+        VALUES                           (NEW.persoon, NULL,       'desktop_NK_refresh', '2.1',   user());
         SET @refresh_requested = 1;
       END IF;
 
       IF NEW.kirje != OLD.kirje AND NEW.allikas != 'Persoon' AND @refresh_requested = 0 THEN
         INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,            params, created_by)
-        VALUES                           (NEW.persoon, NULL,       'desktop_NK_refresh', '2',   user());
+        VALUES                           (NEW.persoon, NULL,       'desktop_NK_refresh', '2.2',   user());
         SET @refresh_requested = 1;
       END IF;
 
     END IF;
 
+    --
+    -- Request recalculation for person with changed status
+    --
+    IF NEW.EkslikKanne != OLD.EkslikKanne
+       OR NEW.Kustuta != OLD.Kustuta THEN
+      INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,            params, created_by)
+      VALUES                           (OLD.persoon, NULL,       'desktop_NK_refresh', '3',   user());
+    END IF;
 
 
 
@@ -257,9 +280,11 @@ DELIMITER ;; -- desktop_BU
       INSERT INTO repis.kirjed (
         persoon, kirjekood, kirje, perenimi, eesnimi,
         isanimi, emanimi, sünd, surm, allikas,
+        välisviide, EkslikKanne,
         created_at, created_by)
       SELECT d.persoon, d.kirjekood, d.kirje, d.perenimi, d.eesnimi,
              d.isanimi, d.emanimi, d.sünd, d.surm, d.allikas,
+             d.välisviide, d.EkslikKanne,
              now(), SUBSTRING_INDEX(user(), '@', 1)
       FROM repis.desktop d
       LEFT JOIN repis.kirjed k ON k.kirjekood = d.kirjekood
@@ -270,10 +295,12 @@ DELIMITER ;; -- desktop_BU
       -- Save new records to new persons if any
       INSERT INTO repis.kirjed (
         persoon, kirjekood, kirje, perenimi, eesnimi,
-        isanimi, emanimi, sünd, surm, allikas, välisviide,
+        isanimi, emanimi, sünd, surm, allikas,
+        välisviide, EkslikKanne,
         created_at, created_by)
       SELECT d.persoon, d.kirjekood, d.kirje, d.perenimi, d.eesnimi,
-             d.isanimi, d.emanimi, d.sünd, d.surm, d.allikas, d.välisviide,
+             d.isanimi, d.emanimi, d.sünd, d.surm, d.allikas,
+             d.välisviide, d.EkslikKanne,
              now(), SUBSTRING_INDEX(user(), '@', 1)
       FROM repis.desktop d
       LEFT JOIN repis.kirjed k ON k.kirjekood = d.kirjekood
@@ -284,13 +311,20 @@ DELIMITER ;; -- desktop_BU
       -- Update changed persons
       UPDATE repis.kirjed k
       RIGHT JOIN repis.desktop d ON d.kirjekood = k.kirjekood
-                                AND d.created_by = user()
       SET k.persoon = d.persoon,
           k.kirje = d.kirje,
           k.perenimi = d.perenimi, k.eesnimi = d.eesnimi,
           k.isanimi = d.isanimi, k.emanimi = d.emanimi,
-          k.sünd = d.sünd, k.surm = d.surm, k.allikas = d.allikas, k.välisviide = d.välisviide,
-          k.updated_at = now(), updated_by = SUBSTRING_INDEX(user(), '@', 1);
+          k.sünd = d.sünd, k.surm = d.surm, k.allikas = d.allikas,
+          k.välisviide = d.välisviide, k.EkslikKanne = d.EkslikKanne,
+          k.updated_at = now(), updated_by = SUBSTRING_INDEX(user(), '@', 1)
+      WHERE d.created_by = user();
+
+      -- Remove deleted records
+      DELETE k FROM repis.kirjed k
+      RIGHT JOIN repis.desktop d ON d.kirjekood = k.kirjekood
+                                AND d.created_by = user()
+                                AND d.Kustuta = '!';
 
       -- Clean desktop
       INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,            params, created_by)
@@ -382,9 +416,9 @@ DELIMITER ;; -- desktop_collect
 
       DELETE FROM repis.desktop WHERE persoon = _persoon AND allikas IS NULL AND created_by = _created_by;
       INSERT IGNORE INTO repis.desktop
-      (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, created_by
+      (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, välisviide, EkslikKanne, created_by
         , jutt)
-      SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, _created_by
+      SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, välisviide, EkslikKanne, _created_by
         , IF(allikas IN ('TS','EMI'),
             IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') collate utf8_estonian_ci,
               REPLACE(
@@ -402,9 +436,9 @@ DELIMITER ;; -- desktop_collect
     ELSEIF _kirjekood2 != '' THEN
       DELETE FROM repis.desktop WHERE kirjekood = _kirjekood2 AND allikas IS NULL AND created_by = _created_by;
       INSERT IGNORE INTO repis.desktop
-      (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, created_by
+      (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, välisviide, EkslikKanne, created_by
         , jutt)
-      SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, _created_by
+      SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, välisviide, EkslikKanne, _created_by
         , IF(allikas IN ('TS','EMI'),
             IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') collate utf8_estonian_ci,
               REPLACE(
@@ -456,6 +490,8 @@ DELIMITER ;; -- desktop_NK_refresh
           code = RETURNED_SQLSTATE, msg = MESSAGE_TEXT;
         INSERT INTO z_queue (task, params) values (code, msg);
       END;
+
+    -- INSERT INTO z_queue (task, params, erred_at) values (_created_by, user(), now());
 
     SET @allikas = '';
     SELECT allikas INTO @allikas FROM repis.desktop
@@ -509,6 +545,9 @@ DELIMITER ;; -- desktop_NK_refresh
       LEFT JOIN allikad a ON a.kood = d0.allikas
       WHERE d0.persoon = _persoon
         AND d0.kirjekood != _persoon
+        AND d0.EkslikKanne != '!'
+        AND d0.Kustuta != '!'
+        AND d0.created_by = _created_by
       GROUP BY d0.persoon
     ) AS nimekuju ON nimekuju.persoon = d.persoon
     SET d.perenimi = ifnull(nimekuju.perenimi, '')
@@ -522,7 +561,8 @@ DELIMITER ;; -- desktop_NK_refresh
           nimekuju.isanimi, nimekuju.emanimi,
           nimekuju.sünd, nimekuju.surm
         ) collate utf8_estonian_ci
-    WHERE d.kirjekood = _persoon;
+    WHERE d.kirjekood = _persoon
+      AND d.created_by = _created_by;
 
   END;;
 

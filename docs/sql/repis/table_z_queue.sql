@@ -40,7 +40,7 @@ DELIMITER ;;
       BEGIN
         GET DIAGNOSTICS CONDITION 1
           code = RETURNED_SQLSTATE, msg = MESSAGE_TEXT;
-        INSERT INTO z_queue (task, params) values (code, msg);
+        INSERT INTO z_queue (task, params, erred_at) values (code, msg, now());
       END;
 
 
@@ -58,7 +58,7 @@ DELIMITER ;;
           LEAVE read_loop;
       END IF;
 
-      UPDATE repis.z_queue SET msg = 'errored' WHERE id = _id;
+      UPDATE repis.z_queue SET erred_at = now() WHERE id = _id;
       SELECT concat(_id, ': CALL repis.q_', _task, '(\'',_kirjekood1,'\', \'',_kirjekood2,'\', \'',_task,'\', \'',_params,'\', \'',_created_by,'\');');
 
       IF _task = 'desktop_flush' THEN
@@ -70,6 +70,14 @@ DELIMITER ;;
       ELSEIF _task = 'desktop_NK_refresh' THEN
         UPDATE repis.z_queue SET msg = concat('CALL repis.q_desktop_NK_refresh(\'',_kirjekood1,'\', \'',_kirjekood2,'\', \'',_task,'\', \'',_params,'\', \'',_created_by,'\');') WHERE id = _id;
         CALL repis.q_desktop_NK_refresh(_kirjekood1, _kirjekood2, _task, _params, _created_by);
+        DELETE FROM repis.z_queue WHERE id = _id;
+      ELSEIF _task = 'desktop_PR_import' THEN
+        UPDATE repis.z_queue SET msg = concat('CALL repis.q_desktop_PR_import(\'',_kirjekood1,'\', \'',_kirjekood2,'\', \'',_task,'\', \'',_params,'\', \'',_created_by,'\');') WHERE id = _id;
+        CALL repis.q_desktop_PR_import(_kirjekood1, _kirjekood2, _task, _params, _created_by);
+        DELETE FROM repis.z_queue WHERE id = _id;
+      ELSEIF _task = 'desktop_RK_import' THEN
+        UPDATE repis.z_queue SET msg = concat('CALL repis.q_desktop_RK_import(\'',_kirjekood1,'\', \'',_kirjekood2,'\', \'',_task,'\', \'',_params,'\', \'',_created_by,'\');') WHERE id = _id;
+        CALL repis.q_desktop_RK_import(_kirjekood1, _kirjekood2, _task, _params, _created_by);
         DELETE FROM repis.z_queue WHERE id = _id;
       END IF;
 
