@@ -458,6 +458,83 @@ DELIMITER ;; -- desktop_collect
 DELIMITER ;
 
 
+DELIMITER ;; -- desktop_PR_import
+
+  CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.q_desktop_PR_import(
+    IN _kirjekood1 CHAR(10), IN _kirjekood2 CHAR(10),
+    IN _task VARCHAR(50), IN _params VARCHAR(200), IN _created_by VARCHAR(50))
+  proc_label:BEGIN
+
+    SELECT concat_ws('. ',
+      concat_ws(', ',
+        concat_ws(';',
+          if(isik_perenimi='',NULL,isik_perenimi),
+          if(isik_perenimi_endine1='',NULL,isik_perenimi_endine1),
+          if(isik_perenimi_endine2='',NULL,isik_perenimi_endine2),
+          if(isik_perenimi_endine3='',NULL,isik_perenimi_endine3),
+          if(isik_perenimi_endine4='',NULL,isik_perenimi_endine4)
+        ),
+        concat_ws(';',
+          if(isik_eesnimi='',NULL,isik_eesnimi),
+          if(isik_eesnimi_endine1='',NULL,isik_eesnimi_endine1),
+          if(isik_eesnimi_endine2='',NULL,isik_eesnimi_endine2)
+        ),
+        if(isa_eesnimi='',NULL,isa_eesnimi),
+        if(ema_eesnimi='',NULL,concat('ema eesnimi ',ema_eesnimi)),
+        if(isik_sugu='',NULL,isik_sugu)
+      ),
+      concat_ws(', ',
+        if(isik_synniaasta='',NULL,concat('Sünd: ', concat_ws('-',
+          isik_synniaasta,
+          if(isik_synnikuu='',NULL,LPAD(isik_synnikuu, 2, '00')),
+          if(isik_synnipaev='',NULL,LPAD(isik_synnipaev, 2, '00'))
+        ))),
+        if(isik_synnikoht='',NULL,isik_synnikoht),
+        if(isik_synniriik='',NULL,isik_synniriik)
+      ),
+      if(isik_surmaaasta='' AND isik_surmakoht='' AND isik_surmariik='', NULL,
+        concat_ws(', ',
+          if(isik_surmaaasta='',NULL,concat('Surm: ', concat_ws('-',
+            isik_surmaaasta,
+            if(isik_surmakuu='',NULL,LPAD(isik_surmakuu, 2, '00')),
+            if(isik_surmapaev='',NULL,LPAD(isik_surmapaev, 2, '00'))
+          ))),
+          if(isik_surmakoht='',NULL,isik_surmakoht),
+          if(isik_surmariik='',NULL,isik_surmariik)
+        )
+      ),
+      concat('Raamat: ', raamatu_omavalitsus, ' kd ', koite_nr, ' lk ', lk_nr),
+      ''
+    ) INTO @_kirje
+    FROM import.pereregister
+    WHERE isikukood = _kirjekood1;
+
+    UPDATE repis.desktop d
+    LEFT JOIN import.pereregister pr on pr.isikukood = d.kirjekood
+    SET
+      d.kirje = @_kirje,
+      d.perenimi = pr.isik_perenimi,
+      d.eesnimi = pr.isik_eesnimi,
+      d.isanimi = pr.isa_eesnimi,
+      d.emanimi = pr.ema_eesnimi,
+      d.sünd = ifnull(concat_ws('-',
+        if(pr.isik_synniaasta = '', NULL, pr.isik_synniaasta),
+        if(pr.isik_synnikuu = '', NULL, pr.isik_synnikuu),
+        if(pr.isik_synnipaev = '', NULL, pr.isik_synnipaev)
+      ), ''),
+      d.surm = ifnull(concat_ws('-',
+        if(pr.isik_surmaaasta = '', NULL, pr.isik_surmaaasta),
+        if(pr.isik_surmakuu = '', NULL, pr.isik_surmakuu),
+        if(pr.isik_surmapaev = '', NULL, pr.isik_surmapaev)
+      ), ''),
+      d.created_by = user()
+    WHERE pr.isikukood = _kirjekood1
+      AND d.persoon IS NULL;
+
+  END;;
+DELIMITER ;
+
+
 DELIMITER ;; -- desktop_flush
 
   CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.q_desktop_flush(
