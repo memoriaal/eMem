@@ -72,10 +72,10 @@ DELIMITER ;; -- desktop_BI
       VALUES                           (NEW.persoon, NEW.kirjekood, 'desktop_collect', NULL,   NEW.created_by);
       IF @new_code LIKE 'PR-%' THEN
         INSERT IGNORE INTO repis.z_queue (kirjekood1, kirjekood2,   task,                        params, created_by)
-        VALUES                           (@new_code,  NULL,         'repis.q_desktop_PR_import', NULL,   NEW.created_by);
+        VALUES                           (@new_code,  NULL,         'desktop_PR_import', NULL,   NEW.created_by);
       ELSEIF @new_code LIKE 'RK-%' THEN
         INSERT IGNORE INTO repis.z_queue (kirjekood1, kirjekood2,   task,                        params, created_by)
-        VALUES                           (@new_code,  NULL,         'repis.q_desktop_RK_import', NULL,   NEW.created_by);
+        VALUES                           (@new_code,  NULL,         'desktop_RK_import', NULL,   NEW.created_by);
       END IF;
 
     END IF;
@@ -321,6 +321,12 @@ DELIMITER ;; -- desktop_BU
       WHERE d.created_by = user();
 
       -- Remove deleted records
+      UPDATE repis.kirjed k
+      RIGHT JOIN repis.desktop d ON d.kirjekood = k.kirjekood
+                                AND d.created_by = user()
+                                AND d.Kustuta = '!'
+      SET k.persoon = NULL;
+
       DELETE k FROM repis.kirjed k
       RIGHT JOIN repis.desktop d ON d.kirjekood = k.kirjekood
                                 AND d.created_by = user()
