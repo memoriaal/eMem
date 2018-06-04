@@ -9,9 +9,9 @@ CREATE OR REPLACE TABLE repis.desktop (
   emanimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   sünd varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   surm varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  lipik varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  lipik varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
   lipikud text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  silt varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  silt varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
   sildid text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   kirje text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   EkslikKanne enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
@@ -48,6 +48,25 @@ AS SELECT
    desktop.created_at AS created_at,
    desktop.created_by AS created_by
 FROM desktop where desktop.created_by = user();
+
+
+CREATE OR REPLACE TABLE repis.d_lipikud (
+  desktop_id int(10) unsigned DEFAULT NULL,
+  lipik varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  KEY lipik (lipik),
+  KEY desktop_id (desktop_id),
+  CONSTRAINT d_lipikud_ibfk_1 FOREIGN KEY (lipik) REFERENCES c_lipikud (lipik),
+  CONSTRAINT d_lipikud_ibfk_2 FOREIGN KEY (desktop_id) REFERENCES desktop (id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+
+CREATE OR REPLACE TABLE repis.d_sildid (
+  desktop_id int(10) unsigned DEFAULT NULL,
+  silt varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  KEY silt (silt),
+  KEY desktop_id (desktop_id),
+  CONSTRAINT d_sildid_ibfk_1 FOREIGN KEY (silt) REFERENCES c_sildid (silt),
+  CONSTRAINT d_sildid_ibfk_2 FOREIGN KEY (desktop_id) REFERENCES desktop (id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
 
 --
