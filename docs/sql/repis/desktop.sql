@@ -1,4 +1,8 @@
+DROP TABLE IF EXISTS repis.d_sildid;
+DROP TABLE IF EXISTS repis.d_lipikud;
+
 CREATE OR REPLACE TABLE repis.desktop (
+  id int(10) unsigned NOT NULL AUTO_INCREMENT,
   persoon char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   kirjekood char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   valmis enum('','Valmis','Untsus') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
@@ -21,6 +25,11 @@ CREATE OR REPLACE TABLE repis.desktop (
   created_at timestamp NOT NULL DEFAULT current_timestamp(),
   created_by varchar(50) NOT NULL DEFAULT '',
   PRIMARY KEY (kirjekood,created_by)
+  UNIQUE KEY id (id),
+  KEY lipik (lipik),
+  KEY silt (silt),
+  CONSTRAINT desktop_ibfk_1 FOREIGN KEY (lipik) REFERENCES repis.c_lipikud (lipik) ON UPDATE CASCADE,
+  CONSTRAINT desktop_ibfk_2 FOREIGN KEY (silt) REFERENCES repis.c_sildid (silt) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
 
@@ -51,21 +60,21 @@ FROM desktop where desktop.created_by = user();
 
 
 CREATE OR REPLACE TABLE repis.d_lipikud (
-  desktop_id int(10) unsigned DEFAULT NULL,
-  lipik varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  desktop_id int(10) unsigned NOT NULL,
+  lipik varchar(50) COLLATE utf8_estonian_ci NOT NULL,
+  PRIMARY KEY (desktop_id,lipik),
   KEY lipik (lipik),
-  KEY desktop_id (desktop_id),
-  CONSTRAINT d_lipikud_ibfk_1 FOREIGN KEY (lipik) REFERENCES c_lipikud (lipik),
-  CONSTRAINT d_lipikud_ibfk_2 FOREIGN KEY (desktop_id) REFERENCES desktop (id) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT d_lipikud_ibfk_1 FOREIGN KEY (desktop_id) REFERENCES repis.desktop (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT d_lipikud_ibfk_2 FOREIGN KEY (lipik) REFERENCES repis.c_lipikud (lipik) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
 CREATE OR REPLACE TABLE repis.d_sildid (
-  desktop_id int(10) unsigned DEFAULT NULL,
-  silt varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  desktop_id int(10) unsigned NOT NULL,
+  silt varchar(50) COLLATE utf8_estonian_ci NOT NULL,
+  PRIMARY KEY (desktop_id,silt),
   KEY silt (silt),
-  KEY desktop_id (desktop_id),
-  CONSTRAINT d_sildid_ibfk_1 FOREIGN KEY (silt) REFERENCES c_sildid (silt),
-  CONSTRAINT d_sildid_ibfk_2 FOREIGN KEY (desktop_id) REFERENCES desktop (id) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT d_sildid_ibfk_1 FOREIGN KEY (desktop_id) REFERENCES repis.desktop (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT d_sildid_ibfk_2 FOREIGN KEY (silt) REFERENCES repis.c_sildid (silt) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
 
@@ -498,6 +507,19 @@ DELIMITER ;; -- desktop_collect
       FROM repis.kirjed k
       WHERE k.kirjekood = _kirjekood2;
     END IF;
+
+    INSERT IGNORE INTO repis.d_lipikud (desktop_id, lipik)
+    SELECT d.id, kl.lipik
+    FROM repis.desktop d
+    LEFT JOIN repis.v_kirjelipikud kl ON kl.kirjekood = d.kirjekood
+    WHERE kl.kirjekood IS NOT NULL;
+
+    INSERT IGNORE INTO repis.d_sildid (desktop_id, silt)
+    SELECT d.id, kl.silt
+    FROM repis.desktop d
+    LEFT JOIN repis.v_kirjesildid ks ON ks.kirjekood = d.kirjekood
+    WHERE ks.kirjekood IS NOT NULL;
+
   END;;
 
 DELIMITER ;
