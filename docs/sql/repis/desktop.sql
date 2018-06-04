@@ -1,7 +1,7 @@
 CREATE OR REPLACE TABLE repis.desktop (
-  valmis enum('','Valmis','Untsus') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   persoon char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   kirjekood char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  valmis enum('','Valmis','Untsus') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   jutt text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   perenimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   eesnimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
@@ -9,37 +9,45 @@ CREATE OR REPLACE TABLE repis.desktop (
   emanimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   sünd varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   surm varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  lipik varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  lipikud text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  silt varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  sildid text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   kirje text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  välisviide varchar(2000) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  allikas varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
   EkslikKanne enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   Kustuta enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  välisviide varchar(2000) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  allikas varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
   created_at timestamp NOT NULL DEFAULT current_timestamp(),
   created_by varchar(50) NOT NULL DEFAULT '',
   PRIMARY KEY (kirjekood,created_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
 
-CREATE OR REPLACE VIEW `my_desktop`
+CREATE OR REPLACE VIEW repis.my_desktop
 AS SELECT
-   `desktop`.`persoon` AS `persoon`,
-   `desktop`.`kirjekood` AS `kirjekood`,
-   `desktop`.`valmis` AS `valmis`,
-   `desktop`.`jutt` AS `jutt`,
-   `desktop`.`perenimi` AS `perenimi`,
-   `desktop`.`eesnimi` AS `eesnimi`,
-   `desktop`.`isanimi` AS `isanimi`,
-   `desktop`.`emanimi` AS `emanimi`,
-   `desktop`.`sünd` AS `sünd`,
-   `desktop`.`surm` AS `surm`,
-   `desktop`.`kirje` AS `kirje`,
-   `desktop`.`välisviide` AS `välisviide`,
-   `desktop`.`allikas` AS `allikas`,
-   `desktop`.`EkslikKanne` AS `EkslikKanne`,
-   `desktop`.`Kustuta` AS `Kustuta`,
-   `desktop`.`created_at` AS `created_at`,
-   `desktop`.`created_by` AS `created_by`
-FROM `desktop` where `desktop`.`created_by` = user();
+   desktop.persoon AS persoon,
+   desktop.kirjekood AS kirjekood,
+   desktop.valmis AS valmis,
+   desktop.jutt AS jutt,
+   desktop.perenimi AS perenimi,
+   desktop.eesnimi AS eesnimi,
+   desktop.isanimi AS isanimi,
+   desktop.emanimi AS emanimi,
+   desktop.sünd AS sünd,
+   desktop.surm AS surm,
+   desktop.lipik AS lipik,
+   desktop.lipikud AS lipikud,
+   desktop.silt AS silt,
+   desktop.sildid AS sildid,
+   desktop.kirje AS kirje,
+   desktop.välisviide AS välisviide,
+   desktop.allikas AS allikas,
+   desktop.EkslikKanne AS EkslikKanne,
+   desktop.Kustuta AS Kustuta,
+   desktop.created_at AS created_at,
+   desktop.created_by AS created_by
+FROM desktop where desktop.created_by = user();
 
 
 --
@@ -422,9 +430,15 @@ DELIMITER ;; -- desktop_collect
 
       DELETE FROM repis.desktop WHERE persoon = _persoon AND allikas IS NULL AND created_by = _created_by;
       INSERT IGNORE INTO repis.desktop
-      (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, välisviide, EkslikKanne, created_by
+      (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
+        , lipikud
+        , sildid
+        , kirje, allikas, välisviide, EkslikKanne, created_by
         , jutt)
-      SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, välisviide, EkslikKanne, _created_by
+      SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
+        , repis.func_kirjelipikud(kirjekood)
+        , repis.func_kirjesildid(kirjekood)
+        , kirje, allikas, välisviide, EkslikKanne, _created_by
         , IF(allikas IN ('TS','EMI'),
             IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') collate utf8_estonian_ci,
               REPLACE(
@@ -442,9 +456,15 @@ DELIMITER ;; -- desktop_collect
     ELSEIF _kirjekood2 != '' THEN
       DELETE FROM repis.desktop WHERE kirjekood = _kirjekood2 AND allikas IS NULL AND created_by = _created_by;
       INSERT IGNORE INTO repis.desktop
-      (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, välisviide, EkslikKanne, created_by
+      (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
+        , lipikud
+        , sildid
+        , kirje, allikas, välisviide, EkslikKanne, created_by
         , jutt)
-      SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm, kirje, allikas, välisviide, EkslikKanne, _created_by
+      SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
+        , repis.func_kirjelipikud(kirjekood)
+        , repis.func_kirjesildid(kirjekood)
+        , kirje, allikas, välisviide, EkslikKanne, _created_by
         , IF(allikas IN ('TS','EMI'),
             IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') collate utf8_estonian_ci,
               REPLACE(
