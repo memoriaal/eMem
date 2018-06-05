@@ -200,7 +200,7 @@ DELIMITER ;; -- desktop_BU
       INSERT IGNORE INTO repis.desk_lipikud (desktop_id, lipik)
       VALUES (NEW.id, NEW.lipik);
       IF row_count() = 0 THEN
-        DELETE FROM repis.desk_lipikud WHERE desktop_id = NEW.id;
+        DELETE FROM repis.desk_lipikud WHERE desktop_id = NEW.id AND lipik = NEW.lipik;
       END IF;
 
       SELECT GROUP_CONCAT(dl.lipik SEPARATOR '; ') INTO @lipikud
@@ -215,7 +215,7 @@ DELIMITER ;; -- desktop_BU
       INSERT IGNORE INTO repis.desk_sildid (desktop_id, silt)
       VALUES (NEW.id, NEW.silt);
       IF row_count() = 0 THEN
-        DELETE FROM repis.desk_sildid WHERE desktop_id = NEW.id;
+        DELETE FROM repis.desk_sildid WHERE desktop_id = NEW.id AND silt = NEW.silt;
       END IF;
 
       SELECT GROUP_CONCAT(ds.silt SEPARATOR '; ') INTO @sildid
