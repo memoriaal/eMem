@@ -58,6 +58,8 @@ CREATE TABLE repis.kirjed (
   Emanimi     varchar(50)      NOT NULL DEFAULT '',
   Sünd        varchar(50)      NOT NULL DEFAULT '',
   Surm        varchar(50)      NOT NULL DEFAULT '',
+  Sildid      text             NOT NULL DEFAULT '',
+  Lipikud     text             NOT NULL DEFAULT '',
   Perekood    varchar(20)      NOT NULL DEFAULT '',
   Sugu        enum('M','N','') NOT NULL DEFAULT '',
   Rahvus      varchar(50)      NOT NULL DEFAULT '',

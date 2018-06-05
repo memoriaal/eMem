@@ -1,8 +1,7 @@
-DROP TABLE IF EXISTS repis.d_sildid;
-DROP TABLE IF EXISTS repis.d_lipikud;
+DROP TABLE IF EXISTS repis.desk_sildid;
+DROP TABLE IF EXISTS repis.desk_lipikud;
 
 CREATE OR REPLACE TABLE repis.desktop (
-  id int(10) unsigned NOT NULL AUTO_INCREMENT,
   persoon char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   kirjekood char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   valmis enum('','Valmis','Untsus') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
@@ -22,6 +21,7 @@ CREATE OR REPLACE TABLE repis.desktop (
   Kustuta enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   välisviide varchar(2000) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   allikas varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
+  id int(10) unsigned NOT NULL AUTO_INCREMENT,
   created_at timestamp NOT NULL DEFAULT current_timestamp(),
   created_by varchar(50) NOT NULL DEFAULT '',
   PRIMARY KEY (kirjekood,created_by)
@@ -59,22 +59,24 @@ AS SELECT
 FROM desktop where desktop.created_by = user();
 
 
-CREATE OR REPLACE TABLE repis.d_lipikud (
+CREATE OR REPLACE TABLE repis.desk_lipikud (
   desktop_id int(10) unsigned NOT NULL,
   lipik varchar(50) COLLATE utf8_estonian_ci NOT NULL,
-  PRIMARY KEY (desktop_id,lipik),
+  -- created_by varchar(50) NOT NULL DEFAULT '',
+  PRIMARY KEY (desktop_id, lipik),
   KEY lipik (lipik),
-  CONSTRAINT d_lipikud_ibfk_1 FOREIGN KEY (desktop_id) REFERENCES repis.desktop (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT d_lipikud_ibfk_2 FOREIGN KEY (lipik) REFERENCES repis.c_lipikud (lipik) ON UPDATE CASCADE
+  CONSTRAINT desk_lipikud_ibfk_1 FOREIGN KEY (desktop_id) REFERENCES repis.desktop (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT desk_lipikud_ibfk_2 FOREIGN KEY (lipik) REFERENCES repis.c_lipikud (lipik) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
-CREATE OR REPLACE TABLE repis.d_sildid (
+CREATE OR REPLACE TABLE repis.desk_sildid (
   desktop_id int(10) unsigned NOT NULL,
   silt varchar(50) COLLATE utf8_estonian_ci NOT NULL,
-  PRIMARY KEY (desktop_id,silt),
+  -- created_by varchar(50) NOT NULL DEFAULT '',
+  PRIMARY KEY (desktop_id, silt),
   KEY silt (silt),
-  CONSTRAINT d_sildid_ibfk_1 FOREIGN KEY (desktop_id) REFERENCES repis.desktop (id) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT d_sildid_ibfk_2 FOREIGN KEY (silt) REFERENCES repis.c_sildid (silt) ON UPDATE CASCADE
+  CONSTRAINT desk_sildid_ibfk_1 FOREIGN KEY (desktop_id) REFERENCES repis.desktop (id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT desk_sildid_ibfk_2 FOREIGN KEY (silt) REFERENCES repis.c_sildid (silt) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
 
 
@@ -189,6 +191,40 @@ DELIMITER ;; -- desktop_BU
         ) INTO msg;
         SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
       END IF;
+
+
+    --
+    -- Update desktop silts'n'lipiks
+    --
+    IF NEW.lipik IS NOT NULL THEN
+      INSERT IGNORE INTO repis.desk_lipikud (desktop_id, lipik)
+      VALUES (NEW.id, NEW.lipik);
+      IF row_count() = 0 THEN
+        DELETE FROM repis.desk_lipikud WHERE desktop_id = NEW.id;
+      END IF;
+
+      SELECT GROUP_CONCAT(dl.lipik SEPARATOR '; ') INTO @lipikud
+      FROM repis.desk_lipikud dl
+      WHERE dl.desktop_id = NEW.id;
+
+      SET NEW.lipikud = IFNULL(@lipikud, '');
+      SET NEW.lipik = NULL;
+    END IF;
+
+    IF NEW.silt IS NOT NULL THEN
+      INSERT IGNORE INTO repis.desk_sildid (desktop_id, silt)
+      VALUES (NEW.id, NEW.silt);
+      IF row_count() = 0 THEN
+        DELETE FROM repis.desk_sildid WHERE desktop_id = NEW.id;
+      END IF;
+
+      SELECT GROUP_CONCAT(ds.silt SEPARATOR '; ') INTO @sildid
+      FROM repis.desk_sildid ds
+      WHERE ds.desktop_id = NEW.id;
+
+      SET NEW.sildid = IFNULL(@sildid, '');
+      SET NEW.silt = NULL;
+    END IF;
 
 
     --
@@ -307,6 +343,7 @@ DELIMITER ;; -- desktop_BU
       INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,            params, created_by)
       VALUES                           (NULL,        NULL,       'desktop_flush', NULL,   user());
 
+
     --
     -- Save and clean desktop
     --
@@ -344,10 +381,37 @@ DELIMITER ;; -- desktop_BU
       AND d.persoon != d.kirjekood
       AND d.created_by = user();
 
+
+      -- Update changed silts'n'lipiks
+      DELETE kl FROM repis.v_kirjelipikud kl
+      RIGHT JOIN repis.desktop d ON d.kirjekood = kl.kirjekood
+      WHERE d.created_by = user();
+      --
+      DELETE ks FROM repis.v_kirjesildid ks
+      RIGHT JOIN repis.desktop d ON d.kirjekood = ks.kirjekood
+      WHERE d.created_by = user();
+      --
+      INSERT INTO repis.v_kirjelipikud (kirjekood, lipik)
+      SELECT d.kirjekood, dl.lipik
+      FROM repis.desk_lipikud dl
+      RIGHT JOIN repis.desktop d ON d.id = dl.desktop_id
+      WHERE d.created_by = user()
+        AND dl.lipik IS NOT NULL;
+      --
+      INSERT INTO repis.v_kirjesildid (kirjekood, silt)
+      SELECT d.kirjekood, dl.silt
+      FROM repis.desk_sildid dl
+      RIGHT JOIN repis.desktop d ON d.id = dl.desktop_id
+      WHERE d.created_by = user()
+        AND dl.silt IS NOT NULL;
+
+
       -- Update changed persons
       UPDATE repis.kirjed k
       RIGHT JOIN repis.desktop d ON d.kirjekood = k.kirjekood
       SET k.persoon = d.persoon,
+          k.lipikud = repis.func_kirjelipikud(k.kirjekood),
+          k.sildid = repis.func_kirjesildid(k.kirjekood),
           k.kirje = d.kirje,
           k.perenimi = d.perenimi, k.eesnimi = d.eesnimi,
           k.isanimi = d.isanimi, k.emanimi = d.emanimi,
@@ -355,6 +419,7 @@ DELIMITER ;; -- desktop_BU
           k.välisviide = d.välisviide, k.EkslikKanne = d.EkslikKanne,
           k.updated_at = now(), updated_by = SUBSTRING_INDEX(user(), '@', 1)
       WHERE d.created_by = user();
+
 
       -- Remove deleted records
       UPDATE repis.kirjed k
@@ -459,13 +524,13 @@ DELIMITER ;; -- desktop_collect
       DELETE FROM repis.desktop WHERE persoon = _persoon AND allikas IS NULL AND created_by = _created_by;
       INSERT IGNORE INTO repis.desktop
       (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
-        , lipikud
-        , sildid
+        -- , lipikud
+        -- , sildid
         , kirje, allikas, välisviide, EkslikKanne, created_by
         , jutt)
       SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
-        , repis.func_kirjelipikud(kirjekood)
-        , repis.func_kirjesildid(kirjekood)
+        -- , repis.func_kirjelipikud(kirjekood)
+        -- , repis.func_kirjesildid(kirjekood)
         , kirje, allikas, välisviide, EkslikKanne, _created_by
         , IF(allikas IN ('TS','EMI'),
             IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') collate utf8_estonian_ci,
@@ -485,13 +550,13 @@ DELIMITER ;; -- desktop_collect
       DELETE FROM repis.desktop WHERE kirjekood = _kirjekood2 AND allikas IS NULL AND created_by = _created_by;
       INSERT IGNORE INTO repis.desktop
       (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
-        , lipikud
-        , sildid
+        -- , lipikud
+        -- , sildid
         , kirje, allikas, välisviide, EkslikKanne, created_by
         , jutt)
       SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
-        , repis.func_kirjelipikud(kirjekood)
-        , repis.func_kirjesildid(kirjekood)
+        -- , repis.func_kirjelipikud(kirjekood)
+        -- , repis.func_kirjesildid(kirjekood)
         , kirje, allikas, välisviide, EkslikKanne, _created_by
         , IF(allikas IN ('TS','EMI'),
             IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') collate utf8_estonian_ci,
@@ -508,17 +573,34 @@ DELIMITER ;; -- desktop_collect
       WHERE k.kirjekood = _kirjekood2;
     END IF;
 
-    INSERT IGNORE INTO repis.d_lipikud (desktop_id, lipik)
+    INSERT IGNORE INTO repis.desk_lipikud (desktop_id, lipik)
     SELECT d.id, kl.lipik
     FROM repis.desktop d
     LEFT JOIN repis.v_kirjelipikud kl ON kl.kirjekood = d.kirjekood
-    WHERE kl.kirjekood IS NOT NULL;
+    WHERE kl.kirjekood IS NOT NULL
+      AND d.created_by = _created_by;
 
-    INSERT IGNORE INTO repis.d_sildid (desktop_id, silt)
-    SELECT d.id, kl.silt
+    INSERT IGNORE INTO repis.desk_sildid (desktop_id, silt)
+    SELECT d.id, ks.silt
     FROM repis.desktop d
     LEFT JOIN repis.v_kirjesildid ks ON ks.kirjekood = d.kirjekood
-    WHERE ks.kirjekood IS NOT NULL;
+    WHERE ks.kirjekood IS NOT NULL
+      AND d.created_by = _created_by;
+
+    UPDATE repis.desktop d
+    LEFT JOIN (
+      SELECT desktop_id
+           , group_concat(DISTINCT lipik ORDER BY lipik SEPARATOR '; ') AS lipikud
+        FROM repis.desk_lipikud GROUP BY desktop_id
+      ) AS dl ON dl.desktop_id = d.id
+    LEFT JOIN (
+      SELECT desktop_id
+           , group_concat(DISTINCT silt ORDER BY silt SEPARATOR '; ') AS sildid
+        FROM repis.desk_sildid GROUP BY desktop_id
+      ) AS ds ON ds.desktop_id = d.id
+    SET d.lipikud = dl.lipikud
+      , d.sildid  = ds.sildid
+    WHERE d.created_by = _created_by;
 
   END;;
 
