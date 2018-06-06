@@ -70,6 +70,7 @@ CREATE TABLE repis.kirjed (
   Puudulik    enum('','!')     NOT NULL DEFAULT '',
   EkslikKanne enum('','!')     NOT NULL DEFAULT '',
   Peatatud    enum('','!')     NOT NULL DEFAULT '',
+  EiArvesta   enum('','!')     NOT NULL DEFAULT '',
   kustuta     char(1)                   DEFAULT NULL,
   created_at  timestamp            NULL DEFAULT current_timestamp(),
   created_by  varchar(50)               DEFAULT NULL,

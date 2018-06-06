@@ -335,3 +335,15 @@ DELIMITER ;; -- repis.v_kirjelipikud_AD
     CALL repis.aggr_persoonid(OLD.kirjekood);
   END;;
 DELIMITER ;
+
+
+
+DROP TRIGGER repis.kirjed_AI;
+DROP TRIGGER repis.kirjed_AU;
+DROP TRIGGER repis.kirjed_AD;
+DROP TRIGGER repis.v_kirjesildid_AI;
+DROP TRIGGER repis.v_kirjesildid_AU;
+DROP TRIGGER repis.v_kirjesildid_AD;
+DROP TRIGGER repis.v_kirjelipikud_AI;
+DROP TRIGGER repis.v_kirjelipikud_AU;
+DROP TRIGGER repis.v_kirjelipikud_AD;

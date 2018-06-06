@@ -9,7 +9,7 @@ const ES_CREDENTIALS = process.env.ES_CREDENTIALS
 const INDEX = process.env.INDEX
 const SOURCE = process.env.SOURCE
 const QUEUE_LENGTH = 1
-const BULK_SIZE = 1100
+const BULK_SIZE = 4100
 // const BULK_SIZE = 4100
 const START_TIME = Date.now()
 
@@ -35,16 +35,25 @@ const esClient = new elasticsearch.Client({
 const kirje2obj = function(kirje) {
   let o_kirje = {}
   let ksplit = kirje.split('#|')
-  if (ksplit.length < 3) {
+  if (ksplit.length != 6) {
     console.log('---\n' + kirje)
   }
+  o_kirje.persoon = ksplit.shift()
   o_kirje.kirjekood = ksplit.shift()
+  o_kirje.perekood = o_kirje.kirjekood.slice(0,-2)
   o_kirje.kirje = ksplit.shift()
   o_kirje.words = o_kirje.kirje.split(' ').slice(0,3).join(' ').replace(/[.,;]/g,'')
-  o_kirje.kirjesaba = ksplit.shift()
-  o_kirje.allikakood = o_kirje.kirjekood.split('-')[0]
-  o_kirje.perekood = o_kirje.kirjekood.slice(0,-2)
-  o_kirje.allikas = nimekiri_o[o_kirje.allikakood]
+  // o_kirje.allikakood = o_kirje.kirjekood.split('-')[0]
+  o_kirje.allikas = ksplit.shift()
+  o_kirje.allikasTxt = ksplit.shift()
+  _labels_str = ksplit.shift().split("'").join('"')
+  // console.log(o_kirje.kirjekood, _labels_str);
+  _labels_o = JSON.parse(_labels_str)
+  // console.log(_labels_o);
+  if (_labels_o[0] === '') {
+    _labels_o = []
+  }
+  o_kirje.labels = _labels_o['labels'].join(' ')
   return o_kirje
 }
 
@@ -277,7 +286,7 @@ const save2db = function save2db(isik, callback) {
   }
   else if (isik === false && bulk.length > 0) {
     esClient.bulk({
-      body: bulk.join('\n'),
+      body: bulk.join(';_\n'),
       refresh: 'wait_for'
     }, function (error, response) {
       if (error) {

@@ -67,49 +67,49 @@ DELIMITER ;; -- func_kirjesildid()
 DELIMITER ;
 
 
-
-
 DELIMITER ;;  -- unrepeat
-CREATE OR REPLACE FUNCTION repis.func_unrepeat(
-    _word VARCHAR(100),
-    _level ENUM('soft', 'hard')
-) RETURNS VARCHAR(100) CHARSET utf8 COLLATE utf8_estonian_ci
-BEGIN
 
-    DECLARE i INTEGER;
-    DECLARE _out VARCHAR(100);
-    SET i = 0;
-    SET _out = '';
+  CREATE OR REPLACE FUNCTION repis.func_unrepeat(
+      _word VARCHAR(100),
+      _level ENUM('soft', 'hard')
+  ) RETURNS VARCHAR(100) CHARSET utf8 COLLATE utf8_estonian_ci
+  BEGIN
 
-    SET _word = REPLACE(_word, 'TH', 'T');
-    SET _word = REPLACE(_word, 'SH', 'Š');
-    SET _word = REPLACE(_word, 'CH', 'Š');
-    SET _word = REPLACE(_word, 'ZH', 'Z');
-    SET _word = REPLACE(_word, 'TZ', 'Z');
-    IF _level = 'hard' THEN
-      SET _word = REPLACE(_word, 'S' , 'Š');
-      SET _word = REPLACE(_word, 'Z' , 'Š');
-      SET _word = REPLACE(_word, 'Ž' , 'Š');
-      SET _word = REPLACE(_word, 'C' , 'Š');
-      SET _word = REPLACE(_word, 'A', 'Ẵ');
-      SET _word = REPLACE(_word, 'E', 'Ẵ');
-      SET _word = REPLACE(_word, 'I', 'Ẵ');
-      SET _word = REPLACE(_word, 'O', 'Ẵ');
-      SET _word = REPLACE(_word, 'U', 'Ẵ');
-      SET _word = REPLACE(_word, 'Õ', 'Ẵ');
-      SET _word = REPLACE(_word, 'Ä', 'Ẵ');
-      SET _word = REPLACE(_word, 'Ö', 'Ẵ');
-      SET _word = REPLACE(_word, 'Ü', 'Ẵ');
-    END IF;
+      DECLARE i INTEGER;
+      DECLARE _out VARCHAR(100);
+      SET i = 0;
+      SET _out = '';
 
-    myloop: WHILE (i <= LENGTH(_word)) DO
-        IF SUBSTRING(_word, i, 1) != SUBSTRING(_word, i+1, 1) THEN
-          SET _out = concat(_out, SUBSTRING(_word, i, 1));
-        END IF;
-        SET i = i + 1;
-    END WHILE;
+      SET _word = REPLACE(_word, 'TH', 'T');
+      SET _word = REPLACE(_word, 'SH', 'Š');
+      SET _word = REPLACE(_word, 'CH', 'Š');
+      SET _word = REPLACE(_word, 'ZH', 'Z');
+      SET _word = REPLACE(_word, 'TZ', 'Z');
+      IF _level = 'hard' THEN
+        SET _word = REPLACE(_word, 'S' , 'Š');
+        SET _word = REPLACE(_word, 'Z' , 'Š');
+        SET _word = REPLACE(_word, 'Ž' , 'Š');
+        SET _word = REPLACE(_word, 'C' , 'Š');
+        SET _word = REPLACE(_word, 'A', 'Ẵ');
+        SET _word = REPLACE(_word, 'E', 'Ẵ');
+        SET _word = REPLACE(_word, 'I', 'Ẵ');
+        SET _word = REPLACE(_word, 'O', 'Ẵ');
+        SET _word = REPLACE(_word, 'U', 'Ẵ');
+        SET _word = REPLACE(_word, 'Õ', 'Ẵ');
+        SET _word = REPLACE(_word, 'Ä', 'Ẵ');
+        SET _word = REPLACE(_word, 'Ö', 'Ẵ');
+        SET _word = REPLACE(_word, 'Ü', 'Ẵ');
+      END IF;
 
-    RETURN(_out);
+      myloop: WHILE (i <= LENGTH(_word)) DO
+          IF SUBSTRING(_word, i, 1) != SUBSTRING(_word, i+1, 1) THEN
+            SET _out = concat(_out, SUBSTRING(_word, i, 1));
+          END IF;
+          SET i = i + 1;
+      END WHILE;
 
-END;;
+      RETURN(_out);
+
+  END;;
+
 DELIMITER ;

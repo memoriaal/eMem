@@ -92,6 +92,9 @@
           margin-top: 1em;
           margin-bottom: 1em;
         }
+        .wrong {
+          text-decoration: line-through;
+        }
 
     </style>
     <script>
@@ -162,7 +165,7 @@
     </script>
 
 </head>
-<body ng-app="tutorial" eui-index="'persons'" eui-highlight="ejs.Highlight(['id']).preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
+<body ng-app="tutorial" eui-index="'persons1'" eui-highlight="ejs.Highlight(['id']).preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
       eui-highlight="ejs.Highlight(kirjed).preTags('<b>').postTags('</b>')"
       eui-enabled="true"
       onload="initQuery()">
@@ -223,66 +226,84 @@
 
                 <h1>EESTI KOMMUNISMIOHVRID 1940–1991</h1>
 
-                <h2>Hukkunute nimekiri</h2>
+                <div class="col-xs-12">
+                  <div class="intro">
+                    2018. aasta augustis avatakse Tallinnas Maarjamäel memoriaal kommunistliku režiimi terrori ohvritele Eestis 1940–1991.
+                  </div>
 
-                <div class="intro">
-                  2018. aasta augustis avatakse Tallinnas Maarjamäel memoriaal kommunistliku režiimi terrori ohvritele Eestis 1940–1991. SA Eesti Mälu Instituut tegeleb ohvrite nimekirjade ja nende andmete korrastamisega. Memoriaali mälestusseinale kantakse terrori käigus mõrvatud ja vangistuses või asumisel surnud Eesti inimeste nimed koos nende sünni- ja surmaajaga. SA Eesti Mälu Instituut tegeleb ohvrite nimekirjade ja nende andmete korrastamisega.
+                  <div class="intro">
+                    SA Eesti Mälu Instituut tegeleb ohvrite nimekirjade ja nende andmete korrastamisega. Memoriaali mälestusseinale kantakse terrori käigus mõrvatud ja vangistuses või asumisel surnud Eesti inimeste nimed koos nende sünni- ja surmaajaga. SA Eesti Mälu Instituut tegeleb ohvrite nimekirjade ja nende andmete korrastamisega.
+                  </div>
                 </div>
 
-                <div class="intro">
-                  Memoriaali mälestusseinale kantavate isikute lõpliku nimekirjaga saate tutvuda <a class="bg-info" style="font-size: 2em; padding: 0.1em" href="http://memoriaal.ee/Kommunismiohvrite%20memoriaali%20nimekiri.html">siin</a>. Edasised parandused on võimalik sisse viia vaid elektroonilisse väljundisse.
+                <div class="col-xs-8">
+                  <h2>Hukkunute nimekiri</h2>
+
+                  <div class="intro">
+                    <a class="bg-info" style="padding: 0.1em" href="http://memoriaal.ee/Kommunismiohvrite%20memoriaali%20nimekiri.html">Memoriaali mälestusseinale 23. augustiks kantavate isikute nimekiri</a> on lõplik. Sellega tutvumiseks kliki pildil. Edasised parandused on võimalik sisse viia vaid elektroonilisse väljundisse.
+                  </div>
                 </div>
 
-                <h2>Kõigi kannatanute andmebaas</h2>
+                <a class="col-xs-4" href="http://memoriaal.ee/Kommunismiohvrite%20memoriaali%20nimekiri.html">
+                  <img src="Kommunismiohvrite-memoriaal-teekond.jpg" width="100%"/>
+                </a>
 
-                <div class="intro">
-                  Lisaks terrori läbi hukkunutele tehakse elektrooniliselt kättesaadavaks ka kõikide teiste kannatanute nimed, sealhulgas need, kes vangistusest või asumiselt vabanesid; need, kes kuulusid küüditamisele, kuid keda ei küüditatud ja need, kelle saatus on teadmata. Kõigi nende nimed on leitavad siit kodulehelt.
+                <div class="col-xs-12">
+
+                  <h2>Kõigi kannatanute andmebaas</h2>
+
+                  <div class="intro">
+                    Lisaks terrori läbi hukkunutele tehakse elektrooniliselt kättesaadavaks ka kõikide teiste kannatanute nimed, sealhulgas need, kes vangistusest või asumiselt vabanesid; need, kes kuulusid küüditamisele, kuid keda ei küüditatud ja need, kelle saatus on teadmata. Kõigi nende nimed on leitavad siit kodulehelt.
+                  </div>
+
+                  <div class="intro">
+                    Palume kontrollida Teile teadaolevate represseeritute nimesid ning kui vaja, meile paranduste ja täienduste osas tagasisidet anda. Teretulnud on ettepanekud ka juhul, kui kahe nimekuju puhul on tegemist tõenäoliselt sama isikuga ja tekib kahtlus, et erinevad kirjed oleks tarvis siduda.
+                  </div>
+
+                  <div class="intro">
+                    Oleme paranduste ja täienduste eest väga tänulikud. Nendest on juba olnud suur abi hukkunute nimestiku koostamisel. Aktsepteeritud parandused viime sisse jooksvalt, seega täieneb ja muutub nimekiri pidevalt.
+                  </div>
+
+
+                  <h1>Nimekirjadesse kuulumise alused</h1>
+
+                  <h2>Kõigi kannatanute andmebaas</h2>
+                  <li class="intro">
+                    Andmebaasi kantakse aastatel 1940-1991 Nõukogude Liidu okupatsioonivõimu poolt kohtuväliselt represseeritud või alusetult süüdimõistetud ning vastavalt Eesti Vabariigi seadusele kohtuväliselt represseeritud ja alusetult süüdimõistetud isikute rehabiliteerimise kohta rehabiliteerimisele kuulunud isikud, samuti repressioonide käigus hukkunud isikud.
+                  </li>
+
+
+                  <h2>neist hukkunute nimekirjas ja Mälestusseinal</h2>
+                  <li class="intro">
+                    Need, kes on terrori käigus mõrvatud ja vangistuses või asumisel surnud või on teadaolevalt mõrvatud Nõukogude võimuesindajate vahetu isikuvastase ründe tagajärjel
+                  </li>
+
+                  <h2>Kommunismiohvrite memoriaali puhul ei kanta mälestusseinale nende nimesid, kes</h2>
+                  <li class="intro">langesid 1940/1941 metsavennana või Omakaitse liikmena lahingutes Nõukogude võimuga;
+                  </li>
+                  <li class="intro">hukkusid sõjaohvritena lahingutegevuse tagajärjel;
+                  </li>
+                  <li class="intro">lahkusid 1941. aasta suvel Eestist evakueeritavatena Nõukogude tagalasse ja surid seal ilma, et nende suhtes oleks kohaldatud repressioone;
+                  </li>
+                  <li class="intro">mobiliseeriti 1941. aasta suvel Punaarmeesse ja surid Nõukogude tagalas tööpataljonides haiguste, ebainimlike elamistingimuste või selgelt tuvastamata asjaolude tõttu. Ohvritena käsitletakse isikuid, kes tööpataljonis olles poliitilistel põhjustel arreteeriti ning kohtu alla anti;
+                  </li>
+                  <li class="intro">sõja kestel Punaarmee üksuste koosseisus lahingutegevuses langenud või muus sõjaolukorras surnud isikuid;
+                  </li>
+                  <li class="intro">langesid kommunistliku terrori ohvritena, kuid olid ise osalenud võitlustes Nõukogude hävituspataljonide ridades või astunud kommunistliku partei liikmeks enne 1954. aastat.
+                  </li>
                 </div>
 
-                <div class="intro">
-                  Palume kontrollida Teile teadaolevate represseeritute nimesid ning kui vaja, meile paranduste ja täienduste osas tagasisidet anda. Teretulnud on ettepanekud ka juhul, kui kahe nimekuju puhul on tegemist tõenäoliselt sama isikuga ja tekib kahtlus, et erinevad kirjed oleks tarvis siduda.
+                <div class="col-xs-12">
+
+                  <hr>
+                  <p>
+                    SA Eesti Mälu Instituut<br>
+                    Suur-Ameerika 12, 10119, Tallinn<br>
+                    E-mail: info@mnemosyne.ee<br>
+                    Telefon: 6484962
+                  </p>
                 </div>
 
-                <div class="intro">
-                  Oleme paranduste ja täienduste eest väga tänulikud. Nendest on juba olnud suur abi hukkunute nimestiku koostamisel. Aktsepteeritud parandused viime sisse jooksvalt, seega täieneb ja muutub nimekiri pidevalt.
-                </div>
-
-
-                <h1>Nimekirjadesse kuulumise alused</h1>
-
-                <h2>Kõigi kannatanute andmebaas</h2>
-                <li class="intro">
-                  Andmebaasi kantakse aastatel 1940-1991 Nõukogude Liidu okupatsioonivõimu poolt kohtuväliselt represseeritud või alusetult süüdimõistetud ning vastavalt Eesti Vabariigi seadusele kohtuväliselt represseeritud ja alusetult süüdimõistetud isikute rehabiliteerimise kohta rehabiliteerimisele kuulunud isikud, samuti repressioonide käigus hukkunud isikud.
-                </li>
-
-
-                <h2>neist hukkunute nimekirjas ja Mälestusseinal</h2>
-                <li class="intro">
-                  Need, kes on terrori käigus mõrvatud ja vangistuses või asumisel surnud või on teadaolevalt mõrvatud Nõukogude võimuesindajate vahetu isikuvastase ründe tagajärjel
-                </li>
-
-                <h2>Kommunismiohvrite memoriaali puhul ei kanta mälestusseinale nende nimesid, kes</h2>
-                <li class="intro">langesid 1940/1941 metsavennana või Omakaitse liikmena lahingutes Nõukogude võimuga;
-                </li>
-                <li class="intro">hukkusid sõjaohvritena lahingutegevuse tagajärjel;
-                </li>
-                <li class="intro">lahkusid 1941. aasta suvel Eestist evakueeritavatena Nõukogude tagalasse ja surid seal ilma, et nende suhtes oleks kohaldatud repressioone;
-                </li>
-                <li class="intro">mobiliseeriti 1941. aasta suvel Punaarmeesse ja surid Nõukogude tagalas tööpataljonides haiguste, ebainimlike elamistingimuste või selgelt tuvastamata asjaolude tõttu. Ohvritena käsitletakse isikuid, kes tööpataljonis olles poliitilistel põhjustel arreteeriti ning kohtu alla anti;
-                </li>
-                <li class="intro">sõja kestel Punaarmee üksuste koosseisus lahingutegevuses langenud või muus sõjaolukorras surnud isikuid;
-                </li>
-                <li class="intro">langesid kommunistliku terrori ohvritena, kuid olid ise osalenud võitlustes Nõukogude hävituspataljonide ridades või astunud kommunistliku partei liikmeks enne 1954. aastat.
-                </li>
-
-
-                <hr>
-                <p>
-                  SA Eesti Mälu Instituut<br>
-                  Suur-Ameerika 12, 10119, Tallinn<br>
-                  E-mail: info@mnemosyne.ee<br>
-                  Telefon: 6484962
-                </p>
             </div>
             <div class="col-xs-9 col-xs-offset-3 col-lg-10 col-lg-offset-2 main" ng-if="indexVM.query == null ? false : true">
                 <!-- <h1><eui-simple-paging></eui-simple-paging></h1> -->
@@ -310,8 +331,9 @@
                       <div style="overflow: auto;" class="person">
                         <li ng-repeat="kirje in doc._source.kirjed">
                           <!-- <a href="" onclick="setQuery(this.childNodes[1].innerHTML)"> -->
-                            <span ng-bind-html="kirje.kirjekood"></span>, <span class="light" ng-bind-html="kirje.allikas"></span><br/>
-                            <span ng-bind-html="kirje.kirje"></span> <span class="light" ng-bind-html="kirje.kirjesaba"></span><br/>
+                            <span class="{{kirje.labels}}" ng-bind-html="kirje.kirjekood"></span>, <span class="light" ng-bind-html="kirje.allikas"></span><br/>
+                            <span class="{{kirje.labels}}" ng-bind-html="kirje.kirje"></span> <span class="light" ng-bind-html="kirje.allikasTxt"></span><br/>
+                            <!-- <pre ng-bind-html="kirje.labels"></pre><br/> -->
                           <!-- </a> -->
                           <!-- <a href="{{allikas.allikas.href}}">{{ allikas.allikas.text }}</a> -->
                           <!-- <span>[{{ allikas.isikukood }}]</span> -->
@@ -323,9 +345,10 @@
                           </p>
                           <li ng-repeat="kirje in pereseos.kirjed">
                             <!-- <a href="" onclick="setQuery('{{kirje.kirje.split(' ').slice(0,3).join(' ')}}')">foo</a> -->
-                            <a href="" onclick="setQuery(this.getAttribute('words'))" words="{{kirje.words}} {{kirje.kirjekood}}">
+                            <a class="{{kirje.labels}}" href="" onclick="setQuery(this.getAttribute('words'))" words="{{kirje.words}} {{kirje.kirjekood}}">
                               <span ng-bind-html="kirje.kirjekood"></span><br/>
                               <span ng-bind-html="kirje.kirje"></span><br/>
+                              <!-- <pre ng-bind-html="kirje.labels"></pre><br/> -->
                             </a>
                             <!-- <a href="{{allikas.allikas.href}}">{{ allikas.allikas.text }}</a> -->
                             <!-- <span>[{{ allikas.isikukood }}]</span> -->
