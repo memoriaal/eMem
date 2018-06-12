@@ -57,7 +57,7 @@
           padding: 1em 1em 1em 1em;
           margin: 2em 1em 0 0;
         }
-        .perekond > .perekood {
+        .perekond > .RaamatuPere {
           /* display: inline-table; */
           border-radius: 3px;
           width: intrinsic;
@@ -340,7 +340,7 @@
                           <!-- <span>{{ allikas.allikas.text }}</span> -->
                         </li>
                         <div ng-repeat="pereseos in doc._source.pereseos" class="perekond">
-                          <p class="perekood">Perekond {{pereseos.perekood}}, {{pereseos.nimekiri}}<br/>
+                          <p class="RaamatuPere">Perekond {{pereseos.RaamatuPere}}, {{pereseos.nimekiri}}<br/>
                             <!-- <span class="light">{{pereseos.kirjed[0].kirjekood}}</span> -->
                           </p>
                           <li ng-repeat="kirje in pereseos.kirjed">

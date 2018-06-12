@@ -60,7 +60,8 @@ CREATE TABLE repis.kirjed (
   Surm        varchar(50)      NOT NULL DEFAULT '',
   Sildid      text             NOT NULL DEFAULT '',
   Lipikud     text             NOT NULL DEFAULT '',
-  Perekood    varchar(20)      NOT NULL DEFAULT '',
+  RaamatuPere varchar(20)      NOT NULL DEFAULT '',
+  LeidPere    int(10) unsigned          DEFAULT NULL,
   Sugu        enum('M','N','') NOT NULL DEFAULT '',
   Rahvus      varchar(50)      NOT NULL DEFAULT '',
   Välisviide  varchar(2000)    NOT NULL DEFAULT '',
@@ -105,7 +106,7 @@ INSERT INTO repis.kirjed (
       , Emanimi
       , Sünd
       , Surm
-      , Perekood
+      , RaamatuPere
       , Sugu
       , Rahvus
       , Välisviide

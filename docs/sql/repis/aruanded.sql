@@ -57,7 +57,7 @@ FROM ((repis.v_kirjesildid s
      k2.Emanimi AS Emanimi,
      k2.Sünd AS Sünd,
      k2.Surm AS Surm,
-     k2.Perekood AS Perekood,
+     k2.RaamatuPere AS RaamatuPere,
      k2.Sugu AS Sugu,
      k2.Rahvus AS Rahvus,
      k2.Välisviide AS Välisviide,
@@ -94,7 +94,7 @@ FROM ((repis.v_kirjesildid s
      k.Emanimi AS Emanimi,
      k.Sünd AS Sünd,
      k.Surm AS Surm,
-     k.Perekood AS Perekood,
+     k.RaamatuPere AS RaamatuPere,
      k.Sugu AS Sugu,
      k.Rahvus AS Rahvus,
      k.Välisviide AS Välisviide,
@@ -189,7 +189,7 @@ SELECT   nk.kirjekood AS id,
          ), '')           AS pereseos
 FROM repis.kirjed AS k
 LEFT JOIN repis.allikad AS a ON a.kood = k.allikas
-LEFT JOIN repis.kirjed AS kp ON kp.perekood <> '' AND kp.perekood = k.perekood
+LEFT JOIN repis.kirjed AS kp ON kp.RaamatuPere <> '' AND kp.RaamatuPere = k.RaamatuPere
 LEFT JOIN repis.kirjed AS nk ON nk.persoon = k.persoon AND nk.allikas = 'Persoon'
 LEFT JOIN repis.v_kirjesildid AS ks ON ks.kirjekood = nk.persoon AND ks.silt = 'x - kivi' AND ks.deleted_at = '0000-00-00 00:00:00'
 WHERE k.ekslikkanne = ''

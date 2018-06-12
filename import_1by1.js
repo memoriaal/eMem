@@ -9,7 +9,7 @@ const ES_CREDENTIALS = process.env.ES_CREDENTIALS
 const INDEX = process.env.INDEX
 const SOURCE = process.env.SOURCE
 const QUEUE_LENGTH = 1
-const BULK_SIZE = 4100
+const BULK_SIZE = 507
 // const BULK_SIZE = 4100
 const START_TIME = Date.now()
 
@@ -40,7 +40,7 @@ const kirje2obj = function(kirje) {
   }
   o_kirje.persoon = ksplit.shift()
   o_kirje.kirjekood = ksplit.shift()
-  o_kirje.perekood = o_kirje.kirjekood.slice(0,-2)
+  o_kirje.RaamatuPere = o_kirje.kirjekood.slice(0,-2)
   o_kirje.kirje = ksplit.shift()
   o_kirje.words = o_kirje.kirje.split(' ').slice(0,3).join(' ').replace(/[.,;]/g,'')
   // o_kirje.allikakood = o_kirje.kirjekood.split('-')[0]
@@ -152,16 +152,16 @@ async.series({
         })
         let pered = {}
         pereseosed.forEach((kirje) => {
-          let perekood = kirje.kirjekood.slice(0,-2)
-          if (pered[perekood] === undefined) {
-            let nimekiri = nimekiri_o[perekood.split('-')[0]] || '#N/A'
-            pered[perekood] = {
-              perekood: perekood,
+          let RaamatuPere = kirje.kirjekood.slice(0,-2)
+          if (pered[RaamatuPere] === undefined) {
+            let nimekiri = nimekiri_o[RaamatuPere.split('-')[0]] || '#N/A'
+            pered[RaamatuPere] = {
+              RaamatuPere: RaamatuPere,
               nimekiri: nimekiri,
               kirjed: []
             }
           }
-          pered[perekood]['kirjed'].push(kirje)
+          pered[RaamatuPere]['kirjed'].push(kirje)
         })
         isik['pereseos'] = Object.values(pered)
         // console.log('Saving ' + isik.id);
