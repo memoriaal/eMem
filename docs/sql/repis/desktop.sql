@@ -109,11 +109,15 @@ DELIMITER ;; -- desktop_BI
       INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,    task,              params, created_by)
       VALUES                           (NEW.persoon, NEW.kirjekood, 'desktop_collect', NULL,   NEW.created_by);
       IF @new_code LIKE 'PR-%' THEN
+        SET NEW.persoon = '';
+        SET NEW.kirjekood = @new_code;
         INSERT IGNORE INTO repis.z_queue (kirjekood1, kirjekood2,   task,                        params, created_by)
         VALUES                           (@new_code,  NULL,         'desktop_PR_import', NULL,   NEW.created_by);
       ELSEIF @new_code LIKE 'RK-%' THEN
+        SET NEW.persoon = '';
+        SET NEW.kirjekood = @new_code;
         INSERT IGNORE INTO repis.z_queue (kirjekood1, kirjekood2,   task,                        params, created_by)
-        VALUES                           (@new_code,  NULL,         'desktop_RK_import', NULL,   NEW.created_by);
+        VALUES                           (NULL,       @new_code,    'desktop_RK_import', NULL,   NEW.created_by);
       END IF;
 
     END IF;
@@ -519,6 +523,7 @@ DELIMITER ;; -- desktop_collect
   proc_label:BEGIN
 
     IF _persoon != '' THEN
+      SET @p_id = '';
       SELECT persoon INTO @p_id FROM repis.kirjed WHERE kirjekood = _persoon;
 
       DELETE FROM repis.desktop WHERE persoon = _persoon AND allikas IS NULL AND created_by = _created_by;
@@ -617,46 +622,46 @@ DELIMITER ;; -- desktop_PR_import
     SELECT concat_ws('. ',
       concat_ws(', ',
         concat_ws(';',
-          if(isik_perenimi='',NULL,isik_perenimi),
-          if(isik_perenimi_endine1='',NULL,isik_perenimi_endine1),
-          if(isik_perenimi_endine2='',NULL,isik_perenimi_endine2),
-          if(isik_perenimi_endine3='',NULL,isik_perenimi_endine3),
-          if(isik_perenimi_endine4='',NULL,isik_perenimi_endine4)
+          if(pr.isik_perenimi='',NULL,pr.isik_perenimi),
+          if(pr.isik_perenimi_endine1='',NULL,pr.isik_perenimi_endine1),
+          if(pr.isik_perenimi_endine2='',NULL,pr.isik_perenimi_endine2),
+          if(pr.isik_perenimi_endine3='',NULL,pr.isik_perenimi_endine3),
+          if(pr.isik_perenimi_endine4='',NULL,pr.isik_perenimi_endine4)
         ),
         concat_ws(';',
-          if(isik_eesnimi='',NULL,isik_eesnimi),
-          if(isik_eesnimi_endine1='',NULL,isik_eesnimi_endine1),
-          if(isik_eesnimi_endine2='',NULL,isik_eesnimi_endine2)
+          if(pr.isik_eesnimi='',NULL,pr.isik_eesnimi),
+          if(pr.isik_eesnimi_endine1='',NULL,pr.isik_eesnimi_endine1),
+          if(pr.isik_eesnimi_endine2='',NULL,pr.isik_eesnimi_endine2)
         ),
-        if(isa_eesnimi='',NULL,isa_eesnimi),
-        if(ema_eesnimi='',NULL,concat('ema eesnimi ',ema_eesnimi)),
-        if(isik_sugu='',NULL,isik_sugu)
+        if(pr.isa_eesnimi='',NULL,pr.isa_eesnimi),
+        if(pr.ema_eesnimi='',NULL,concat('ema eesnimi ',pr.ema_eesnimi)),
+        if(pr.isik_sugu='',NULL,pr.isik_sugu)
       ),
       concat_ws(', ',
-        if(isik_synniaasta='',NULL,concat('Sünd: ', concat_ws('-',
-          isik_synniaasta,
-          if(isik_synnikuu='',NULL,LPAD(isik_synnikuu, 2, '00')),
-          if(isik_synnipaev='',NULL,LPAD(isik_synnipaev, 2, '00'))
+        if(pr.isik_synniaasta='',NULL,concat('Sünd: ', concat_ws('-',
+          pr.isik_synniaasta,
+          if(pr.isik_synnikuu='',NULL,LPAD(pr.isik_synnikuu, 2, '00')),
+          if(pr.isik_synnipaev='',NULL,LPAD(pr.isik_synnipaev, 2, '00'))
         ))),
-        if(isik_synnikoht='',NULL,isik_synnikoht),
-        if(isik_synniriik='',NULL,isik_synniriik)
+        if(pr.isik_synnikoht='',NULL,pr.isik_synnikoht),
+        if(pr.isik_synniriik='',NULL,pr.isik_synniriik)
       ),
-      if(isik_surmaaasta='' AND isik_surmakoht='' AND isik_surmariik='', NULL,
+      if(pr.isik_surmaaasta='' AND pr.isik_surmakoht='' AND pr.isik_surmariik='', NULL,
         concat_ws(', ',
-          if(isik_surmaaasta='',NULL,concat('Surm: ', concat_ws('-',
-            isik_surmaaasta,
-            if(isik_surmakuu='',NULL,LPAD(isik_surmakuu, 2, '00')),
-            if(isik_surmapaev='',NULL,LPAD(isik_surmapaev, 2, '00'))
+          if(pr.isik_surmaaasta='',NULL,concat('Surm: ', concat_ws('-',
+            pr.isik_surmaaasta,
+            if(pr.isik_surmakuu='',NULL,LPAD(pr.isik_surmakuu, 2, '00')),
+            if(pr.isik_surmapaev='',NULL,LPAD(pr.isik_surmapaev, 2, '00'))
           ))),
-          if(isik_surmakoht='',NULL,isik_surmakoht),
-          if(isik_surmariik='',NULL,isik_surmariik)
+          if(pr.isik_surmakoht='',NULL,pr.isik_surmakoht),
+          if(pr.isik_surmariik='',NULL,pr.isik_surmariik)
         )
       ),
-      concat('Raamat: ', raamatu_omavalitsus, ' kd ', koite_nr, ' lk ', lk_nr),
+      concat('Raamat: ', pr.raamatu_omavalitsus, ' kd ', pr.koite_nr, ' lk ', pr.lk_nr),
       ''
     ) INTO @_kirje
-    FROM import.pereregister
-    WHERE isikukood = _kirjekood1;
+    FROM import.pereregister pr
+    WHERE pr.isikukood = _kirjekood2 COLLATE utf8_estonian_ci;
 
     UPDATE repis.desktop d
     LEFT JOIN import.pereregister pr on pr.isikukood = d.kirjekood
@@ -676,9 +681,9 @@ DELIMITER ;; -- desktop_PR_import
         if(pr.isik_surmakuu = '', NULL, pr.isik_surmakuu),
         if(pr.isik_surmapaev = '', NULL, pr.isik_surmapaev)
       ), ''),
-      d.created_by = user()
-    WHERE pr.isikukood = _kirjekood1
-      AND d.persoon IS NULL;
+      d.created_by = _created_by
+    WHERE pr.isikukood = _kirjekood2 COLLATE utf8_estonian_ci
+      AND d.persoon = '';
 
   END;;
 DELIMITER ;
