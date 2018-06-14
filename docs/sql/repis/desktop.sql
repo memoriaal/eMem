@@ -112,7 +112,7 @@ DELIMITER ;; -- desktop_BI
         SET NEW.persoon = '';
         SET NEW.kirjekood = @new_code;
         INSERT IGNORE INTO repis.z_queue (kirjekood1, kirjekood2,   task,                        params, created_by)
-        VALUES                           (@new_code,  NULL,         'desktop_PR_import', NULL,   NEW.created_by);
+        VALUES                           (NULL,       @new_code,    'desktop_PR_import', NULL,   NEW.created_by);
       ELSEIF @new_code LIKE 'RK-%' THEN
         SET NEW.persoon = '';
         SET NEW.kirjekood = @new_code;
@@ -257,7 +257,7 @@ DELIMITER ;; -- desktop_BU
             SET @nimekirje = concat(
               repis.desktop_person_text(
                 @perenimi, @eesnimi, @isanimi, @emanimi, @sünd, @surm
-              ) collate utf8_estonian_ci,
+              ) COLLATE utf8_estonian_ci,
               '. '
             );
 
@@ -291,7 +291,7 @@ DELIMITER ;; -- desktop_BU
               NEW.perenimi, NEW.eesnimi,
               NEW.isanimi, NEW.emanimi,
               NEW.sünd, NEW.surm
-            ) collate utf8_estonian_ci,
+            ) COLLATE utf8_estonian_ci,
           if(NEW.jutt IN('', ' - - - '), NULL, NEW.jutt)
           -- , if(NEW.välisviide = '', NULL, NEW.välisviide)
         )
@@ -522,8 +522,9 @@ DELIMITER ;; -- desktop_collect
     IN _task VARCHAR(50), IN _params VARCHAR(200), IN _created_by VARCHAR(50))
   proc_label:BEGIN
 
+
     IF _persoon != '' THEN
-      SET @p_id = '';
+      SET @p_id = '' COLLATE utf8_estonian_ci;
       SELECT persoon INTO @p_id FROM repis.kirjed WHERE kirjekood = _persoon;
 
       DELETE FROM repis.desktop WHERE persoon = _persoon AND allikas IS NULL AND created_by = _created_by;
@@ -538,10 +539,10 @@ DELIMITER ;; -- desktop_collect
         -- , repis.func_kirjesildid(kirjekood)
         , kirje, allikas, välisviide, EkslikKanne, _created_by
         , IF(allikas IN ('TS','EMI'),
-            IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') collate utf8_estonian_ci,
+            IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') COLLATE utf8_estonian_ci,
               REPLACE(
                 kirje,
-                concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. ') collate utf8_estonian_ci,
+                concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. ') COLLATE utf8_estonian_ci,
                 ''
               ),
               kirje
@@ -564,10 +565,10 @@ DELIMITER ;; -- desktop_collect
         -- , repis.func_kirjesildid(kirjekood)
         , kirje, allikas, välisviide, EkslikKanne, _created_by
         , IF(allikas IN ('TS','EMI'),
-            IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') collate utf8_estonian_ci,
+            IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') COLLATE utf8_estonian_ci,
               REPLACE(
                 kirje,
-                concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. ') collate utf8_estonian_ci,
+                concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. ') COLLATE utf8_estonian_ci,
                 ''
               ),
               kirje
@@ -689,6 +690,36 @@ DELIMITER ;; -- desktop_PR_import
 DELIMITER ;
 
 
+DELIMITER ;; -- desktop_RK_import
+
+  CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.q_desktop_RK_import(
+    IN _kirjekood1 CHAR(10), IN _kirjekood2 CHAR(10),
+    IN _task VARCHAR(50), IN _params VARCHAR(200), IN _created_by VARCHAR(50))
+  proc_label:BEGIN
+
+    SELECT concat_ws('. ',
+      concat_ws(', ',
+        concat_ws(';', rk.PERENIMI),
+        concat_ws(';', rk.EESNIMI)
+      )
+    ) INTO @_kirje
+    FROM import.repr_kart rk
+    WHERE rk.isikukood = _kirjekood2 COLLATE utf8_estonian_ci;
+
+    UPDATE repis.desktop d
+    LEFT JOIN import.repr_kart rk on rk.isikukood = d.kirjekood
+    SET
+      d.kirje = @_kirje,
+      d.perenimi = rk.PERENIMI,
+      d.eesnimi = rk.EESNIMI,
+      d.created_by = _created_by
+    WHERE rk.isikukood = _kirjekood2 COLLATE utf8_estonian_ci
+      AND d.persoon = '';
+
+  END;;
+DELIMITER ;
+
+
 DELIMITER ;; -- desktop_flush
 
   CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.q_desktop_flush(
@@ -791,7 +822,7 @@ DELIMITER ;; -- desktop_NK_refresh
           nimekuju.perenimi, nimekuju.eesnimi,
           nimekuju.isanimi, nimekuju.emanimi,
           nimekuju.sünd, nimekuju.surm
-        ) collate utf8_estonian_ci
+        ) COLLATE utf8_estonian_ci
     WHERE d.kirjekood = _persoon
       AND d.created_by = _created_by;
 
