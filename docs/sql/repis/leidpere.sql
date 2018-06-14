@@ -24,8 +24,9 @@ FROM (
 
 ALTER TABLE repis.tmp ADD PRIMARY KEY (`raamatupere`);
 
-UPDATE repis.tmp SET repis.tmp.nr = '102273' WHERE (raamatupere='R5-0240,R5-4715,R5-7595');
-UPDATE repis.tmp SET repis.tmp.nr = '112741' WHERE (raamatupere='R5-5851,R62-0877,R62-1209');
+SELECT *
+FROM tmp
+WHERE length(raamatupere) - 1 > length(REPLACE(raamatupere, ',', ''));
 
 --
 -- do this twice
@@ -53,7 +54,7 @@ AND k1.leidpere IS NOT NULL;
 --
 -- Perelaud
 --
-CREATE OR REPLACE TABLE `perelaud` (
+CREATE OR REPLACE TABLE `leidperelaud` (
   persoon char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   valmis enum('','Valmis','Untsus') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   perenimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
@@ -79,7 +80,7 @@ CREATE OR REPLACE TABLE `perelaud` (
 --
 DELIMITER ;; -- perelaud_BI
 
-  CREATE OR REPLACE DEFINER=queue@localhost  TRIGGER repis.perelaud_BI BEFORE INSERT ON repis.perelaud FOR EACH ROW
+  CREATE OR REPLACE DEFINER=queue@localhost  TRIGGER repis.leidperelaud_BI BEFORE INSERT ON repis.leidperelaud FOR EACH ROW
   proc_label:BEGIN
 
     IF NEW.koondkirje = '' THEN
@@ -109,7 +110,7 @@ DELIMITER ;
 
 DELIMITER ;; -- perelaud_AI
 
-  CREATE OR REPLACE DEFINER=queue@localhost  TRIGGER repis.perelaud_AI AFTER INSERT ON repis.perelaud FOR EACH ROW
+  CREATE OR REPLACE DEFINER=queue@localhost  TRIGGER repis.leidperelaud_AI AFTER INSERT ON repis.leidperelaud FOR EACH ROW
   proc_label:BEGIN
 
     INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,               params, created_by)
@@ -125,7 +126,7 @@ DELIMITER ;
 --
 DELIMITER ;; -- perelaud_next_id()
 
-  CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.perelaud_next_id(
+  CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.leidperelaud_next_id(
       _allikas VARCHAR(50)
   ) RETURNS CHAR(10) CHARSET utf8
   func_label:BEGIN
@@ -138,7 +139,7 @@ DELIMITER ;; -- perelaud_next_id()
 
     SET @max_d = NULL;
     SELECT max(LeidPere) INTO @max_d
-    FROM repis.perelaud;
+    FROM repis.leidperelaud;
 
     RETURN if(@max_d < @max_k, @max_k, @max_d);
   END;;
@@ -151,7 +152,7 @@ DELIMITER ;
 --
 DELIMITER ;; -- perelaud_collect
 
-  CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.q_perelaud_collect(
+  CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.q_leidperelaud_collect(
     IN _persoon CHAR(10), IN _kirjekood2 CHAR(10),
     IN _task VARCHAR(50), IN _params VARCHAR(200), IN _created_by VARCHAR(50))
   proc_label:BEGIN
@@ -160,7 +161,7 @@ DELIMITER ;; -- perelaud_collect
       LEAVE proc_label;
     END IF;
 
-    INSERT IGNORE INTO repis.perelaud(persoon, created_by)
+    INSERT IGNORE INTO repis.leidperelaud(persoon, created_by)
     SELECT DISTINCT k1.persoon, _created_by
       FROM repis.kirjed AS k
       LEFT JOIN repis.kirjed k1 ON k.leidpere = k1.leidpere
