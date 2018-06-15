@@ -111,11 +111,13 @@ DELIMITER ;; -- desktop_BI
       IF @new_code LIKE 'PR-%' THEN
         SET NEW.persoon = '';
         SET NEW.kirjekood = @new_code;
+        SET NEW.allikas = 'PR';
         INSERT IGNORE INTO repis.z_queue (kirjekood1, kirjekood2,   task,                        params, created_by)
         VALUES                           (NULL,       @new_code,    'desktop_PR_import', NULL,   NEW.created_by);
       ELSEIF @new_code LIKE 'RK-%' THEN
         SET NEW.persoon = '';
         SET NEW.kirjekood = @new_code;
+        SET NEW.allikas = 'RK';
         INSERT IGNORE INTO repis.z_queue (kirjekood1, kirjekood2,   task,                        params, created_by)
         VALUES                           (NULL,       @new_code,    'desktop_RK_import', NULL,   NEW.created_by);
       END IF;
@@ -188,8 +190,7 @@ DELIMITER ;; -- desktop_BU
               NEW.surm != OLD.surm OR
               NEW.jutt != OLD.jutt OR
               NEW.välisviide != OLD.välisviide OR
-              NEW.kirje != OLD.kirje OR
-              NEW.allikas != OLD.allikas ) THEN
+              NEW.kirje != OLD.kirje) THEN
         SELECT concat_ws('\n'
           , 'Registri kirjetel saab muuta ainult persooni koodi!'
         ) INTO msg;
