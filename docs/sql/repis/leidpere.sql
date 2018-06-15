@@ -56,6 +56,7 @@ AND k1.leidpere IS NOT NULL;
 --
 CREATE OR REPLACE TABLE `leidperelaud` (
   persoon char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  leidpere int(10) unsigned DEFAULT NULL,
   valmis enum('','Valmis','Untsus') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   perenimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   eesnimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
@@ -65,8 +66,8 @@ CREATE OR REPLACE TABLE `leidperelaud` (
   surm varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   koondkirje text COLLATE utf8_estonian_ci NOT NULL,
   raamatupere varchar(200) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  leidpere int(10) unsigned DEFAULT NULL,
   id int(10) unsigned NOT NULL AUTO_INCREMENT,
+  kommentaar varchar(2000) COLLATE utf8_estonian_ci NOT NULL,
   created_at timestamp NOT NULL DEFAULT current_timestamp(),
   created_by varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   PRIMARY KEY (persoon,created_by),
@@ -88,18 +89,22 @@ DELIMITER ;; -- leidperelaud_BI
         SET NEW.created_by = user();
       END IF;
 
-      SELECT group_concat(k.kirjekood, ': ', k.kirje SEPARATOR '; \n')
+      SELECT k1.persoon
+           , group_concat(k.kirjekood, ': ', k.kirje SEPARATOR '; \n')
            , k1.raamatupere
            , k1.leidpere
-      INTO @koondkirje, @raamatupere, @leidpere
+           , k1.kommentaar
+      INTO @persoon, @koondkirje, @raamatupere, @leidpere, @kommentaar
       FROM repis.kirjed AS k1
       RIGHT JOIN repis.kirjed k ON k.persoon = k1.persoon
       WHERE k1.kirjekood = NEW.persoon
       GROUP BY k.persoon;
 
+      SET NEW.persoon = @persoon;
       SET NEW.koondkirje = @koondkirje;
       SET NEW.raamatupere = @raamatupere;
       SET NEW.leidpere = @leidpere;
+      SET NEW.kommentaar = @kommentaar;
 
     END IF;
 
@@ -115,6 +120,69 @@ DELIMITER ;; -- leidperelaud_AI
 
     INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,                   params, created_by)
     VALUES                           (NEW.persoon, NULL,       'leidperelaud_collect', NULL,   NEW.created_by);
+
+  END;;
+
+DELIMITER ;
+
+
+DELIMITER ;; -- leidperelaud_BU
+
+  CREATE OR REPLACE DEFINER=queue@localhost TRIGGER repis.leidperelaud_BU BEFORE UPDATE ON repis.leidperelaud FOR EACH ROW
+  proc_label:BEGIN
+
+    DECLARE msg TEXT;
+
+    -- can change only owned records
+      IF  OLD.created_by != user()
+        AND user() != 'queue@localhost'
+        AND user() != 'event_scheduler@localhost'
+        THEN
+        SELECT concat_ws('\n'
+          , 'Mängi oma liivakastis!'
+          , user()
+        ) INTO msg;
+        SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
+      END IF;
+
+    -- no meddling
+      SET NEW.created_by = OLD.created_by;
+
+    -- can change only 'leidpere'
+      IF  NEW.leidpere = OLD.leidpere
+          AND NEW.valmis = OLD.valmis
+          AND NEW.kommentaar = OLD.kommentaar
+      THEN
+        SELECT concat_ws('\n'
+          , 'Muuta on mõtet ainult "leidpere" ja "kommentaar" välju.'
+          , 'Muid välju niikuinii ei salvestata.'
+        ) INTO msg;
+        SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
+      END IF;
+
+
+    --
+    -- Clean leidperelaud
+    --
+    IF NEW.valmis = 'Untsus' THEN
+      INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,            params, created_by)
+      VALUES                           (NULL,        NULL,       'leidperelaud_flush', NULL,   user());
+
+
+    --
+    -- Save and clean leidperelaud
+    --
+    ELSEIF NEW.valmis = 'Valmis' THEN
+
+      UPDATE repis.kirjed k
+      RIGHT JOIN repis.leidperelaud l ON l.persoon = k.persoon
+      SET k.leidpere = l.leidpere, k.kommentaar = l.kommentaar
+      WHERE l.created_by = user();
+
+      -- Clean leidperelaud
+      INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,            params, created_by)
+      VALUES                           (NULL,        NULL,       'leidperelaud_flush', NULL,   user());
+    END IF;
 
   END;;
 
@@ -146,24 +214,16 @@ DELIMITER ;
 --
 -- Procedures
 --
-DELIMITER ;; -- leidperelaud_collect
 
-  CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.q_leidperelaud_collect(
-    IN _persoon CHAR(10), IN _kirjekood2 CHAR(10),
+DELIMITER ;; -- leidperelaud_flush
+
+  CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.q_leidperelaud_flush(
+    IN _kirjekood1 CHAR(10), IN _kirjekood2 CHAR(10),
     IN _task VARCHAR(50), IN _params VARCHAR(200), IN _created_by VARCHAR(50))
   proc_label:BEGIN
 
-    IF _persoon = '' THEN
-      LEAVE proc_label;
-    END IF;
-
-    INSERT IGNORE INTO repis.leidperelaud(persoon, created_by)
-    SELECT DISTINCT k1.persoon, _created_by
-      FROM repis.kirjed AS k
-      LEFT JOIN repis.kirjed k1 ON k.leidpere = k1.leidpere
-     WHERE k.persoon = _persoon
-       AND k1.persoon != k.persoon
-       AND k.leidpere IS NOT NULL;
+    DELETE FROM repis.leidperelaud
+    WHERE created_by = _created_by;
 
   END;;
 
