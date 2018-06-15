@@ -113,8 +113,8 @@ DELIMITER ;; -- leidperelaud_AI
   CREATE OR REPLACE DEFINER=queue@localhost  TRIGGER repis.leidperelaud_AI AFTER INSERT ON repis.leidperelaud FOR EACH ROW
   proc_label:BEGIN
 
-    INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,               params, created_by)
-    VALUES                           (NEW.persoon, NULL,       'perelaud_collect', NULL,   NEW.created_by);
+    INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,                   params, created_by)
+    VALUES                           (NEW.persoon, NULL,       'leidperelaud_collect', NULL,   NEW.created_by);
 
   END;;
 
