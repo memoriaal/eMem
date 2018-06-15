@@ -52,7 +52,7 @@ AND k.allikas != 'persoon'
 AND k1.leidpere IS NOT NULL;
 
 --
--- Perelaud
+-- Leidperelaud
 --
 CREATE OR REPLACE TABLE `leidperelaud` (
   persoon char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
@@ -78,7 +78,7 @@ CREATE OR REPLACE TABLE `leidperelaud` (
 --
 -- Triggers
 --
-DELIMITER ;; -- perelaud_BI
+DELIMITER ;; -- leidperelaud_BI
 
   CREATE OR REPLACE DEFINER=queue@localhost  TRIGGER repis.leidperelaud_BI BEFORE INSERT ON repis.leidperelaud FOR EACH ROW
   proc_label:BEGIN
@@ -108,7 +108,7 @@ DELIMITER ;; -- perelaud_BI
 DELIMITER ;
 
 
-DELIMITER ;; -- perelaud_AI
+DELIMITER ;; -- leidperelaud_AI
 
   CREATE OR REPLACE DEFINER=queue@localhost  TRIGGER repis.leidperelaud_AI AFTER INSERT ON repis.leidperelaud FOR EACH ROW
   proc_label:BEGIN
@@ -124,14 +124,10 @@ DELIMITER ;
 --
 -- functions
 --
-DELIMITER ;; -- perelaud_next_id()
+DELIMITER ;; -- leidperelaud_next_id()
 
-  CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.leidperelaud_next_id(
-      _allikas VARCHAR(50)
-  ) RETURNS CHAR(10) CHARSET utf8
+  CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.leidperelaud_next_id() RETURNS int(10) unsigned
   func_label:BEGIN
-
-    SELECT lühend INTO @c FROM repis.allikad WHERE kood = _allikas;
 
     SET @max_k = NULL;
     SELECT max(LeidPere) INTO @max_k
@@ -141,7 +137,7 @@ DELIMITER ;; -- perelaud_next_id()
     SELECT max(LeidPere) INTO @max_d
     FROM repis.leidperelaud;
 
-    RETURN if(@max_d < @max_k, @max_k, @max_d);
+    RETURN if(@max_d < @max_k, @max_k + 1, @max_d + 1);
   END;;
 
 DELIMITER ;
@@ -150,7 +146,7 @@ DELIMITER ;
 --
 -- Procedures
 --
-DELIMITER ;; -- perelaud_collect
+DELIMITER ;; -- leidperelaud_collect
 
   CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.q_leidperelaud_collect(
     IN _persoon CHAR(10), IN _kirjekood2 CHAR(10),

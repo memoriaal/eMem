@@ -79,8 +79,8 @@ DELIMITER ;;
         UPDATE repis.z_queue SET msg = concat('CALL repis.q_desktop_RK_import(\'',_kirjekood1,'\', \'',_kirjekood2,'\', \'',_task,'\', \'',_params,'\', \'',_created_by,'\');') WHERE id = _id;
         CALL repis.q_desktop_RK_import(_kirjekood1, _kirjekood2, _task, _params, _created_by);
         DELETE FROM repis.z_queue WHERE id = _id;
-      ELSEIF _task = 'perelaud_collect' THEN
-        CALL repis.q_perelaud_collect(_kirjekood1, _kirjekood2, _task, _params, _created_by);
+      ELSEIF _task = 'leidperelaud_collect' THEN
+        CALL repis.q_leidperelaud_collect(_kirjekood1, _kirjekood2, _task, _params, _created_by);
         -- DELETE FROM repis.z_queue WHERE id = _id;
       END IF;
 
