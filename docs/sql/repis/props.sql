@@ -2,673 +2,461 @@
 /* create props table */
 
 CREATE OR REPLACE TABLE aruanded.props (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `entity` varchar(64) DEFAULT NULL,
-  `type` varchar(32) DEFAULT NULL,
-  `language` varchar(2) DEFAULT NULL,
-  `datatype` varchar(16) DEFAULT NULL,
-  `public` int(1) DEFAULT NULL,
-  `value_text` text DEFAULT NULL,
-  `value_integer` int(11) DEFAULT NULL,
-  `value_decimal` decimal(15,4) DEFAULT NULL,
-  `value_reference` varchar(64) DEFAULT NULL,
-  `value_date` datetime DEFAULT NULL,
-  `created_at` datetime DEFAULT NULL,
-  `created_by` varchar(64) DEFAULT NULL,
-  `deleted_at` datetime DEFAULT NULL,
-  `deleted_by` varchar(64) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `entity` (`entity`),
-  KEY `type` (`type`),
-  KEY `language` (`language`),
-  KEY `datatype` (`datatype`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  id int(10) unsigned NOT NULL AUTO_INCREMENT,
+  entity varchar(64) DEFAULT NULL,
+  type varchar(32) DEFAULT NULL,
+  language varchar(2) DEFAULT NULL,
+  datatype varchar(16) DEFAULT NULL,
+  public int(1) DEFAULT NULL,
+  search int(1) DEFAULT NULL,
+  value_text text DEFAULT NULL,
+  value_integer int(11) DEFAULT NULL,
+  value_decimal decimal(15,4) DEFAULT NULL,
+  value_reference varchar(64) DEFAULT NULL,
+  value_date datetime DEFAULT NULL,
+  created_at datetime DEFAULT NULL,
+  created_by varchar(64) DEFAULT NULL,
+  deleted_at datetime DEFAULT NULL,
+  deleted_by varchar(64) DEFAULT NULL,
+  PRIMARY KEY (id),
+  KEY entity (entity),
+  KEY type (type),
+  KEY language (language),
+  KEY datatype (datatype)
+) ENGINE=InnoDB AUTO_INCREMENT=1000000 DEFAULT CHARSET=utf8 COLLATE utf8_estonian_ci;
 
 
+
+-- Persoonid
 --
+
+/* entity id
+   3s */
+INSERT INTO aruanded.props (entity, type, datatype, value_text, created_at, created_by)
+   SELECT
+      if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)),
+      '_mid',
+      'string',
+      if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)),
+      created_at,
+      '4'
+   FROM repis.kirjed
+   WHERE allikas = 'Persoon';
+
+/* entity type
+   3s */
+INSERT INTO aruanded.props (entity, type, datatype, value_text, created_at, created_by)
+   SELECT
+      if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)),
+      '_type',
+      'string',
+      'r_persoon',
+      created_at,
+      '4'
+   FROM repis.kirjed
+   WHERE allikas = 'Persoon';
+
+/* entity name formula
+   3s */
+INSERT INTO aruanded.props (entity, type, datatype, search, language, value_text)
+   SELECT
+      if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)),
+      'name' AS property_definition,
+      'formula' AS property_type,
+      1 AS search,
+      NULL property_language,
+      '@eesnimi@ @perenimi@ @isanimi@ @emanimi@' AS value_text
+   FROM repis.kirjed
+   WHERE allikas = 'Persoon';
+
+/* entity created at/by
+   3 sec */
+INSERT INTO aruanded.props (entity, type, datatype, created_at, created_by)
+   SELECT
+      if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)),
+      '_created',
+      'atby',
+      created_at,
+      '4'
+   FROM repis.kirjed
+   WHERE allikas = 'Persoon';
+
+/* properties
+   40 sec */
+INSERT INTO aruanded.props (entity, type, datatype, language, public
+   , value_text, value_integer, value_decimal, value_reference, value_date
+   , created_at, created_by, deleted_at, deleted_by)
+   SELECT
+       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'eesnimi', 'string', NULL, 0,
+       eesnimi AS value_text,
+       NULL AS value_integer,
+       NULL AS value_decimal,
+       NULL AS value_reference,
+       NULL AS value_date,
+       created_at, '4', NULL, NULL
+    FROM repis.kirjed
+    WHERE allikas = 'Persoon'
+      AND eesnimi != ''
+   UNION ALL
+   SELECT
+       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'perenimi', 'string', NULL, 0,
+       perenimi AS value_text,
+       NULL AS value_integer,
+       NULL AS value_decimal,
+       NULL AS value_reference,
+       NULL AS value_date,
+       created_at, '4', NULL, NULL
+    FROM repis.kirjed
+    WHERE allikas = 'Persoon'
+      AND perenimi != ''
+   UNION ALL
+   SELECT
+       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'isanimi', 'string', NULL, 0,
+       isanimi AS value_text,
+       NULL AS value_integer,
+       NULL AS value_decimal,
+       NULL AS value_reference,
+       NULL AS value_date,
+       created_at, '4', NULL, NULL
+    FROM repis.kirjed
+    WHERE allikas = 'Persoon'
+      AND isanimi != ''
+   UNION ALL
+   SELECT
+       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'emanimi', 'string', NULL, 0,
+       emanimi AS value_text,
+       NULL AS value_integer,
+       NULL AS value_decimal,
+       NULL AS value_reference,
+       NULL AS value_date,
+       created_at, '4', NULL, NULL
+    FROM repis.kirjed
+    WHERE allikas = 'Persoon'
+      AND emanimi != ''
+   UNION ALL
+   SELECT
+       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'sünd', 'string', NULL, 0,
+       sünd AS value_text,
+       NULL AS value_integer,
+       NULL AS value_decimal,
+       NULL AS value_reference,
+       NULL AS value_date,
+       created_at, '4', NULL, NULL
+    FROM repis.kirjed
+    WHERE allikas = 'Persoon'
+      AND sünd != ''
+   UNION ALL
+   SELECT
+       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'surm', 'string', NULL, 0,
+       surm AS value_text,
+       NULL AS value_integer,
+       NULL AS value_decimal,
+       NULL AS value_reference,
+       NULL AS value_date,
+       created_at, '4', NULL, NULL
+    FROM repis.kirjed
+    WHERE allikas = 'Persoon'
+      AND surm != ''
+;
+
 -- Kirjed
 --
-/* entity id */
+
+/* entity id
+   10s */
 INSERT INTO aruanded.props (entity, type, datatype, value_text, created_at, created_by)
-SELECT
-    concat('k_', kirjekood),
-    '_mid',
-    'string',
-    concat('k_', kirjekood),
-    created_at,
-    created_by
-FROM repis.kirjed;
+   SELECT
+      concat('repis_k_', kirjekood),
+      '_mid',
+      'string',
+      concat('repis_k_', kirjekood),
+      created_at,
+      '4'
+   FROM repis.kirjed;
 
-/* entity type */
+/* entity type
+   9s */
 INSERT INTO aruanded.props (entity, type, datatype, value_text, created_at, created_by)
-SELECT
-    concat('k_', kirjekood),
-    '_type',
-    'string',
-    'kirje',
-    created_at,
-    created_by
-FROM repis.kirjed;
+   SELECT
+      concat('repis_k_', kirjekood),
+      '_type',
+      'string',
+      'r_kirje',
+      created_at,
+      '4'
+   FROM repis.kirjed;
+
+/* entity name formula
+   11s */
+INSERT INTO aruanded.props (entity, type, datatype, search, language, value_text)
+  SELECT
+     concat('repis_k_', kirjekood),
+     'name' AS property_definition,
+     'formula' AS property_type,
+     1 AS search,
+     NULL AS property_language,
+     '@kirjekood@' AS value_text
+  FROM repis.kirjed;
+
+/* entity created at/by
+   9 sec */
+INSERT INTO aruanded.props (entity, type, datatype, created_at, created_by)
+   SELECT
+      concat('repis_k_', kirjekood),
+      '_created',
+      'atby',
+      created_at,
+      '4'
+   FROM repis.kirjed;
+
+/* parents
+   10 sec */
+INSERT INTO aruanded.props (entity, type, datatype, value_reference, created_at, created_by)
+   SELECT
+      concat('repis_k_', kirjekood),
+      '_parent',
+      'reference',
+      if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)),
+      created_at,
+      '4'
+   FROM repis.kirjed;
+
+ /* properties */
+ INSERT INTO aruanded.props (entity, type, datatype, language, public
+    , value_text, value_integer, value_decimal, value_reference, value_date
+    , created_at, created_by, deleted_at, deleted_by)
+    SELECT
+        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'eesnimi', 'string', NULL, 0,
+        eesnimi AS value_text,
+        NULL AS value_integer,
+        NULL AS value_decimal,
+        NULL AS value_reference,
+        NULL AS value_date,
+        created_at, '4', NULL, NULL
+     FROM repis.kirjed
+     WHERE allikas != 'Persoon'
+       AND eesnimi != ''
+    UNION ALL
+    SELECT
+        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'perenimi', 'string', NULL, 0,
+        perenimi AS value_text,
+        NULL AS value_integer,
+        NULL AS value_decimal,
+        NULL AS value_reference,
+        NULL AS value_date,
+        created_at, '4', NULL, NULL
+     FROM repis.kirjed
+     WHERE allikas != 'Persoon'
+       AND perenimi != ''
+    UNION ALL
+    SELECT
+        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'isanimi', 'string', NULL, 0,
+        isanimi AS value_text,
+        NULL AS value_integer,
+        NULL AS value_decimal,
+        NULL AS value_reference,
+        NULL AS value_date,
+        created_at, '4', NULL, NULL
+     FROM repis.kirjed
+     WHERE allikas != 'Persoon'
+       AND isanimi != ''
+    UNION ALL
+    SELECT
+        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'emanimi', 'string', NULL, 0,
+        emanimi AS value_text,
+        NULL AS value_integer,
+        NULL AS value_decimal,
+        NULL AS value_reference,
+        NULL AS value_date,
+        created_at, '4', NULL, NULL
+     FROM repis.kirjed
+     WHERE allikas != 'Persoon'
+       AND emanimi != ''
+    UNION ALL
+    SELECT
+        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'synd', 'string', NULL, 0,
+        sünd AS value_text,
+        NULL AS value_integer,
+        NULL AS value_decimal,
+        NULL AS value_reference,
+        NULL AS value_date,
+        created_at, '4', NULL, NULL
+     FROM repis.kirjed
+     WHERE allikas != 'Persoon'
+       AND sünd != ''
+    UNION ALL
+    SELECT
+        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'surm', 'string', NULL, 0,
+        surm AS value_text,
+        NULL AS value_integer,
+        NULL AS value_decimal,
+        NULL AS value_reference,
+        NULL AS value_date,
+        created_at, '4', NULL, NULL
+     FROM repis.kirjed
+     WHERE allikas != 'Persoon'
+       AND surm != ''
+    UNION ALL
+    SELECT
+        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'kirje', 'string', NULL, 0,
+        kirje AS value_text,
+        NULL AS value_integer,
+        NULL AS value_decimal,
+        NULL AS value_reference,
+        NULL AS value_date,
+        created_at, '4', NULL, NULL
+     FROM repis.kirjed
+     WHERE allikas != 'Persoon'
+       AND kirje != ''
+ ;
 
 
-/* entity created at/by */
-INSERT INTO props (entity, type, datatype, created_at, created_by)
-SELECT
-    id,
-    '_created',
-    'atby',
-    created,
-    IF(TRIM(created_by) REGEXP '^-?[0-9]+$', TRIM(created_by), NULL)
-FROM entity
-WHERE entity_definition_keyname NOT LIKE 'conf-%'
-AND (created IS NOT NULL OR IF(TRIM(created_by) REGEXP '^-?[0-9]+$', TRIM(created_by), NULL) IS NOT NULL);
 
 
-/* entity deleted at/by */
-INSERT INTO props (entity, type, datatype, created_at, created_by)
-SELECT
-    id,
-    '_deleted',
-    'atby',
-    deleted,
-    IF(TRIM(deleted_by) REGEXP '^-?[0-9]+$', TRIM(deleted_by), NULL)
-FROM entity
-WHERE entity_definition_keyname NOT LIKE 'conf-%'
-AND is_deleted = 1;
 
 
-/* parents */
-INSERT INTO props (entity, type, datatype, value_reference, created_at, created_by, deleted_at, deleted_by)
-SELECT
-    r.related_entity_id,
-    '_parent',
-    'reference',
-    r.entity_id,
-    IFNULL(r.created, e.created),
-    IF(TRIM(r.created_by) REGEXP '^-?[0-9]+$', TRIM(r.created_by), IF(TRIM(e.created_by) REGEXP '^-?[0-9]+$', TRIM(e.created_by), NULL)),
-    IF(r.is_deleted = 1, IFNULL(r.deleted, NOW()), NULL),
-    IF(TRIM(r.deleted_by) REGEXP '^-?[0-9]+$', TRIM(r.deleted_by), IF(TRIM(e.deleted_by) REGEXP '^-?[0-9]+$', TRIM(e.deleted_by), NULL))
-FROM
-    relationship AS r,
-    entity AS e
-WHERE e.id = r.related_entity_id
-AND r.relationship_definition_keyname = 'child';
 
 
-/* rights */
-INSERT INTO props (entity, type, datatype, value_reference, created_at, created_by, deleted_at, deleted_by)
-SELECT
-    r.entity_id,
-    CONCAT('_', REPLACE(r.relationship_definition_keyname, '-', '_')),
-    'reference',
-    r.related_entity_id,
-    IFNULL(r.created, e.created),
-    IF(TRIM(r.created_by) REGEXP '^-?[0-9]+$', TRIM(r.created_by), IF(TRIM(e.created_by) REGEXP '^-?[0-9]+$', TRIM(e.created_by), NULL)),
-    IF(r.is_deleted = 1, IFNULL(r.deleted, NOW()), NULL),
-    IF(TRIM(r.deleted_by) REGEXP '^-?[0-9]+$', TRIM(r.deleted_by), IF(TRIM(e.deleted_by) REGEXP '^-?[0-9]+$', TRIM(e.deleted_by), NULL))
-FROM
-    relationship AS r,
-    entity AS e
-WHERE e.id = r.entity_id
-AND r.relationship_definition_keyname IN ('editor', 'expander', 'owner', 'viewer');
+/* share all but definitions and owners
+   8 sec */
+ INSERT INTO aruanded.props (entity, type, datatype, value_integer, created_at, created_by)
+   SELECT
+      entity,
+      '_public',
+      'boolean',
+      1,
+      created_at,
+      created_by
+   FROM aruanded.props
+   WHERE TYPE = '_mid';
 
+--
+--
+-- seed some owners
 
-/* entity sharing */
-INSERT INTO props (entity, type, datatype, value_integer, created_at, created_by)
-SELECT
-    id,
-    '_public',
-    'boolean',
-    1,
-    created,
-    IF(TRIM(created_by) REGEXP '^-?[0-9]+$', TRIM(created_by), NULL)
-FROM entity
-WHERE entity_definition_keyname NOT LIKE 'conf-%'
-AND TRIM(LOWER(sharing)) = 'public'
-AND sharing IS NOT NULL;
-
-
-/* properties */
-INSERT INTO props (entity, type, datatype, language, public, value_text, value_integer, value_decimal, value_reference, value_date, created_at, created_by, deleted_at, deleted_by)
-SELECT
-    p.entity_id,
-    REPLACE(pd.dataproperty, '-', '_'),
-    IF(
-        pd.formula = 1,
-        'formula',
-        pd.datatype
-    ),
-    CASE IF(pd.multilingual = 1, TRIM(p.language), NULL)
-        WHEN 'estonian' THEN 'et'
-        WHEN 'english' THEN 'en'
-        ELSE NULL
-    END,
-    pd.public,
-    IF(
-        pd.formula = 1,
-        pd.defaultvalue,
-        CASE pd.datatype
-            WHEN 'string' THEN TRIM(p.value_string)
-            WHEN 'text' THEN TRIM(p.value_text)
-            WHEN 'file' THEN (
-                SELECT TRIM(CONCAT(
-                    'A:',
-                    IFNULL(TRIM(filename), ''),
-                    '\nB:',
-                    IFNULL(TRIM(md5), ''),
-                    '\nC:',
-                    IFNULL(TRIM(s3_key), ''),
-                    '\nD:',
-                    IFNULL(TRIM(url), ''),
-                    '\nE:',
-                    IFNULL(filesize, '')
-                )) FROM file WHERE id = p.value_file LIMIT 1
-            )
-            ELSE NULL
-        END
-    ),
-    CASE pd.datatype
-        WHEN 'integer' THEN p.value_integer
-        WHEN 'boolean' THEN p.value_boolean
-        ELSE NULL
-    END,
-    CASE pd.datatype
-        WHEN 'decimal' THEN p.value_decimal
-        ELSE NULL
-    END,
-    CASE pd.datatype
-        WHEN 'reference' THEN p.value_reference
-        ELSE NULL
-    END,
-    CASE pd.datatype
-        WHEN 'date' THEN DATE_FORMAT(p.value_datetime, '%Y-%m-%d')
-        WHEN 'datetime' THEN DATE_FORMAT(CONVERT_TZ(p.value_datetime, 'Europe/Tallinn', 'UTC'), '%Y-%m-%d %H:%i:%s')
-        ELSE NULL
-    END,
-    IFNULL(IF(p.created >= '2000-01-01', p.created, NULL), IF(e.created >= '2000-01-01', e.created, NULL)),
-    IF(TRIM(p.created_by) REGEXP '^-?[0-9]+$', TRIM(p.created_by), IF(TRIM(e.created_by) REGEXP '^-?[0-9]+$', TRIM(e.created_by), NULL)),
-    IF(p.is_deleted = 1, IF(p.deleted >= '2000-01-01', p.deleted, NOW()), NULL),
-    IF(p.is_deleted = 1, IF(TRIM(p.deleted_by) REGEXP '^-?[0-9]+$', TRIM(p.deleted_by), IF(TRIM(e.deleted_by) REGEXP '^-?[0-9]+$', TRIM(e.deleted_by), NULL)), NULL)
-FROM
-    property AS p,
-    property_definition AS pd,
-    entity AS e
-WHERE pd.keyname = p.property_definition_keyname
-AND e.id = p.entity_id
-AND pd.dataproperty NOT IN (
-    'entu-changed-at',
-    'entu-changed-by',
-    'entu-created-at',
-    'entu-created-by',
-    'analytics-code',
-    'auth-erply',
-    'auth-facebook',
-    'auth-google',
-    'auth-live',
-    'auth-mailgun',
-    'auth-mobileid',
-    'auth-s3',
-    'database-host',
-    'database-password',
-    'database-port',
-    'database-ssl-path',
-    'database-user',
-    'mongodb'
-)
-AND pd.keyname NOT LIKE 'conf-%'
-AND e.entity_definition_keyname NOT LIKE 'conf-%';
-
+ INSERT INTO aruanded.props
+  (id, entity, type, language, datatype, public, search,
+    value_reference, value_text,
+    created_at, created_by)
+  VALUES
+	(3,  '3','_mid',      NULL, 'string',  NULL, NULL,
+    NULL, '3',
+    NOW(), '4'),
+	(4,  '4','_mid',      NULL, 'string',  NULL, NULL,
+    NULL, '4',
+    NOW(), '4'),
+	(30, '3','_type',     NULL, 'string',  NULL, NULL,
+    NULL, 'person',
+    NOW(), '4'),
+	(40, '4','_type',     NULL, 'string',  NULL, NULL,
+    NULL, 'person',
+    NOW(), '4'),
+	(31, '3','name',      NULL, 'formula', NULL, 1,
+    NULL, '@forename@ @surname@',
+    NOW(), '4'),
+	(41, '4','name',      NULL, 'formula', NULL, 1,
+    NULL, '@forename@ @surname@',
+    NOW(), '4'),
+	(42, '4','email',     NULL, 'string',  0,    1,
+    NULL, 'mihkel.putrinsh@gmail.com',
+    NOW(), '4'),
+	(32, '3','email',     NULL, 'string',  0,    1,
+    NULL, 'argo@roots.ee',
+    NOW(), '4'),
+	(33, '3','entu_user', NULL, 'string',  0,    0,
+    NULL, 'argoroots@gmail.com',
+    NOW(), '4'),
+	(43, '4','entu_user', NULL, 'string',  0,    0,
+    NULL, 'mihkel.putrinsh@gmail.com',
+    NOW(), '4'),
+	(44, '4','forename',  NULL, 'string',  1,    1,
+    NULL, 'Mihkel-Mikelis',
+    NOW(), '4'),
+	(34, '3','forename',  NULL, 'string',  1,    1,
+    NULL, 'Argo',
+    NOW(), '4'),
+	(35, '3','phone',     NULL, 'string',  0,    1,
+    NULL, '+37256630526',
+    NOW(), '4'),
+	(45, '4','phone',     NULL, 'string',  0,    1,
+    NULL, '+37256560978',
+    NOW(), '4'),
+	(36, '3','photo',     NULL, 'file',    0,    0,
+    NULL, 'A:argo.jpg\nB:8469afac40099272eab091f412114656\nC:template_2/3/9\nD:\nE:97107',
+    NOW(), '4'),
+	(46, '4','photo',     NULL, 'file',    0,    0,
+    NULL, 'A:mihkel.gif\nB:e549ff6d284df921a0af991d998f530b\nC:template_2/4/10\nD:\nE:12933',
+    NOW(), '4'),
+	(47, '4','surname',   NULL, 'string',  1,    1,
+    NULL, 'Putrinš',
+    NOW(), '4'),
+	(37, '3','surname',   NULL, 'string',  1,    1,
+    NULL, 'Roots',
+    NOW(), '4'),
+	(38, '3', '_owner',   NULL, 'reference', 0, 0,
+    '3', NULL,
+    NOW(), '4'),
+	(39, '3', '_owner',   NULL, 'reference', 0, 0,
+    '4', NULL,
+    NOW(), '4'),
+	(48, '4', '_owner',   NULL, 'reference', 0, 0,
+    '3', NULL,
+    NOW(), '4'),
+	(49, '4', '_owner',   NULL, 'reference', 0, 0,
+    '4', NULL,
+    NOW(), '4');
 
 /* definitions */
-INSERT INTO props (entity, type, language, datatype, public, value_text, value_integer, value_reference)
-SELECT
-    NULLIF(LOWER(TRIM(REPLACE(entity_id, '-', '_'))), '') AS entity,
-    NULLIF(LOWER(TRIM(REPLACE(property_definition, '-', '_'))), '') AS type,
-    NULLIF(LOWER(TRIM(property_language)), '') AS language,
-    NULLIF(LOWER(TRIM(property_type)), '') AS datatype,
-    1 AS public,
-    NULLIF(TRIM(value_text), '') AS value_text,
-    NULLIF(TRIM(value_integer), '') AS value_integer,
-    NULLIF(TRIM(value_reference), '') AS value_reference
-FROM (
+INSERT INTO aruanded.props (entity, type, language, datatype, public, search, value_text, value_integer, value_decimal, value_reference, value_date, created_at, created_by, deleted_at, deleted_by)
+VALUES
+	('r_persoon', '_public', NULL, 'boolean', 1, NULL, NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_persoon', '_type', NULL, 'string', 1, NULL, 'entity', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_persoon', 'add_action', NULL, 'string', 1, NULL, 'default,csv', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_persoon', 'displayinfo', NULL, 'string', 1, NULL, '@synd@ - @surm@', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_persoon', 'displaytableheader', NULL, 'string', 1, NULL, 'Eesnimi|Perenimie|Isanimi|Emanimi|Sünd|Surm', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_persoon', 'displaytable', NULL, 'string', 1, NULL, '@eesnimi@|@perenimie@|@isanimi@|@emanimi@|@synd@|@surm@', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_persoon', 'key', NULL, 'string', 1, NULL, 'r_persoon', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_persoon', 'name', NULL, 'string', 1, NULL, 'Persoon', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_persoon', 'plural_name', NULL, 'string', 1, NULL, 'Persoonid', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_persoon', 'sort', NULL, 'string', 1, NULL, '@time@', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 
-    /* entity keynames */
-    SELECT
-        keyname AS entity_id,
-        'key' AS property_definition,
-        'string' AS property_type,
-        NULL AS property_language,
-        LOWER(REPLACE(keyname, '-', '_')) AS value_text,
-        NULL AS value_integer,
-        NULL AS value_reference
-    FROM entity_definition
-    WHERE keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-
-    /* entity type */
-    UNION SELECT
-        keyname AS entity_id,
-        '_type' AS property_definition,
-        'string' AS property_type,
-        NULL AS property_language,
-        'entity' AS value_text,
-        NULL AS value_integer,
-        NULL AS value_reference
-    FROM entity_definition
-    WHERE keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-
-    /* entity _public */
-    UNION SELECT
-        keyname AS entity_id,
-        '_public' AS property_definition,
-        'boolean' AS property_type,
-        NULL AS property_language,
-        NULL AS value_text,
-        1 AS value_integer,
-        NULL AS value_reference
-    FROM entity_definition
-    WHERE keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-
-    /* entity open-after-add properties */
-    UNION SELECT
-        keyname AS entity_id,
-        'open-after-add' AS property_definition,
-        'boolean' AS property_type,
-        NULL AS property_language,
-        NULL AS value_text,
-        1 AS value_integer,
-        NULL AS value_reference
-    FROM entity_definition
-    WHERE keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND open_after_add = 1
-
-    /* entity add-action properties */
-    UNION SELECT
-        keyname AS entity_id,
-        'add-action' AS property_definition,
-        'string' AS property_type,
-        NULL AS property_language,
-        actions_add AS value_text,
-        NULL AS value_integer,
-        NULL AS value_reference
-    FROM entity_definition
-    WHERE keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND actions_add IS NOT NULL
-
-    /* entity translation (label, displayname, ...) fields */
-    UNION SELECT
-        entity_definition_keyname AS entity_id,
-        TRIM(field) AS property_definition,
-        'string' AS property_type,
-        CASE language
-            WHEN 'estonian' THEN 'et'
-            WHEN 'english' THEN 'en'
-            ELSE NULL
-        END AS property_language,
-        TRIM(value) AS value_text,
-        NULL AS value_integer,
-        NULL AS value_reference
-    FROM translation
-    WHERE entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND field NOT IN ('public', 'menu')
-    AND entity_definition_keyname IS NOT NULL
-
-    /* entity allowed-child, default-parent, optional-parent */
-    UNION SELECT
-        entity_definition_keyname,
-        relationship_definition_keyname AS property_definition,
-        'reference' AS property_type,
-        NULL AS property_language,
-        NULL AS value_text,
-        NULL AS value_integer,
-        IFNULL(related_entity_id, LOWER(REPLACE(related_entity_definition_keyname, '-', '_'))) AS value_reference
-    FROM
-        relationship
-    WHERE entity_definition_keyname IS NOT NULL
-    AND relationship_definition_keyname IN ('allowed-child', 'default-parent', 'optional-parent')
-
-    /* property keynames */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        'key' AS property_definition,
-        'string' AS property_type,
-        NULL AS property_language,
-        LOWER(REPLACE(keyname, '-', '_')) AS value_text,
-        NULL AS value_integer,
-        NULL AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-
-    /* property type */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        '_type' AS property_definition,
-        'string' AS property_type,
-        NULL AS property_language,
-        'property' AS value_text,
-        NULL AS value_integer,
-        NULL AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-
-    /* property _public */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        '_public' AS property_definition,
-        'boolean' AS property_type,
-        NULL AS property_language,
-        NULL AS value_text,
-        1 AS value_integer,
-        NULL AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-
-    /* property parent entity */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        '_parent' AS property_definition,
-        'reference' AS property_type,
-        NULL AS property_language,
-        NULL AS value_text,
-        NULL AS value_integer,
-        LOWER(REPLACE(entity_definition_keyname, '-', '_')) AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-
-    /* property datatype */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        'type' AS property_definition,
-        'string' AS property_type,
-        NULL AS property_language,
-        LOWER(datatype) AS value_text,
-        NULL AS value_integer,
-        NULL AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-
-    /* property default value */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        'default' AS property_definition,
-        'string' AS property_type,
-        NULL AS property_language,
-        defaultvalue AS value_text,
-        NULL AS value_integer,
-        NULL AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-    AND NULLIF(formula < 1, 1) IS NULL
-    AND defaultvalue IS NOT NULL
-
-    /* property is formula */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        'formula' AS property_definition,
-        'string' AS property_type,
-        NULL AS property_language,
-        defaultvalue AS value_text,
-        NULL AS value_integer,
-        NULL AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-    AND NULLIF(formula < 1, 1) IS NOT NULL
-
-    /* property is hidden */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        'hidden' AS property_definition,
-        'boolean' AS property_type,
-        NULL AS property_language,
-        NULL AS value_text,
-        1 AS value_integer,
-        NULL AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-    AND visible = 0
-
-    /* property ordinal */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        'ordinal' AS property_definition,
-        'integer' AS property_type,
-        NULL AS property_language,
-        NULL AS value_text,
-        ordinal AS value_integer,
-        NULL AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-    AND ordinal IS NOT NULL
-
-    /* property is multilingual */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        'multilingual' AS property_definition,
-        'boolean' AS property_type,
-        NULL AS property_language,
-        NULL AS value_text,
-        1 AS value_integer,
-        NULL AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-    AND NULLIF(multilingual < 1, 1) IS NOT NULL
-
-    /* property is list */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        'list' AS property_definition,
-        'boolean' AS property_type,
-        NULL AS property_language,
-        NULL AS value_text,
-        1 AS value_integer,
-        NULL AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-    AND NULLIF(multiplicity < 1, 1) IS NULL
-
-    /* property is readonly */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        'readonly' AS property_definition,
-        'boolean' AS property_type,
-        NULL AS property_language,
-        NULL AS value_text,
-        1 AS value_integer,
-        NULL AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-    AND NULLIF(readonly < 1, 1) IS NOT NULL
-    AND NULLIF(formula < 1, 1) IS NULL
-
-    /* property is public */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        'public' AS property_definition,
-        'boolean' AS property_type,
-        NULL AS property_language,
-        NULL AS value_text,
-        1 AS value_integer,
-        NULL AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-    AND NULLIF(public < 1, 1) IS NOT NULL
-
-    /* property is mandatory */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        'mandatory' AS property_definition,
-        'boolean' AS property_type,
-        NULL AS property_language,
-        NULL AS value_text,
-        1 AS value_integer,
-        NULL AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-    AND NULLIF(mandatory < 1, 1) IS NOT NULL
-
-    /* property is searchable */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        'search' AS property_definition,
-        'boolean' AS property_type,
-        NULL AS property_language,
-        NULL AS value_text,
-        1 AS value_integer,
-        NULL AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-    AND NULLIF(search < 1, 1) IS NOT NULL
-
-    /* property has classifier */
-    UNION SELECT
-        CONCAT(entity_definition_keyname, '_', dataproperty) AS entity_id,
-        'classifier' AS property_definition,
-        'reference' AS property_type,
-        NULL AS property_language,
-        NULL AS value_text,
-        NULL AS value_integer,
-        NULLIF(LOWER(TRIM(REPLACE(classifying_entity_definition_keyname, '-', '_'))), '') AS value_reference
-    FROM property_definition
-    WHERE dataproperty NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-    AND classifying_entity_definition_keyname IS NOT NULL
-
-    /* property translation (label, ...) fields */
-    UNION SELECT
-        CONCAT(pd.entity_definition_keyname, '_', pd.dataproperty) AS entity_id,
-        TRIM(t.field) AS property_definition,
-        'string' AS property_type,
-        CASE t.language
-            WHEN 'estonian' THEN 'et'
-            WHEN 'english' THEN 'en'
-            ELSE NULL
-        END AS property_language,
-        TRIM(t.value) AS value_text,
-        NULL AS value_integer,
-        NULL AS value_reference
-    FROM
-        translation AS t,
-        property_definition AS pd
-    WHERE pd.keyname = t.property_definition_keyname
-    AND t.property_definition_keyname NOT IN ('entu-changed-at', 'entu-changed-by', 'entu-created-at', 'entu-created-by')
-    AND pd.entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    AND pd.entity_definition_keyname IN (SELECT keyname FROM entity_definition)
-    AND t.property_definition_keyname IS NOT NULL
-
-    /* menu keynames */
-    UNION SELECT
-        CONCAT('menu_', entity_definition_keyname) AS entity_id,
-        '_type' AS property_definition,
-        'string' AS property_type,
-        NULL property_language,
-        'menu' AS value_text,
-        NULL AS value_integer,
-        NULL AS value_reference
-    FROM translation
-    WHERE field = 'menu'
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-
-    /* menu _public */
-    UNION SELECT
-        CONCAT('menu_', entity_definition_keyname) AS entity_id,
-        '_public' AS property_definition,
-        'boolean' AS property_type,
-        NULL AS property_language,
-        NULL AS value_text,
-        1 AS value_integer,
-        NULL AS value_reference
-    FROM translation
-    WHERE field = 'menu'
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-
-    /* menu group */
-    UNION SELECT
-        CONCAT('menu_', entity_definition_keyname) AS entity_id,
-        'group' AS property_definition,
-        'string' AS property_type,
-        CASE language
-            WHEN 'estonian' THEN 'et'
-            WHEN 'english' THEN 'en'
-            ELSE NULL
-        END AS property_language,
-        TRIM(value) AS value_text,
-        NULL AS value_integer,
-        NULL AS value_reference
-    FROM translation
-    WHERE field = 'menu'
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-
-    /* menu title */
-    UNION SELECT
-        CONCAT('menu_', entity_definition_keyname) AS entity_id,
-        'title' AS property_definition,
-        'string' AS property_type,
-        CASE language
-            WHEN 'estonian' THEN 'et'
-            WHEN 'english' THEN 'en'
-            ELSE NULL
-        END AS property_language,
-        LEFT(CONCAT(GROUP_CONCAT(TRIM(value) ORDER BY field DESC SEPARATOR '#@#'),'#@#'), LOCATE('#@#', CONCAT(GROUP_CONCAT(TRIM(value) ORDER BY field DESC SEPARATOR '#@#'),'#@#')) - 1) AS value_text,
-        NULL AS value_integer,
-        NULL AS value_reference
-    FROM translation
-    WHERE field IN ('label', 'label_plural')
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    GROUP BY
-        entity_definition_keyname,
-        language
-
-    /* menu query */
-    UNION SELECT
-        CONCAT('menu_', entity_definition_keyname) AS entity_id,
-        'query' AS property_definition,
-        'string' AS property_type,
-        NULL property_language,
-        CONCAT('_type.string=', TRIM(LOWER(REPLACE(entity_definition_keyname, '-', '_')))) AS value_text,
-        NULL AS value_integer,
-        NULL AS value_reference
-    FROM translation
-    WHERE field = 'menu'
-    AND entity_definition_keyname NOT IN ('conf-actions-add', 'conf-datatype', 'conf-entity', 'conf-menu-item', 'conf-property')
-    GROUP BY
-        entity_definition_keyname
-) AS x
-WHERE NULLIF(TRIM(entity_id), '') IS NOT NULL
-ORDER BY
-    entity_id,
-    property_definition,
-    property_language,
-    property_type;
+	('r_kirje', '_public', NULL, 'boolean', 1, NULL, NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_kirje', '_type', NULL, 'string', 1, NULL, 'entity', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_kirje', 'add_action', NULL, 'string', 1, NULL, 'default,csv', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_kirje', 'displayinfo', NULL, 'string', 1, NULL, '@synd@ - @surm@', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_kirje', 'displaytableheader', NULL, 'string', 1, NULL, 'Eesnimi|Perenimie|Isanimi|Emanimi|Sünd|Surm', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_kirje', 'displaytable', NULL, 'string', 1, NULL, '@eesnimi@|@perenimie@|@isanimi@|@emanimi@|@synd@|@surm@', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_kirje', 'key', NULL, 'string', 1, NULL, 'r_kirje', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_kirje', 'name', NULL, 'string', 1, NULL, 'Kirje', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_kirje', 'plural_name', NULL, 'string', 1, NULL, 'Kirjed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('r_kirje', 'sort', NULL, 'string', 1, NULL, '@time@', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 
-OPTIMIZE TABLE props;
+
+
+/* rights
+  6s x 2 */
+ INSERT INTO aruanded.props (entity, TYPE, datatype, value_reference, created_at, created_by)
+   SELECT
+      id,
+      '_owner',
+      'reference',
+      '3',
+      now(),
+      4
+   FROM aruanded.props
+   WHERE TYPE = '_mid';
+ INSERT INTO aruanded.props (entity, TYPE, datatype, value_reference, created_at, created_by)
+   SELECT
+      id,
+      '_owner',
+      'reference',
+      '4',
+      now(),
+      4
+   FROM aruanded.props
+   WHERE TYPE = '_mid';
+
+
+-- Optimize it for god's sake!
+-- OPTIMIZE TABLE aruanded.props;
