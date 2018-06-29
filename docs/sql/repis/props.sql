@@ -23,7 +23,7 @@ CREATE OR REPLACE TABLE aruanded.props (
   KEY type (type),
   KEY language (language),
   KEY datatype (datatype)
-) ENGINE=InnoDB AUTO_INCREMENT=1000000 DEFAULT CHARSET=utf8 COLLATE utf8_estonian_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1000000 DEFAULT CHARSET=utf8;
 
 
 
@@ -65,7 +65,7 @@ INSERT INTO aruanded.props (entity, type, datatype, search, language, value_text
       'formula' AS property_type,
       1 AS search,
       NULL property_language,
-      '@eesnimi@ @perenimi@ @isanimi@ @emanimi@' AS value_text
+      '@eesnimi@ @perenimi@' AS value_text
    FROM repis.kirjed
    WHERE allikas = 'Persoon';
 
@@ -87,7 +87,7 @@ INSERT INTO aruanded.props (entity, type, datatype, language, public
    , value_text, value_integer, value_decimal, value_reference, value_date
    , created_at, created_by, deleted_at, deleted_by)
    SELECT
-       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'eesnimi', 'string', NULL, 0,
+       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'eesnimi', 'string', NULL, 1,
        eesnimi AS value_text,
        NULL AS value_integer,
        NULL AS value_decimal,
@@ -99,7 +99,7 @@ INSERT INTO aruanded.props (entity, type, datatype, language, public
       AND eesnimi != ''
    UNION ALL
    SELECT
-       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'perenimi', 'string', NULL, 0,
+       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'perenimi', 'string', NULL, 1,
        perenimi AS value_text,
        NULL AS value_integer,
        NULL AS value_decimal,
@@ -111,7 +111,7 @@ INSERT INTO aruanded.props (entity, type, datatype, language, public
       AND perenimi != ''
    UNION ALL
    SELECT
-       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'isanimi', 'string', NULL, 0,
+       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'isanimi', 'string', NULL, 1,
        isanimi AS value_text,
        NULL AS value_integer,
        NULL AS value_decimal,
@@ -123,7 +123,7 @@ INSERT INTO aruanded.props (entity, type, datatype, language, public
       AND isanimi != ''
    UNION ALL
    SELECT
-       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'emanimi', 'string', NULL, 0,
+       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'emanimi', 'string', NULL, 1,
        emanimi AS value_text,
        NULL AS value_integer,
        NULL AS value_decimal,
@@ -135,7 +135,7 @@ INSERT INTO aruanded.props (entity, type, datatype, language, public
       AND emanimi != ''
    UNION ALL
    SELECT
-       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'sünd', 'string', NULL, 0,
+       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'sünd', 'string', NULL, 1,
        sünd AS value_text,
        NULL AS value_integer,
        NULL AS value_decimal,
@@ -147,7 +147,7 @@ INSERT INTO aruanded.props (entity, type, datatype, language, public
       AND sünd != ''
    UNION ALL
    SELECT
-       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'surm', 'string', NULL, 0,
+       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'surm', 'string', NULL, 1,
        surm AS value_text,
        NULL AS value_integer,
        NULL AS value_decimal,
@@ -163,7 +163,7 @@ INSERT INTO aruanded.props (entity, type, datatype, language, public
 --
 
 /* entity id
-   10s */
+   237k */
 INSERT INTO aruanded.props (entity, type, datatype, value_text, created_at, created_by)
    SELECT
       concat('repis_k_', kirjekood),
@@ -172,7 +172,9 @@ INSERT INTO aruanded.props (entity, type, datatype, value_text, created_at, crea
       concat('repis_k_', kirjekood),
       created_at,
       '4'
-   FROM repis.kirjed;
+   FROM repis.kirjed
+   WHERE allikas != 'Persoon'
+   ;
 
 /* entity type
    9s */
@@ -184,7 +186,9 @@ INSERT INTO aruanded.props (entity, type, datatype, value_text, created_at, crea
       'r_kirje',
       created_at,
       '4'
-   FROM repis.kirjed;
+   FROM repis.kirjed
+   WHERE allikas != 'Persoon'
+   ;
 
 /* entity name formula
    11s */
@@ -196,7 +200,9 @@ INSERT INTO aruanded.props (entity, type, datatype, search, language, value_text
      1 AS search,
      NULL AS property_language,
      '@kirjekood@' AS value_text
-  FROM repis.kirjed;
+  FROM repis.kirjed
+  WHERE allikas != 'Persoon'
+  ;
 
 /* entity created at/by
    9 sec */
@@ -207,7 +213,9 @@ INSERT INTO aruanded.props (entity, type, datatype, created_at, created_by)
       'atby',
       created_at,
       '4'
-   FROM repis.kirjed;
+   FROM repis.kirjed
+   WHERE allikas != 'Persoon'
+   ;
 
 /* parents
    10 sec */
@@ -219,14 +227,28 @@ INSERT INTO aruanded.props (entity, type, datatype, value_reference, created_at,
       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)),
       created_at,
       '4'
-   FROM repis.kirjed;
+   FROM repis.kirjed
+   WHERE allikas != 'Persoon'
+   ;
 
  /* properties */
  INSERT INTO aruanded.props (entity, type, datatype, language, public
     , value_text, value_integer, value_decimal, value_reference, value_date
     , created_at, created_by, deleted_at, deleted_by)
     SELECT
-        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'eesnimi', 'string', NULL, 0,
+        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'kirjekood', 'string', NULL, 1,
+        kirjekood AS value_text,
+        NULL AS value_integer,
+        NULL AS value_decimal,
+        NULL AS value_reference,
+        NULL AS value_date,
+        created_at, '4', NULL, NULL
+     FROM repis.kirjed
+     WHERE allikas != 'Persoon'
+       AND eesnimi != ''
+    UNION ALL
+    SELECT
+        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'eesnimi', 'string', NULL, 1,
         eesnimi AS value_text,
         NULL AS value_integer,
         NULL AS value_decimal,
@@ -238,7 +260,7 @@ INSERT INTO aruanded.props (entity, type, datatype, value_reference, created_at,
        AND eesnimi != ''
     UNION ALL
     SELECT
-        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'perenimi', 'string', NULL, 0,
+        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'perenimi', 'string', NULL, 1,
         perenimi AS value_text,
         NULL AS value_integer,
         NULL AS value_decimal,
@@ -250,7 +272,7 @@ INSERT INTO aruanded.props (entity, type, datatype, value_reference, created_at,
        AND perenimi != ''
     UNION ALL
     SELECT
-        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'isanimi', 'string', NULL, 0,
+        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'isanimi', 'string', NULL, 1,
         isanimi AS value_text,
         NULL AS value_integer,
         NULL AS value_decimal,
@@ -262,7 +284,7 @@ INSERT INTO aruanded.props (entity, type, datatype, value_reference, created_at,
        AND isanimi != ''
     UNION ALL
     SELECT
-        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'emanimi', 'string', NULL, 0,
+        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'emanimi', 'string', NULL, 1,
         emanimi AS value_text,
         NULL AS value_integer,
         NULL AS value_decimal,
@@ -274,7 +296,7 @@ INSERT INTO aruanded.props (entity, type, datatype, value_reference, created_at,
        AND emanimi != ''
     UNION ALL
     SELECT
-        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'synd', 'string', NULL, 0,
+        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'synd', 'string', NULL, 1,
         sünd AS value_text,
         NULL AS value_integer,
         NULL AS value_decimal,
@@ -286,7 +308,7 @@ INSERT INTO aruanded.props (entity, type, datatype, value_reference, created_at,
        AND sünd != ''
     UNION ALL
     SELECT
-        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'surm', 'string', NULL, 0,
+        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'surm', 'string', NULL, 1,
         surm AS value_text,
         NULL AS value_integer,
         NULL AS value_decimal,
@@ -298,7 +320,7 @@ INSERT INTO aruanded.props (entity, type, datatype, value_reference, created_at,
        AND surm != ''
     UNION ALL
     SELECT
-        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'kirje', 'string', NULL, 0,
+        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'kirje', 'string', NULL, 1,
         kirje AS value_text,
         NULL AS value_integer,
         NULL AS value_decimal,
@@ -318,7 +340,7 @@ INSERT INTO aruanded.props (entity, type, datatype, value_reference, created_at,
 
 
 /* share all but definitions and owners
-   8 sec */
+   340k rows 8 sec */
  INSERT INTO aruanded.props (entity, type, datatype, value_integer, created_at, created_by)
    SELECT
       entity,
@@ -432,13 +454,39 @@ VALUES
 	('r_kirje', 'sort', NULL, 'string', 1, NULL, '@time@', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 
+-- Menu items
+INSERT INTO aruanded.props (`entity`, `type`, `language`, `datatype`, `public`, `search`
+  , `value_text`, `value_integer`, `value_decimal`, `value_reference`, `value_date`, `created_at`, `created_by`, `deleted_at`, `deleted_by`)
+VALUES
+	('menu_r_persoon', '_public', NULL, 'boolean', 1, NULL
+    , NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('menu_r_persoon', '_type', NULL, 'string', 1, NULL
+    , 'menu', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('menu_r_persoon', 'group', NULL, 'string', 1, NULL
+    , 'Repis', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('menu_r_persoon', 'name', NULL, 'string', 1, NULL
+    , 'Persoonid', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('menu_r_persoon', 'query', NULL, 'string', 1, NULL
+    , '_type.string=r_persoon', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+
+	('menu_r_kirje', '_public', NULL, 'boolean', 1, NULL
+    , NULL, 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('menu_r_kirje', '_type', NULL, 'string', 1, NULL
+    , 'menu', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('menu_r_kirje', 'group', NULL, 'string', 1, NULL
+    , 'Repis', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('menu_r_kirje', 'name', NULL, 'string', 1, NULL
+    , 'Kirjed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+	('menu_r_kirje', 'query', NULL, 'string', 1, NULL
+    , '_type.string=r_kirje', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
 
 
 /* rights
   6s x 2 */
  INSERT INTO aruanded.props (entity, TYPE, datatype, value_reference, created_at, created_by)
    SELECT
-      id,
+      entity,
       '_owner',
       'reference',
       '3',
@@ -448,7 +496,7 @@ VALUES
    WHERE TYPE = '_mid';
  INSERT INTO aruanded.props (entity, TYPE, datatype, value_reference, created_at, created_by)
    SELECT
-      id,
+      entity,
       '_owner',
       'reference',
       '4',
