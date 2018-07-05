@@ -4,7 +4,7 @@ echo 'pass "${MYSQL_PASS}"'
 
 
 filename="/tmp/$(date +%Y%m%d_%H%M%S)_memoriaal_ee.csv"
-mysql -umichelek -p'Ogeif!Sha9' repis<<EOFMYSQL
+mysql -umichelek -p'xxxxxxxx' repis<<EOFMYSQL
 SELECT   nk.kirjekood AS id,
          nk.perenimi,
          nk.eesnimi,
