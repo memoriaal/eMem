@@ -41,3 +41,5 @@ jspm_packages
 node_modules
 secret.txt
 .DS_Store
+docs/sql/props/credentials.txt
+docs/sql/props/rds-combined-ca-bundle.pem
