@@ -135,7 +135,7 @@ CREATE OR REPLACE TABLE aruanded.memoriaal_ee (
   surm LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
   kivi VARCHAR(1) COLLATE utf8_estonian_ci NOT NULL,
   kirjed LONGTEXT COLLATE utf8_estonian_ci NOT NULL,
-  pereseos VARCHAR(8000) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  pereseos LONGTEXT COLLATE utf8_estonian_ci NOT NULL,
   PRIMARY KEY (id)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci AS
 
@@ -169,8 +169,9 @@ SELECT   nk.kirjekood AS id,
          ), '')           AS kirjed,
          IFNULL(REPLACE(
            group_concat( DISTINCT
-             IF(
-               kp.kirjekood IS NULL, NULL, concat_ws('#|',
+              IF(
+                 kp.kirjekood IS NULL, NULL, concat_ws('#|',
+                 -- kp.raamatupere,
                  kp.persoon,
                  kp.kirjekood,
                  kp.kirje,
@@ -184,18 +185,21 @@ SELECT   nk.kirjekood AS id,
              )
              ORDER BY kp.kirjekood ASC SEPARATOR ';_\n'
            ),
-           '"',
-           '\''
-         ), '')           AS pereseos
+          '"',
+          '\''
+        ), '')           AS pereseos
 FROM repis.kirjed AS k
 LEFT JOIN repis.allikad AS a ON a.kood = k.allikas
-LEFT JOIN repis.kirjed AS kp ON kp.RaamatuPere <> '' AND kp.RaamatuPere = k.RaamatuPere
+LEFT JOIN repis.kirjed AS kp ON kp.RaamatuPere <> '' AND kp.RaamatuPere = k.RaamatuPere AND kp.allikas != 'Persoon'
 LEFT JOIN repis.kirjed AS nk ON nk.persoon = k.persoon AND nk.allikas = 'Persoon'
-LEFT JOIN repis.v_kirjesildid AS ks ON ks.kirjekood = nk.persoon AND ks.silt = 'x - kivi' AND ks.deleted_at = '0000-00-00 00:00:00'
+LEFT JOIN repis.v_kirjesildid AS ks_k ON ks_k.kirjekood = nk.persoon AND ks_k.silt = 'x - kivi' AND ks_k.deleted_at = '0000-00-00 00:00:00'
+LEFT JOIN repis.v_kirjesildid AS ks_mr ON ks_mr.kirjekood = nk.persoon AND ks_mr.silt = 'x - mitterelevantne' AND ks_mr.deleted_at = '0000-00-00 00:00:00'
 WHERE k.ekslikkanne = ''
 AND k.puudulik = ''
 AND k.peatatud = ''
 AND nk.persoon IS NOT NULL
+AND ks_mr.kirjekood IS NULL
+AND IFNULL(a.nonPerson, '') != '!'
 GROUP BY k.persoon
 HAVING perenimi != ''
 -- ;
