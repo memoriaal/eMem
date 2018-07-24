@@ -146,14 +146,20 @@ SELECT   nk.kirjekood AS id,
          nk.emanimi,
          LEFT(nk.sünd,4) AS sünd,
          LEFT(nk.surm,4) AS surm,
-         IF(ks.silt IS NULL, '', '!') AS kivi,
+         IF(ks_k.silt IS NULL, '', '!') AS kivi,
+
+--          a.*,
+
          IFNULL(REPLACE (
            group_concat(DISTINCT
              IF(
-               a.prioriteetkirje = 0, NULL, concat_ws('#|',
+               a.prioriteetkirje = 0 OR IFNULL(a.nonPerson, '') = '1', NULL, concat_ws('#|',
                  k.persoon,
                  k.kirjekood,
                  k.kirje,
+                 ' XXX ',
+                 a.NonPerson,
+                 ' XXX ',
                  a.allikas,
                  a.nimetus,
                  concat('{ "labels": ["',concat_ws('", "',
@@ -199,9 +205,9 @@ AND k.puudulik = ''
 AND k.peatatud = ''
 AND nk.persoon IS NOT NULL
 AND ks_mr.kirjekood IS NULL
-AND IFNULL(a.nonPerson, '') != '!'
 GROUP BY k.persoon
 HAVING perenimi != ''
+   AND kirjed != ''
 -- ;
 INTO OUTFILE '/home/michelek/scripts/memoriaal_ee.csv'
 FIELDS TERMINATED BY ','
