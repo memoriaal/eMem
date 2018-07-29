@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ./credentials.txt
+. ~/credentials.txt
 
 for file in test/*.sql; do
     [ -e "${file}" ] || continue

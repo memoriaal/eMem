@@ -10,7 +10,7 @@ const INDEX = process.env.INDEX
 const SOURCE = process.env.SOURCE
 const QUEUE_LENGTH = 2
 // const BULK_SIZE = 507
-const BULK_SIZE = 4100
+const BULK_SIZE = 2100
 const START_TIME = Date.now()
 
 

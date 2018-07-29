@@ -3,6 +3,7 @@
 <head>
     <title>EW100 Memoriaal</title>
     <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="https://cloud.typography.com/6935656/6118392/css/fonts.css" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
     <script src="https://cdn.rawgit.com/memoriaal/eMem/master/node_modules/angular/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.23/angular-sanitize.min.js"></script>
@@ -10,6 +11,12 @@
     <script src="https://cdn.rawgit.com/memoriaal/eMem/master/lib/elastic.js"></script>
     <script src="https://cdn.rawgit.com/memoriaal/eMem/master/lib/elasticui.min.js"></script>
     <style>
+        body {
+          font-family: "Gotham SSm A", "Gotham SSm B";
+          font-style: normal;
+          font-weight: 400;
+          font-size: 1.2em;
+        }
         .sidebar {
             position: fixed;
             top: 0;
@@ -80,9 +87,16 @@
           padding-left: 1.5em;
           text-indent:  -1.5em;
         }
+        H1, H2 {
+          font-family: "Gotham A", "Gotham B";
+          font-style: normal;
+          font-weight: 700;
+        }
         .intro {
           font-size: 1.2em;
-          font-family: sans-serif;
+          font-family: "Gotham SSm A", "Gotham SSm B";
+          font-style: normal;
+          font-weight: 400;
           margin-top: 1em;
           margin-bottom: 1em;
         }
@@ -202,7 +216,7 @@
                     placeholder="Palun lisage siia puuduva isiku ees-, pere- ja Isanimi ning võimalusel ka sünni- ja surmadaatumid."
                     onChange="setFeedback()"></textarea>
                   <!-- <a id="feedback0" href="">Tagasiside puuduva kirje kohta</a> -->
-                  <input id="feedback0" type="button" class="btn btn-info" value="Tagasiside puuduva kirje kohta" onclick="location.href = 'www.google.com';">
+                  <input id="feedback0" type="button" class="btn btn-sm btn-info" value="Tagasiside puuduva kirje kohta" onclick="location.href = 'www.google.com';">
                 </div>
 
                 <div class="intro">

@@ -134,11 +134,17 @@ CREATE OR REPLACE TABLE aruanded.memoriaal_ee (
   sünd LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
   surm LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
   kivi VARCHAR(1) COLLATE utf8_estonian_ci NOT NULL,
+
+  tahvlikirje varchar(43) COLLATE utf8_estonian_ci DEFAULT NULL,
+  tahvel CHAR(5) COLLATE utf8_estonian_ci DEFAULT NULL,
+  tulp TINYINT(1) UNSIGNED DEFAULT NULL,
+  rida TINYINT(2) UNSIGNED DEFAULT NULL,
+
   kirjed LONGTEXT COLLATE utf8_estonian_ci NOT NULL,
   pereseos LONGTEXT COLLATE utf8_estonian_ci NOT NULL,
   PRIMARY KEY (id)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci AS
-
+-- ;
 SELECT   nk.kirjekood AS id,
          nk.perenimi,
          nk.eesnimi,
@@ -147,9 +153,7 @@ SELECT   nk.kirjekood AS id,
          LEFT(nk.sünd,4) AS sünd,
          LEFT(nk.surm,4) AS surm,
          IF(ks_k.silt IS NULL, '', '!') AS kivi,
-
---          a.*,
-
+         kt.kirje AS tahvlikirje, kt.tahvel, kt.tulp, kt.rida,
          IFNULL(REPLACE (
            group_concat(DISTINCT
              IF(
@@ -157,9 +161,6 @@ SELECT   nk.kirjekood AS id,
                  k.persoon,
                  k.kirjekood,
                  k.kirje,
-                 ' XXX ',
-                 a.NonPerson,
-                 ' XXX ',
                  a.allikas,
                  a.nimetus,
                  concat('{ "labels": ["',concat_ws('", "',
@@ -181,8 +182,8 @@ SELECT   nk.kirjekood AS id,
                  kp.persoon,
                  kp.kirjekood,
                  kp.kirje,
-                 a.allikas,
-                 a.nimetus,
+                 kpa.allikas,
+                 kpa.nimetus,
                  concat('{ "labels": ["',concat_ws('", "',
                    IF(kp.EiArvesta = '!', 'skip', NULL),
                    IF(kp.EkslikKanne = '!', 'wrong', NULL)
@@ -197,14 +198,20 @@ SELECT   nk.kirjekood AS id,
 FROM repis.kirjed AS k
 LEFT JOIN repis.allikad AS a ON a.kood = k.allikas
 LEFT JOIN repis.kirjed AS kp ON kp.RaamatuPere <> '' AND kp.RaamatuPere = k.RaamatuPere AND kp.allikas != 'Persoon'
+LEFT JOIN repis.allikad AS kpa ON kpa.kood = kp.allikas
 LEFT JOIN repis.kirjed AS nk ON nk.persoon = k.persoon AND nk.allikas = 'Persoon'
 LEFT JOIN repis.v_kirjesildid AS ks_k ON ks_k.kirjekood = nk.persoon AND ks_k.silt = 'x - kivi' AND ks_k.deleted_at = '0000-00-00 00:00:00'
 LEFT JOIN repis.v_kirjesildid AS ks_mr ON ks_mr.kirjekood = nk.persoon AND ks_mr.silt = 'x - mitterelevantne' AND ks_mr.deleted_at = '0000-00-00 00:00:00'
+LEFT JOIN import.kivitahvlid kt ON kt.persoon = k.persoon
 WHERE k.ekslikkanne = ''
 AND k.puudulik = ''
+AND k.allikas NOT IN ('KIVI')
+-- AND k.persoon = '0000083261'
 AND k.peatatud = ''
+-- AND kp.allikas != 'Persoon'
 AND nk.persoon IS NOT NULL
 AND ks_mr.kirjekood IS NULL
+AND IFNULL(a.nonPerson, '') != '!'
 GROUP BY k.persoon
 HAVING perenimi != ''
    AND kirjed != ''
