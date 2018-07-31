@@ -117,6 +117,21 @@ FROM ((repis.v_kirjesildid s
 
 
 
+CREATE or REPLACE VIEW aruanded.kiviraamat as
+SELECT k0.persoon, repis.func_proper(k0.eesnimi) AS eesnimi,
+k0.perenimi,
+repis.func_proper(k0.isanimi) AS isanimi,
+repis.func_proper(k0.emanimi) AS emanimi,
+LEFT(k0.sünd, 4) AS sünd, LEFT(k0.surm, 4) AS surm
+-- k0.*, ks.*
+FROM repis.kirjed k0
+RIGHT JOIN repis.v_kirjesildid ks ON ks.kirjekood = k0.kirjekood
+WHERE ks.silt = 'x - kivi'
+  AND ks.deleted_at = '0000-00-00 00:00:00'
+  AND k0.perenimi != ''
+ORDER BY k0.perenimi, k0.eesnimi, k0.sünd, k0.surm, k0.isanimi, k0.emanimi
+;
+
 
 --            __  __                                     _                       _
 --      o O O|  \/  |   ___    _ __     ___      _ _    (_)    __ _    __ _     | |
@@ -153,8 +168,10 @@ SELECT   nk.kirjekood AS id,
          LEFT(nk.sünd,4) AS sünd,
          LEFT(nk.surm,4) AS surm,
          IF(ks_k.silt IS NULL, '', '!') AS kivi,
-         IFNULL(kt.kirje, '') AS tahvlikirje,
-         IFNULL(kt.tahvel, '') AS tahvel, IFNULL(kt.tulp, '') AS tulp, IFNULL(kt.rida, '') AS rida,
+         IF(ks_k.silt = 'x - kivi', IFNULL(kt.kirje, 'N/A'), '') AS tahvlikirje,
+         IF(ks_k.silt = 'x - kivi', IFNULL(kt.tahvel, 'X'), '') AS tahvel,
+         IF(ks_k.silt = 'x - kivi', IFNULL(kt.tulp, '-'), '') AS tulp,
+         IF(ks_k.silt = 'x - kivi', IFNULL(kt.rida, '-'), '') AS rida,
          IFNULL(REPLACE (
            group_concat(DISTINCT
              IF(
