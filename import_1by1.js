@@ -133,7 +133,7 @@ async.series({
         // console.log(data);
         for (var i = 0; i < labels.length; i++) {
           // console.log('--> ', data[i]);
-          if (data[i] !== undefined) {
+          if (data[i] !== undefined && data[i] !== '') {
             isik[labels[i]] = data[i].replace(/@/g, '"')
           }
         }
@@ -145,25 +145,27 @@ async.series({
         .map((kirje) => {
           return kirje2obj(kirje)
         })
-        let pereseosed = isik['pereseos'].split(';_\n')
-        .filter((kirje) => kirje !== '')
-        .map((kirje) => {
-          return kirje2obj(kirje)
-        })
-        let pered = {}
-        pereseosed.forEach((kirje) => {
-          let RaamatuPere = kirje.kirjekood.slice(0,-2)
-          if (pered[RaamatuPere] === undefined) {
-            let nimekiri = nimekiri_o[RaamatuPere.split('-')[0]] || '#N/A'
-            pered[RaamatuPere] = {
-              RaamatuPere: RaamatuPere,
-              nimekiri: nimekiri,
-              kirjed: []
+        if (isik['pereseos'] !== undefined) {
+          let pereseosed = isik['pereseos'].split(';_\n')
+          .filter((kirje) => kirje !== '')
+          .map((kirje) => {
+            return kirje2obj(kirje)
+          })
+          let pered = {}
+          pereseosed.forEach((kirje) => {
+            let RaamatuPere = kirje.kirjekood.slice(0,-2)
+            if (pered[RaamatuPere] === undefined) {
+              let nimekiri = nimekiri_o[RaamatuPere.split('-')[0]] || '#N/A'
+              pered[RaamatuPere] = {
+                RaamatuPere: RaamatuPere,
+                nimekiri: nimekiri,
+                kirjed: []
+              }
             }
-          }
-          pered[RaamatuPere]['kirjed'].push(kirje)
-        })
-        isik['pereseos'] = Object.values(pered)
+            pered[RaamatuPere]['kirjed'].push(kirje)
+          })
+          isik['pereseos'] = Object.values(pered)
+        }
         // console.log('Saving ' + isik.id);
 
 
@@ -270,6 +272,11 @@ q.drain = function() {
 
 var bulk = []
 const save2db = function save2db(isik, callback) {
+
+  // if (isik.kivi === '!') {
+  //   console.log(isik);
+  //   return callback(null)
+  // }
 
   if (isik !== false) {
     bulk.push(JSON.stringify({'index':{'_index':INDEX,'_type':'isik','_id':isik.id}}))

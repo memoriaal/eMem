@@ -179,7 +179,7 @@
     </script>
 
 </head>
-<body ng-app="tutorial" eui-index="'persons'" eui-highlight="ejs.Highlight(['id']).preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
+<body ng-app="tutorial" eui-index="'persons1'" eui-highlight="ejs.Highlight(['id']).preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
       eui-highlight="ejs.Highlight(kirjed).preTags('<b>').postTags('</b>')"
       eui-enabled="true"
       onload="initQuery()">
@@ -337,6 +337,9 @@
                         <p>sünd: {{doc._source['sünd']}}</p>
                         <p>surm: {{doc._source['surm']}}</p>
                         <p>id: {{doc._source.id}}</p>
+                        <p ng-if="doc._source.kivi === '!'">
+                          Kivi: {{doc._source.tahvel}}, {{doc._source.tulp}}, {{doc._source.rida}}
+                        </p>
                         <!-- <pre>{{doc._source}}</pre> -->
                         <div class="btn-group">
                           <a class="btn btn-sm active {{doc._source.kivi === '!' ? 'btn-info' : 'btn-primary'}}" href="mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.perenimi}}, {{doc._source.eesnimi}}, {{doc._source.isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}">Tagasiside selle kirje kohta</a>

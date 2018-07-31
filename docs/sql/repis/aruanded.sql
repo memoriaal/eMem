@@ -126,22 +126,22 @@ FROM ((repis.v_kirjesildid s
 --  ./o--000'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'
 
 CREATE OR REPLACE TABLE aruanded.memoriaal_ee (
-  id CHAR(10) COLLATE utf8_estonian_ci DEFAULT '',
-  perenimi LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
-  eesnimi LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
-  isanimi LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
-  emanimi LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
-  sünd LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
-  surm LONGTEXT COLLATE utf8_estonian_ci DEFAULT NULL,
-  kivi VARCHAR(1) COLLATE utf8_estonian_ci NOT NULL,
+  id CHAR(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  perenimi LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  eesnimi LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  isanimi LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  emanimi LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  sünd LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  surm LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  kivi VARCHAR(1) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
 
-  tahvlikirje varchar(43) COLLATE utf8_estonian_ci DEFAULT NULL,
-  tahvel CHAR(5) COLLATE utf8_estonian_ci DEFAULT NULL,
-  tulp TINYINT(1) UNSIGNED DEFAULT NULL,
-  rida TINYINT(2) UNSIGNED DEFAULT NULL,
+  tahvlikirje varchar(43) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  tahvel VARCHAR(5) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  tulp VARCHAR(1) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  rida VARCHAR(2) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
 
-  kirjed LONGTEXT COLLATE utf8_estonian_ci NOT NULL,
-  pereseos LONGTEXT COLLATE utf8_estonian_ci NOT NULL,
+  kirjed LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  pereseos LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   PRIMARY KEY (id)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci AS
 -- ;
@@ -153,7 +153,8 @@ SELECT   nk.kirjekood AS id,
          LEFT(nk.sünd,4) AS sünd,
          LEFT(nk.surm,4) AS surm,
          IF(ks_k.silt IS NULL, '', '!') AS kivi,
-         kt.kirje AS tahvlikirje, kt.tahvel, kt.tulp, kt.rida,
+         IFNULL(kt.kirje, '') AS tahvlikirje,
+         IFNULL(kt.tahvel, '') AS tahvel, IFNULL(kt.tulp, '') AS tulp, IFNULL(kt.rida, '') AS rida,
          IFNULL(REPLACE (
            group_concat(DISTINCT
              IF(
