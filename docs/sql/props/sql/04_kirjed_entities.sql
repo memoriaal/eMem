@@ -64,7 +64,7 @@ INSERT INTO aruanded.props (entity, type, datatype, value_reference, created_at,
       concat('repis_k_', kirjekood),
       '_parent',
       'reference',
-      if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', kirjekood)),
+      if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)),
       created_at,
       '4'
    FROM repis.kirjed

@@ -53,8 +53,8 @@ INSERT INTO aruanded.props (entity, type, datatype, language, public
       AND emanimi != ''
    UNION ALL
    SELECT
-       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'sünd', 'string', NULL, 1,
-       sünd AS value_text,
+       if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'synd', 'string', NULL, 1,
+       `sünd` AS value_text,
        NULL AS value_integer,
        NULL AS value_decimal,
        NULL AS value_reference,
@@ -62,7 +62,7 @@ INSERT INTO aruanded.props (entity, type, datatype, language, public
        created_at, '4', NULL, NULL
     FROM repis.kirjed
     WHERE allikas = 'Persoon'
-      AND sünd != ''
+      AND `sünd` != ''
    UNION ALL
    SELECT
        if (persoon is null, concat('repis_np_', kirjekood), concat('repis_p_', persoon)), 'surm', 'string', NULL, 1,

@@ -2,7 +2,7 @@
 
 . ~/credentials.txt
 
-for file in test/*.sql; do
+for file in sql/*.sql; do
     [ -e "${file}" ] || continue
 
     outfilename="${MYSQL_ODIR}/$(basename ${file})_out.txt"
