@@ -179,7 +179,7 @@
     </script>
 
 </head>
-<body ng-app="tutorial" eui-index="'persons'" eui-highlight="ejs.Highlight(['id']).preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
+<body ng-app="tutorial" eui-index="'allpersons'" eui-highlight="ejs.Highlight(['id']).preTags('').postTags('')" eui-enabled="true" ng-init="indexVM.pageSize=50"
       eui-highlight="ejs.Highlight(kirjed).preTags('<b>').postTags('</b>')"
       eui-enabled="true"
       onload="initQuery()">
@@ -339,7 +339,7 @@
                         <p>id: {{doc._source.id}}</p>
                         <p ng-if="doc._source.kivi === '!'">
                         <!-- <p> -->
-                          Kivi: {{doc._source.tahvel}}, {{doc._source.tulp}}, {{doc._source.rida}}
+                          Kivi: {{doc._source.tahvel}}, {{doc._source.tulp}}, {{doc._source.rida}}<br/>{{doc._source.tahvlikirje}}
                         </p>
                         <!-- <pre>{{doc._source}}</pre> -->
                         <div class="btn-group">
