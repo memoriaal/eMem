@@ -116,7 +116,9 @@ FROM ((repis.v_kirjesildid s
   ;
 
 
-
+--
+-- Kiviraamat
+--
 CREATE or REPLACE VIEW aruanded.kiviraamat as
 SELECT k0.persoon, repis.func_proper(k0.eesnimi) AS eesnimi,
 k0.perenimi,
