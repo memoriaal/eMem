@@ -135,6 +135,23 @@ ORDER BY k0.perenimi, k0.eesnimi, k0.sünd, k0.surm, k0.isanimi, k0.emanimi
 ;
 
 
+-- 16.augusti päringud
+
+SELECT func_proper(kt.kirje), kt.tiib, kt.tahvlinr, kt.tulp, kt.rida, kt.kirjekood, kt.persoon,
+IF(ks.silt IS NULL, 0, 1) AS kivi
+FROM import.kivitahvlid kt
+LEFT JOIN repis.v_kirjesildid ks ON ks.kirjekood = kt.persoon AND ks.silt = 'x - kivi'
+ORDER BY tiib, IF(tiib = 'A', tahvlinr, 500 - tahvlinr), tulp, rida
+;
+
+SELECT kk.persoon, concat_ws(' ', repis.func_proper(kk.eesnimi), repis.func_proper(kk.perenimi)) AS nimi,
+LEFT(kk.sünd,4) AS sünd, LEFT(kk.surm,4) AS surm
+FROM aruanded.uued_kivikirjed kk
+ORDER BY kk.perenimi, kk.eesnimi
+;
+
+
+
 --            __  __                                     _                       _
 --      o O O|  \/  |   ___    _ __     ___      _ _    (_)    __ _    __ _     | |
 --     o     | |\/| |  / -_)  | '  \   / _ \    | '_|   | |   / _` |  / _` |    | |
