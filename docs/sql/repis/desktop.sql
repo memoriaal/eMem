@@ -781,7 +781,7 @@ DELIMITER ;; -- desktop_NK_refresh
           AS perenimi
       , SUBSTRING_INDEX(group_concat(
           if(d0.eesnimi = ''    OR a.prioriteetEesnimi  = 0,
-            NULL, REPLACE(UPPER(d0.eesnimi),'ALEKSANDR','ALEKSANDER'))
+            NULL, UPPER(d0.eesnimi))
           ORDER BY a.prioriteetEesnimi  DESC SEPARATOR ';'), ';', 1)
           AS eesnimi
       , SUBSTRING_INDEX(group_concat(
