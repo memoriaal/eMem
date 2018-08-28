@@ -113,3 +113,23 @@ DELIMITER ;;  -- unrepeat
   END;;
 
 DELIMITER ;
+
+
+DELIMITER ;; -- func_kirje2persoon()
+
+  CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.func_kirje2persoon(
+      _kirjekood CHAR(10)
+  ) RETURNS CHAR(10) CHARSET utf8 COLLATE utf8_estonian_ci
+  func_label:BEGIN
+
+    SET @persoon = NULL;
+
+    SELECT persoon INTO @persoon
+    FROM repis.kirjed
+    WHERE kirjekood = _kirjekood;
+
+    RETURN @persoon;
+
+  END;;
+
+DELIMITER ;
