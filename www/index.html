@@ -329,7 +329,7 @@
 
                 <div ng-repeat="doc in indexVM.results.hits.hits">
                     <div class="row">
-                      <div class="isikukaart {{doc._source.kivi === '!' ? 'must' : 'valge'}}">
+                      <div class="isikukaart {{doc._source.kivi === '1' ? 'must' : 'valge'}}">
                         <p>p: {{doc._source.perenimi}}</p>
                         <p>e: {{doc._source.eesnimi}}</p>
                         <p>isa: {{doc._source.isanimi}}</p>
@@ -337,13 +337,15 @@
                         <p>sünd: {{doc._source['sünd']}}</p>
                         <p>surm: {{doc._source['surm']}}</p>
                         <p>id: {{doc._source.id}}</p>
-                        <p ng-if="doc._source.kivi === '!'">
-                        <!-- <p> -->
+                        <p ng-if="doc._source.kivi === '1'">
                           Kivi: {{doc._source.tahvel}}, {{doc._source.tulp}}, {{doc._source.rida}}<br/>{{doc._source.tahvlikirje}}
+                        </p>
+                        <p ng-if="doc._source.ohvitser === '1'">
+                          {{doc._source.auaste}}: {{doc._source.evonimi}} {{doc._source.VR}}
                         </p>
                         <!-- <pre>{{doc._source}}</pre> -->
                         <div class="btn-group">
-                          <a class="btn btn-sm active {{doc._source.kivi === '!' ? 'btn-info' : 'btn-primary'}}" href="mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.perenimi}}, {{doc._source.eesnimi}}, {{doc._source.isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}">Tagasiside selle kirje kohta</a>
+                          <a class="btn btn-sm active {{doc._source.kivi === '1' ? 'btn-info' : 'btn-primary'}}" href="mailto:meelis.maripuu@mnemosyne.ee?cc=mihkel.putrinsh@gmail.com;memoriaal@mnemosyne.ee&subject=Tagasiside e-memoriaalilt {{doc._source.perenimi}}, {{doc._source.eesnimi}}, {{doc._source.isanimi}} kohta&body=%0D%0A%0D%0A----%0D%0Akirje ID:{{doc._source.id}}">Tagasiside selle kirje kohta</a>
                         </div>
                       </div>
                       <div style="overflow: auto;" class="person">

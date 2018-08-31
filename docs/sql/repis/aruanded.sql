@@ -195,6 +195,7 @@ SELECT   nk.kirjekood AS id,
          IFNULL(evo.Auaste, '') AS auaste,
          IFNULL(evo.VR, '') AS VR,
          IFNULL(evo.Nimi, '') AS evonimi,
+         IFNULL(evo.Kirje, '') AS evokirje,
          IFNULL(REPLACE (
            group_concat(DISTINCT
              IF(
