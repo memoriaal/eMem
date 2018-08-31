@@ -139,7 +139,7 @@ ORDER BY k0.perenimi, k0.eesnimi, k0.sünd, k0.surm, k0.isanimi, k0.emanimi
 
 SELECT func_proper(kt.kirje), kt.tiib, kt.tahvlinr, kt.tulp, kt.rida, kt.kirjekood, kt.persoon,
 IF(ks.silt IS NULL, 0, 1) AS kivi
-FROM import.kivitahvlid kt
+FROM import.memoriaal_kivitahvlid kt
 LEFT JOIN repis.v_kirjesildid ks ON ks.kirjekood = kt.persoon AND ks.silt = 'x - kivi'
 ORDER BY tiib, IF(tiib = 'A', tahvlinr, 500 - tahvlinr), tulp, rida
 ;
@@ -191,6 +191,10 @@ SELECT   nk.kirjekood AS id,
          IF(ks_k.silt = 'x - kivi', IFNULL(kt.tahvel, 'X'), '') AS tahvel,
          IF(ks_k.silt = 'x - kivi', IFNULL(kt.tulp, '-'), '') AS tulp,
          IF(ks_k.silt = 'x - kivi', IFNULL(kt.rida, '-'), '') AS rida,
+         IF(evo.persoon IS NULL, '0', '1') AS ohvitser,
+         IFNULL(evo.Auaste, '') AS auaste,
+         IFNULL(evo.VR, '') AS VR,
+         IFNULL(evo.Nimi, '') AS evonimi,
          IFNULL(REPLACE (
            group_concat(DISTINCT
              IF(
@@ -239,7 +243,8 @@ LEFT JOIN repis.allikad AS kpa ON kpa.kood = kp.allikas
 LEFT JOIN repis.kirjed AS nk ON nk.persoon = k.persoon AND nk.allikas = 'Persoon'
 LEFT JOIN repis.v_kirjesildid AS ks_k ON ks_k.kirjekood = nk.persoon AND ks_k.silt = 'x - kivi' AND ks_k.deleted_at = '0000-00-00 00:00:00'
 LEFT JOIN repis.v_kirjesildid AS ks_mr ON ks_mr.kirjekood = nk.persoon AND ks_mr.silt = 'x - mitterelevantne' AND ks_mr.deleted_at = '0000-00-00 00:00:00'
-LEFT JOIN import.kivitahvlid kt ON kt.persoon = k.persoon
+LEFT JOIN import.memoriaal_kivitahvlid kt ON kt.persoon = k.persoon
+LEFT JOIN import.memoriaal_evo evo ON evo.persoon = k.persoon
 WHERE k.ekslikkanne = ''
 AND k.puudulik = ''
 AND k.allikas NOT IN ('KIVI')
