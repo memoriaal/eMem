@@ -161,8 +161,8 @@ async.series({
           mappings: {
             isik: {
               properties: {
-                perenimi: { type: 'text', boost: 20 },
-                eesnimi: { type: 'text', boost: 14 },
+                perenimi: { type: 'text', boost: 30 },
+                eesnimi: { type: 'text', boost: 20 },
                 isanimi: { type: 'text', boost: 6 },
                 emanimi: { type: 'text', boost: 6 },
                 'sünd': { type: 'integer', boost: 6 },
