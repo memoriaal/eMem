@@ -713,6 +713,8 @@ DELIMITER ;; -- desktop_RK_import
       d.kirje = @_kirje,
       d.perenimi = rk.PERENIMI,
       d.eesnimi = rk.EESNIMI,
+      d.sünd = rk.SA,
+      d.surm = rk.Surm,
       d.jutt = rk.otmetki,
       d.created_by = _created_by
     WHERE rk.isikukood = _kirjekood2 COLLATE utf8_estonian_ci
