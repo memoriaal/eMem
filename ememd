@@ -1,0 +1,88 @@
+#!/bin/bash
+
+. ~/credentials.txt
+
+csv_filename="/paringud/$(date +%Y%m%d_%H%M%S)_memoriaal_ee.csv"
+
+mysql -u"${M_MYSQL_U}" -p"${M_MYSQL_P}" aruanded<<EOFMYSQL
+SELECT   nk.kirjekood AS id,
+         nk.perenimi,
+         nk.eesnimi,
+         nk.isanimi,
+         nk.emanimi,
+         LEFT(nk.sünd,4) AS sünd,
+         LEFT(nk.surm,4) AS surm,
+         IF(ks_k.silt IS NULL, '0', '1') AS kivi,
+         IF(ks_k.silt = 'x - kivi', IFNULL(kt.kirje, 'N/A'), '') AS tahvlikirje,
+         IF(ks_k.silt = 'x - kivi', IFNULL(kt.tahvel, 'X'), '') AS tahvel,
+         IF(ks_k.silt = 'x - kivi', IFNULL(kt.tulp, '-'), '') AS tulp,
+         IF(ks_k.silt = 'x - kivi', IFNULL(kt.rida, '-'), '') AS rida,
+         IFNULL(REPLACE (
+           group_concat(DISTINCT
+             IF(
+               a.prioriteetkirje = 0 OR IFNULL(a.nonPerson, '') = '1', NULL, concat_ws('#|',
+                 k.persoon,
+                 k.kirjekood,
+                 IF (k.allikas = 'RR', REGEXP_REPLACE(k.kirje, '\\|+', '|'), k.kirje),
+                 a.allikas,
+                 a.nimetus,
+                 concat('{ "labels": ["',concat_ws('", "',
+                   IF(k.EiArvesta = '!', 'skip', NULL),
+                   IF(k.EkslikKanne = '!', 'wrong', NULL)
+                 ) , '"] }')
+               )
+             )
+             ORDER BY a.prioriteetkirje DESC SEPARATOR ';_\n'
+           ),
+           '"',
+           '\''
+         ), '')           AS kirjed,
+         IFNULL(REPLACE(
+           group_concat( DISTINCT
+              IF(
+                 kp.kirjekood IS NULL, NULL, concat_ws('#|',
+                 -- kp.raamatupere,
+                 kp.persoon,
+                 kp.kirjekood,
+                 kp.kirje,
+                 kpa.allikas,
+                 kpa.nimetus,
+                 concat('{ "labels": ["',concat_ws('", "',
+                   IF(kp.EiArvesta = '!', 'skip', NULL),
+                   IF(kp.EkslikKanne = '!', 'wrong', NULL)
+                 ) , '"] }')
+               )
+             )
+             ORDER BY kp.kirjekood ASC SEPARATOR ';_\n'
+           ),
+          '"',
+          '\''
+        ), '')           AS pereseos
+FROM repis.kirjed AS k
+LEFT JOIN repis.allikad AS a ON a.kood = k.allikas
+LEFT JOIN repis.kirjed AS kp ON kp.RaamatuPere <> '' AND kp.RaamatuPere = k.RaamatuPere AND kp.allikas != 'Persoon'
+LEFT JOIN repis.allikad AS kpa ON kpa.kood = kp.allikas
+LEFT JOIN repis.kirjed AS nk ON nk.persoon = k.persoon AND nk.allikas = 'Persoon'
+LEFT JOIN repis.v_kirjesildid AS ks_k ON ks_k.kirjekood = nk.persoon AND ks_k.silt = 'x - kivi' AND ks_k.deleted_at = '0000-00-00 00:00:00'
+LEFT JOIN repis.v_kirjesildid AS ks_mr ON ks_mr.kirjekood = nk.persoon AND ks_mr.silt = 'x - mitterelevantne' AND ks_mr.deleted_at = '0000-00-00 00:00:00'
+LEFT JOIN import.kivitahvlid kt ON kt.persoon = k.persoon
+WHERE k.ekslikkanne = ''
+AND k.puudulik = ''
+AND k.allikas NOT IN ('KIVI')
+AND k.peatatud = ''
+AND nk.persoon IS NOT NULL
+AND ks_mr.kirjekood IS NULL
+AND IFNULL(a.nonPerson, '') != '!'
+GROUP BY k.persoon
+HAVING perenimi != ''
+   AND kirjed != ''
+
+INTO OUTFILE '${csv_filename}'
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
+EOFMYSQL
+
+INDEX=persons1 SOURCE='${csv_filename}' ES_CREDENTIALS='${ELASTIC_C}' node ~/scripts/import_once.js
+
+# rm '${csv_filename}'
