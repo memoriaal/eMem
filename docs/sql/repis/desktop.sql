@@ -179,6 +179,7 @@ DELIMITER ;; -- desktop_BU
 
     -- cant change almost anything but person for original records
       IF OLD.allikas NOT IN ('EMI', 'TS', 'Persoon')
+        AND user() != 'michelek@localhost'
         AND user() != 'queue@localhost'
         AND user() != 'event_scheduler@localhost'
         AND ( NEW.kirjekood != OLD.kirjekood OR

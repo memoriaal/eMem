@@ -21,8 +21,8 @@ AS SELECT
    k.persoon AS persoon,
    nk.Perenimi AS perenimi,
    nk.Eesnimi AS eesnimi,
-   nk.Sünd AS sünd,
-   nk.Surm AS surm,
+   left(nk.Sünd, 4) AS sünd,
+   left(nk.Surm, 4) AS surm,
    k.kommentaar AS kommentaar
 FROM ((repis.v_kirjesildid s
   left join repis.kirjed k on(s.kirjekood = k.persoon))
