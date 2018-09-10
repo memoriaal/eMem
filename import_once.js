@@ -160,13 +160,30 @@ async.series({
         body: {
           mappings: {
             isik: {
+              _all: { enabled: false },
               properties: {
-                perenimi: { type: 'text', boost: 30 },
-                eesnimi: { type: 'text', boost: 20 },
-                isanimi: { type: 'text', boost: 6 },
-                emanimi: { type: 'text', boost: 6 },
-                'sünd': { type: 'integer', boost: 6 },
-                'surm': { type: 'integer', boost: 6 }
+                perenimi: {
+                  type: 'text',
+                  fields: {
+                    raw: { type: 'keyword' }
+                  }
+                },
+                eesnimi: {
+                  type: 'text',
+                  fields: {
+                    raw: { type: 'keyword' }
+                  }
+                },
+                'sünd': { type: 'text',
+                  fields: {
+                    raw: { type: 'keyword' }
+                  }
+                },
+                'surm': { type: 'text',
+                  fields: {
+                    raw: { type: 'keyword' }
+                  }
+                }
               }
             }
           }
