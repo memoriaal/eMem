@@ -108,3 +108,25 @@ curl -X GET "https://elastic:XXX@94abc9318c712977e8c684628aa5ea0f.us-east-1.aws.
 
 # Delete index
 curl -X DELETE "elastic:XXX@94abc9318c712977e8c684628aa5ea0f.us-east-1.aws.found.io:9243/personsall"
+
+
+curl -X POST "https://elastic:XXX@94abc9318c712977e8c684628aa5ea0f.us-east-1.aws.found.io:9243/_search" -H 'Content-Type: application/json' -d'
+{
+    "query": {
+        "bool": {
+            "must" : {
+                "multi_match" : {
+                    "query": "valdas hans",
+                    "operator": "and",
+                    "fields": [ "_all" ],
+                    "type": "cross_fields"
+                }
+            },
+            "filter": {
+                "term": {
+                    "kivi": "1"
+                }
+            }
+        }
+    }
+}'
