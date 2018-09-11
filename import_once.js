@@ -160,7 +160,7 @@ async.series({
         body: {
           mappings: {
             isik: {
-              _all: { enabled: false },
+              _all: { enabled: true },
               properties: {
                 perenimi: {
                   type: 'text',
