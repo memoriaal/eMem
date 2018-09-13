@@ -180,6 +180,7 @@ CREATE OR REPLACE TABLE aruanded.memoriaal_ee (
 
   kirjed LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   pereseos LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  pereseosID TEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   PRIMARY KEY (id)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci AS
 -- ;
@@ -245,8 +246,12 @@ SELECT   nk.kirjekood AS id,
            ),
           '"',
           '\''
-        ), '')           AS pereseos
-
+        ), '')           AS pereseos,
+        IFNULL(
+          group_concat( DISTINCT
+             IF( kp.kirjekood IS NULL, NULL, kp.persoon )
+             SEPARATOR ' '
+        ), '')           AS pereseosID
 FROM repis.kirjed AS k
 LEFT JOIN repis.allikad AS a ON a.kood = k.allikas
 LEFT JOIN repis.kirjed AS kp ON kp.RaamatuPere <> '' AND kp.RaamatuPere = k.RaamatuPere AND kp.allikas != 'Persoon'
