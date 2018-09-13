@@ -160,7 +160,7 @@ async.series({
         body: {
           mappings: {
             isik: {
-              _all: { enabled: true },
+              // _all: { enabled: false },
               properties: {
                 perenimi: {
                   type: 'text',
@@ -174,6 +174,12 @@ async.series({
                     raw: { type: 'keyword' }
                   }
                 },
+                perenimed: {
+                  type: 'text'
+                },
+                eesnimed: {
+                  type: 'text'
+                },
                 'sünd': { type: 'text',
                   fields: {
                     raw: { type: 'keyword' }
@@ -183,6 +189,9 @@ async.series({
                   fields: {
                     raw: { type: 'keyword' }
                   }
+                },
+                pereseosID: {
+                  type: 'text'
                 }
               }
             }

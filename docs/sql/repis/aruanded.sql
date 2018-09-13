@@ -161,12 +161,16 @@ ORDER BY kk.perenimi, kk.eesnimi
 
 CREATE OR REPLACE TABLE aruanded.memoriaal_ee (
   id CHAR(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  perenimi LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  eesnimi LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  isanimi LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  emanimi LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  sünd LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
-  surm LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  perenimi VARCHAR(300) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  eesnimi VARCHAR(300) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  isanimi VARCHAR(300) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  emanimi VARCHAR(300) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  perenimed VARCHAR(300) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  eesnimed VARCHAR(300) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  isanimed VARCHAR(300) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  emanimed VARCHAR(300) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  sünd VARCHAR(300) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  surm VARCHAR(300) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   kivi VARCHAR(1) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
 
   tahvlikirje varchar(43) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
@@ -176,6 +180,7 @@ CREATE OR REPLACE TABLE aruanded.memoriaal_ee (
 
   kirjed LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   pereseos LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  pereseosID TEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   PRIMARY KEY (id)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci AS
 -- ;
@@ -184,6 +189,10 @@ SELECT   nk.kirjekood AS id,
          nk.eesnimi,
          nk.isanimi,
          nk.emanimi,
+         replace(replace(group_concat(DISTINCT k.perenimi SEPARATOR ' '), ';', ' '), '-', ' ') AS perenimed,
+         replace(replace(group_concat(DISTINCT k.eesnimi SEPARATOR ' '), ';', ' '), '-', ' ') AS eesnimed,
+         replace(replace(group_concat(DISTINCT k.emanimi SEPARATOR ' '), ';', ' '), '-', ' ') AS emanimed,
+         replace(replace(group_concat(DISTINCT k.isanimi SEPARATOR ' '), ';', ' '), '-', ' ') AS isanimed,
          LEFT(nk.sünd,4) AS sünd,
          LEFT(nk.surm,4) AS surm,
          IF(ks_k.silt IS NULL, '0', '1') AS kivi,
@@ -237,7 +246,12 @@ SELECT   nk.kirjekood AS id,
            ),
           '"',
           '\''
-        ), '')           AS pereseos
+        ), '')           AS pereseos,
+        IFNULL(
+          group_concat( DISTINCT
+             IF( kp.kirjekood IS NULL, NULL, kp.persoon )
+             SEPARATOR ' '
+        ), '')           AS pereseosID
 FROM repis.kirjed AS k
 LEFT JOIN repis.allikad AS a ON a.kood = k.allikas
 LEFT JOIN repis.kirjed AS kp ON kp.RaamatuPere <> '' AND kp.RaamatuPere = k.RaamatuPere AND kp.allikas != 'Persoon'
