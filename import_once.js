@@ -190,8 +190,18 @@ async.series({
                     raw: { type: 'keyword' }
                   }
                 },
-                pereseosID: {
-                  type: 'text'
+                pereseos: {
+                  type: 'nested',
+                  properties: {
+                    kirjed: {
+                      type: 'nested',
+                      properties: {
+                        persoon: {
+                          type: 'keyword'
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
