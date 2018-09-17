@@ -1,5 +1,7 @@
 DROP TABLE IF EXISTS repis.desk_sildid;
 DROP TABLE IF EXISTS repis.desk_lipikud;
+DROP VIEW IF EXISTS repis.my_desktop;
+DROP TABLE IF EXISTS repis.desktop;
 
 CREATE OR REPLACE TABLE repis.desktop (
   persoon char(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
@@ -18,46 +20,21 @@ CREATE OR REPLACE TABLE repis.desktop (
   sildid text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   kirje text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   EkslikKanne enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  Peatatud enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  EiArvesta enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   Kustuta enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   välisviide varchar(2000) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   allikas varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
   id int(10) unsigned NOT NULL AUTO_INCREMENT,
   created_at timestamp NOT NULL DEFAULT current_timestamp(),
   created_by varchar(50) NOT NULL DEFAULT '',
-  PRIMARY KEY (kirjekood,created_by)
+  PRIMARY KEY (kirjekood,created_by),
   UNIQUE KEY id (id),
   KEY lipik (lipik),
   KEY silt (silt),
   CONSTRAINT desktop_ibfk_1 FOREIGN KEY (lipik) REFERENCES repis.c_lipikud (lipik) ON UPDATE CASCADE,
   CONSTRAINT desktop_ibfk_2 FOREIGN KEY (silt) REFERENCES repis.c_sildid (silt) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
-
-
-CREATE OR REPLACE VIEW repis.my_desktop
-AS SELECT
-   desktop.persoon AS persoon,
-   desktop.kirjekood AS kirjekood,
-   desktop.valmis AS valmis,
-   desktop.jutt AS jutt,
-   desktop.perenimi AS perenimi,
-   desktop.eesnimi AS eesnimi,
-   desktop.isanimi AS isanimi,
-   desktop.emanimi AS emanimi,
-   desktop.sünd AS sünd,
-   desktop.surm AS surm,
-   desktop.lipik AS lipik,
-   desktop.lipikud AS lipikud,
-   desktop.silt AS silt,
-   desktop.sildid AS sildid,
-   desktop.kirje AS kirje,
-   desktop.välisviide AS välisviide,
-   desktop.allikas AS allikas,
-   desktop.EkslikKanne AS EkslikKanne,
-   desktop.Kustuta AS Kustuta,
-   desktop.created_at AS created_at,
-   desktop.created_by AS created_by
-FROM desktop where desktop.created_by = user();
-
 
 CREATE OR REPLACE TABLE repis.desk_lipikud (
   desktop_id int(10) unsigned NOT NULL,
@@ -78,6 +55,37 @@ CREATE OR REPLACE TABLE repis.desk_sildid (
   CONSTRAINT desk_sildid_ibfk_1 FOREIGN KEY (desktop_id) REFERENCES repis.desktop (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT desk_sildid_ibfk_2 FOREIGN KEY (silt) REFERENCES repis.c_sildid (silt) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci;
+
+
+
+CREATE OR REPLACE VIEW repis.my_desktop
+AS SELECT
+   desktop.persoon AS persoon,
+   desktop.kirjekood AS kirjekood,
+   desktop.valmis AS valmis,
+   desktop.jutt AS jutt,
+   desktop.perenimi AS perenimi,
+   desktop.eesnimi AS eesnimi,
+   desktop.isanimi AS isanimi,
+   desktop.emanimi AS emanimi,
+   desktop.sünd AS sünd,
+   desktop.surm AS surm,
+   desktop.Peatatud AS Peatatud,
+   desktop.EiArvesta AS EiArvesta,
+   desktop.lipik AS lipik,
+   desktop.lipikud AS lipikud,
+   desktop.silt AS silt,
+   desktop.sildid AS sildid,
+   desktop.kirje AS kirje,
+   desktop.välisviide AS välisviide,
+   desktop.allikas AS allikas,
+   desktop.EkslikKanne AS EkslikKanne,
+   desktop.Kustuta AS Kustuta,
+   desktop.created_at AS created_at,
+   desktop.created_by AS created_by
+FROM desktop where desktop.created_by = user();
+
+
 
 
 --
@@ -335,7 +343,9 @@ DELIMITER ;; -- desktop_BU
     -- Request recalculation for person with changed status
     --
     IF NEW.EkslikKanne != OLD.EkslikKanne
-       OR NEW.Kustuta != OLD.Kustuta THEN
+       OR NEW.Kustuta != OLD.Kustuta
+       OR NEW.Peatatud != OLD.Peatatud
+       OR NEW.EiArvesta != OLD.EiArvesta THEN
       INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,            params, created_by)
       VALUES                           (OLD.persoon, NULL,       'desktop_NK_refresh', '3',   user());
     END IF;
@@ -359,11 +369,11 @@ DELIMITER ;; -- desktop_BU
       INSERT INTO repis.kirjed (
         persoon, kirjekood, kirje, perenimi, eesnimi,
         isanimi, emanimi, sünd, surm, allikas,
-        välisviide, EkslikKanne,
+        välisviide, EkslikKanne, Peatatud, EiArvesta,
         created_at, created_by)
       SELECT d.persoon, d.kirjekood, d.kirje, d.perenimi, d.eesnimi,
              d.isanimi, d.emanimi, d.sünd, d.surm, d.allikas,
-             d.välisviide, d.EkslikKanne,
+             d.välisviide, d.EkslikKanne, d.Peatatud, d.EiArvesta,
              now(), SUBSTRING_INDEX(user(), '@', 1)
       FROM repis.desktop d
       LEFT JOIN repis.kirjed k ON k.kirjekood = d.kirjekood
@@ -375,11 +385,11 @@ DELIMITER ;; -- desktop_BU
       INSERT INTO repis.kirjed (
         persoon, kirjekood, kirje, perenimi, eesnimi,
         isanimi, emanimi, sünd, surm, allikas,
-        välisviide, EkslikKanne,
+        välisviide, EkslikKanne, Peatatud, EiArvesta,
         created_at, created_by)
       SELECT d.persoon, d.kirjekood, d.kirje, d.perenimi, d.eesnimi,
              d.isanimi, d.emanimi, d.sünd, d.surm, d.allikas,
-             d.välisviide, d.EkslikKanne,
+             d.välisviide, d.EkslikKanne, d.Peatatud, d.EiArvesta,
              now(), SUBSTRING_INDEX(user(), '@', 1)
       FROM repis.desktop d
       LEFT JOIN repis.kirjed k ON k.kirjekood = d.kirjekood
@@ -423,6 +433,8 @@ DELIMITER ;; -- desktop_BU
           k.isanimi = d.isanimi, k.emanimi = d.emanimi,
           k.sünd = d.sünd, k.surm = d.surm, k.allikas = d.allikas,
           k.välisviide = d.välisviide, k.EkslikKanne = d.EkslikKanne,
+          k.Peatatud = d.Peatatud,
+          k.EiArvesta = d.EiArvesta,
           k.updated_at = now(), updated_by = SUBSTRING_INDEX(user(), '@', 1)
       WHERE d.created_by = user();
 
@@ -534,12 +546,12 @@ DELIMITER ;; -- desktop_collect
       (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
         -- , lipikud
         -- , sildid
-        , kirje, allikas, välisviide, EkslikKanne, created_by
+        , kirje, allikas, välisviide, EkslikKanne, Peatatud, EiArvesta, created_by
         , jutt)
       SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
         -- , repis.func_kirjelipikud(kirjekood)
         -- , repis.func_kirjesildid(kirjekood)
-        , kirje, allikas, välisviide, EkslikKanne, _created_by
+        , kirje, allikas, välisviide, EkslikKanne, Peatatud, EiArvesta, _created_by
         , IF(allikas IN ('TS','EMI'),
             IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') COLLATE utf8_estonian_ci,
               REPLACE(
@@ -560,12 +572,12 @@ DELIMITER ;; -- desktop_collect
       (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
         -- , lipikud
         -- , sildid
-        , kirje, allikas, välisviide, EkslikKanne, created_by
+        , kirje, allikas, välisviide, EkslikKanne, Peatatud, EiArvesta, created_by
         , jutt)
       SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
         -- , repis.func_kirjelipikud(kirjekood)
         -- , repis.func_kirjesildid(kirjekood)
-        , kirje, allikas, välisviide, EkslikKanne, _created_by
+        , kirje, allikas, välisviide, EkslikKanne, Peatatud, EiArvesta, _created_by
         , IF(allikas IN ('TS','EMI'),
             IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') COLLATE utf8_estonian_ci,
               REPLACE(
@@ -813,6 +825,8 @@ DELIMITER ;; -- desktop_NK_refresh
       WHERE d0.persoon = _persoon
         AND d0.kirjekood != _persoon
         AND d0.EkslikKanne != '!'
+        AND d0.Peatatud != '!'
+        AND d0.EiArvesta != '!'
         AND d0.Kustuta != '!'
         AND d0.created_by = _created_by
       GROUP BY d0.persoon
