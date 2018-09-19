@@ -42,7 +42,7 @@ curl -X GET "https://Delfi:B68-xvu-gds-HA8@94abc9318c712977e8c684628aa5ea0f.us-e
         }
     },
     "sort": { "perenimi.raw": "asc", "eesnimi.raw": "asc" }
-     ,
+    ,
     "highlight": {
         "pre_tags": [ "<em>" ],
         "post_tags": [ "</em>" ],
@@ -58,5 +58,32 @@ curl -X GET "https://Delfi:B68-xvu-gds-HA8@94abc9318c712977e8c684628aa5ea0f.us-e
         }
     },
     "_source": ["perenimi", "eesnimi", "perenimed", "eesnimed", "sünd", "surm", "id", "pereseosID", "pereseos.kirjed.kirje"]
+}
+'
+
+curl -X GET "https://Delfi:B68-xvu-gds-HA8@94abc9318c712977e8c684628aa5ea0f.us-east-1.aws.found.io:9243/persons/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+    "query" : {
+        "bool" : {
+            "must" : {
+                "multi_match" : {
+                    "query": "mets",
+                    "fields": [ "perenimi", "eesnimi", "perenimed", "eesnimed", "sünd", "surm", "id", "pereseosID" ],
+                    "operator": "and",
+                    "type": "cross_fields"
+                }
+            },
+            "filter": { "term": { "kivi": "1" } }
+        }
+    },
+    "sort": { "perenimi.raw": "asc", "eesnimi.raw": "asc" },
+    "_source": [
+        "perenimi", "eesnimi", "isanimi", "emanimi", "perenimed", "eesnimed",
+        "sünd", "surm", "id",
+        "kirjed.kirje", "kirjed.allikas",
+        "pereseosID", "pereseos.kirjed.kirje", "pereseos.nimekiri",
+        "tahvel", "tulp", "rida", "tahvlikirje",
+        "ohvitser", "evokirje"
+    ]
 }
 '
