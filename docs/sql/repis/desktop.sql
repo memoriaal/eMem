@@ -19,6 +19,7 @@ CREATE OR REPLACE TABLE repis.desktop (
   silt varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
   sildid text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   kirje text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  legend text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   EkslikKanne enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   Peatatud enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   EiArvesta enum('','!') COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
@@ -77,6 +78,7 @@ AS SELECT
    desktop.silt AS silt,
    desktop.sildid AS sildid,
    desktop.kirje AS kirje,
+   desktop.legend AS legend,
    desktop.välisviide AS välisviide,
    desktop.allikas AS allikas,
    desktop.EkslikKanne AS EkslikKanne,
@@ -367,11 +369,11 @@ DELIMITER ;; -- desktop_BU
 
       -- Save new persons if any
       INSERT INTO repis.kirjed (
-        persoon, kirjekood, kirje, perenimi, eesnimi,
+        persoon, kirjekood, kirje, legend, perenimi, eesnimi,
         isanimi, emanimi, sünd, surm, allikas,
         välisviide, EkslikKanne, Peatatud, EiArvesta,
         created_at, created_by)
-      SELECT d.persoon, d.kirjekood, d.kirje, d.perenimi, d.eesnimi,
+      SELECT d.persoon, d.kirjekood, d.kirje, d.legend, d.perenimi, d.eesnimi,
              d.isanimi, d.emanimi, d.sünd, d.surm, d.allikas,
              d.välisviide, d.EkslikKanne, d.Peatatud, d.EiArvesta,
              now(), SUBSTRING_INDEX(user(), '@', 1)
@@ -383,11 +385,11 @@ DELIMITER ;; -- desktop_BU
 
       -- Save new records to new persons if any
       INSERT INTO repis.kirjed (
-        persoon, kirjekood, kirje, perenimi, eesnimi,
+        persoon, kirjekood, kirje, legend, perenimi, eesnimi,
         isanimi, emanimi, sünd, surm, allikas,
         välisviide, EkslikKanne, Peatatud, EiArvesta,
         created_at, created_by)
-      SELECT d.persoon, d.kirjekood, d.kirje, d.perenimi, d.eesnimi,
+      SELECT d.persoon, d.kirjekood, d.kirje, d.legend, d.perenimi, d.eesnimi,
              d.isanimi, d.emanimi, d.sünd, d.surm, d.allikas,
              d.välisviide, d.EkslikKanne, d.Peatatud, d.EiArvesta,
              now(), SUBSTRING_INDEX(user(), '@', 1)
@@ -428,7 +430,7 @@ DELIMITER ;; -- desktop_BU
       SET k.persoon = d.persoon,
           k.lipikud = repis.func_kirjelipikud(k.kirjekood),
           k.sildid = repis.func_kirjesildid(k.kirjekood),
-          k.kirje = d.kirje,
+          k.kirje = d.kirje, k.legend = d.legend,
           k.perenimi = d.perenimi, k.eesnimi = d.eesnimi,
           k.isanimi = d.isanimi, k.emanimi = d.emanimi,
           k.sünd = d.sünd, k.surm = d.surm, k.allikas = d.allikas,
@@ -546,12 +548,12 @@ DELIMITER ;; -- desktop_collect
       (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
         -- , lipikud
         -- , sildid
-        , kirje, allikas, välisviide, EkslikKanne, Peatatud, EiArvesta, created_by
+        , kirje, legend, allikas, välisviide, EkslikKanne, Peatatud, EiArvesta, created_by
         , jutt)
       SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
         -- , repis.func_kirjelipikud(kirjekood)
         -- , repis.func_kirjesildid(kirjekood)
-        , kirje, allikas, välisviide, EkslikKanne, Peatatud, EiArvesta, _created_by
+        , kirje, legend, allikas, välisviide, EkslikKanne, Peatatud, EiArvesta, _created_by
         , IF(allikas IN ('TS','EMI'),
             IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') COLLATE utf8_estonian_ci,
               REPLACE(
@@ -572,12 +574,12 @@ DELIMITER ;; -- desktop_collect
       (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
         -- , lipikud
         -- , sildid
-        , kirje, allikas, välisviide, EkslikKanne, Peatatud, EiArvesta, created_by
+        , kirje, legend, allikas, välisviide, EkslikKanne, Peatatud, EiArvesta, created_by
         , jutt)
       SELECT persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
         -- , repis.func_kirjelipikud(kirjekood)
         -- , repis.func_kirjesildid(kirjekood)
-        , kirje, allikas, välisviide, EkslikKanne, Peatatud, EiArvesta, _created_by
+        , kirje, legend, allikas, välisviide, EkslikKanne, Peatatud, EiArvesta, _created_by
         , IF(allikas IN ('TS','EMI'),
             IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') COLLATE utf8_estonian_ci,
               REPLACE(
