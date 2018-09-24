@@ -730,7 +730,7 @@ DELIMITER ;; -- desktop_RK_import
       d.eesnimi = rk.EESNIMI,
       d.sünd = rk.SA,
       d.surm = rk.Surm,
-      d.jutt = rk.otmetki,
+      d.legend = rk.otmetki,
       d.created_by = _created_by
     WHERE rk.isikukood = _kirjekood2 COLLATE utf8_estonian_ci
       AND d.persoon = '';

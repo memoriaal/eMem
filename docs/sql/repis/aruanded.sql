@@ -181,6 +181,7 @@ CREATE OR REPLACE TABLE aruanded.memoriaal_ee (
   kirjed LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   pereseos LONGTEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   pereseosID TEXT COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  relevantne tinyint(1) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (id)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8 COLLATE=utf8_estonian_ci AS
 -- ;
@@ -251,7 +252,8 @@ SELECT   nk.kirjekood AS id,
           group_concat( DISTINCT
              IF( kp.kirjekood IS NULL, NULL, kp.persoon )
              SEPARATOR ' '
-        ), '')           AS pereseosID
+        ), '')           AS pereseosID,
+        IF( ks_mr.kirjekood IS NULL, 1, 0) as relevantne
 FROM repis.kirjed AS k
 LEFT JOIN repis.allikad AS a ON a.kood = k.allikas
 LEFT JOIN repis.kirjed AS kp ON kp.RaamatuPere <> '' AND kp.RaamatuPere = k.RaamatuPere AND kp.allikas != 'Persoon'
@@ -268,7 +270,7 @@ AND k.allikas NOT IN ('KIVI')
 AND k.peatatud = ''
 -- AND kp.allikas != 'Persoon'
 AND nk.persoon IS NOT NULL
-AND ks_mr.kirjekood IS NULL
+-- AND ks_mr.kirjekood IS NULL
 AND IFNULL(a.nonPerson, '') != '!'
 GROUP BY k.persoon
 HAVING perenimi != ''

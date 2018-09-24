@@ -88,6 +88,9 @@ DELIMITER ;;
       ELSEIF _task = 'perelaud_flush' THEN
         CALL repis.q_perelaud_flush(_kirjekood1, _kirjekood2, _task, _params, _created_by);
         -- DELETE FROM repis.z_queue WHERE id = _id;
+      ELSEIF _task = 'add2emaisa' THEN
+        CALL repis.q_emaisa_add(_kirjekood1, _kirjekood2, _task, _params, _created_by);
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       END IF;
 
     END LOOP;

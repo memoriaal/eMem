@@ -133,3 +133,25 @@ DELIMITER ;; -- func_kirje2persoon()
   END;;
 
 DELIMITER ;
+
+
+DELIMITER ;; -- func_persoonikirjed()
+
+  CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.func_persoonikirjed(
+      _persoon CHAR(10)
+  ) RETURNS VARCHAR(4000) CHARSET utf8 COLLATE utf8_estonian_ci
+  func_label:BEGIN
+
+  DECLARE _ret_val VARCHAR(4000);
+
+  SELECT group_concat(k0.kirjekood, ': ', k0.kirje SEPARATOR '\n') INTO _ret_val
+  FROM repis.kirjed k0
+  WHERE k0.persoon = _persoon
+    AND k0.kirje != ''
+    AND k0.persoon != k0.kirjekood
+  GROUP BY k0.persoon;
+
+  RETURN _ret_val;
+  END;;
+
+DELIMITER ;
