@@ -210,7 +210,7 @@ SELECT   nk.kirjekood AS id,
          IFNULL(REPLACE (
            group_concat(DISTINCT
              IF(
-               a.prioriteetkirje = 0 OR IFNULL(a.nonPerson, '') = '1', NULL, concat_ws('#|',
+               a.prioriteetkirje = 0, NULL, concat_ws('#|',
                  k.persoon,
                  k.kirjekood,
                  IF (k.allikas = 'RR', REGEXP_REPLACE(k.kirje, '\\|+', '|'), k.kirje),
