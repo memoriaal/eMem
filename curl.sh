@@ -87,3 +87,19 @@ curl -X GET "https://Delfi:B68-xvu-gds-HA8@94abc9318c712977e8c684628aa5ea0f.us-e
     ]
 }
 '
+
+# ainult uued kivid
+curl -X GET "https://Delfi:B68-xvu-gds-HA8@94abc9318c712977e8c684628aa5ea0f.us-east-1.aws.found.io:9243/persons/_search?pretty" -H 'Content-Type: application/json' -d'
+{
+    "query" : {
+      "bool" : {
+        "filter": { "term": { "tahvel": "x" } }
+      }
+    },
+    "sort": { "perenimi.raw": "asc", "eesnimi.raw": "asc" },
+    "_source": [
+        "perenimi", "eesnimi",
+        "sünd", "surm"
+    ]
+}
+'
