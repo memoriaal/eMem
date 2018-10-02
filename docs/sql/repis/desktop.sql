@@ -275,7 +275,7 @@ DELIMITER ;; -- desktop_BU
                  , @isanimi, @emanimi
                  , @sünd, @surm
                  , @kirje, @allikas
-              FROM kirjed k
+              FROM repis.desktop k
              WHERE k.kirjekood = NEW.persoon;
 
             SET @nimekirje = concat(
