@@ -181,10 +181,22 @@ DELIMITER ;; -- desktop_BU
 
     -- cant assign person to another person
       IF NEW.persoon != OLD.persoon AND OLD.kirjekood = OLD.persoon THEN
-        SELECT concat_ws('\n'
-          , 'Nimekuju kirjet ei saa isikust lahutada.'
-        ) INTO msg;
-        SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
+        -- SELECT concat_ws('\n'
+        --   , 'Nimekuju kirjet ei saa isikust lahutada.'
+        -- ) INTO msg;
+        -- SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
+        SET NEW.eesnimi = '';
+        SET NEW.perenimi = '';
+        SET NEW.emanimi = '';
+        SET NEW.isanimi = '';
+        SET NEW.sünd = '';
+        SET NEW.surm = '';
+        INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,  task,                   params, created_by)
+        VALUES                           (OLD.persoon, NEW.persoon, 'desktop_join_persons', '',     user());
+        INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,            params, created_by)
+        VALUES                           (NEW.persoon, NULL,       'desktop_NK_refresh', '1',   user());
+
+        LEAVE proc_label;
       END IF;
 
     -- cant change almost anything but person for original records
@@ -846,6 +858,20 @@ DELIMITER ;; -- desktop_NK_refresh
         ) COLLATE utf8_estonian_ci
     WHERE d.kirjekood = _persoon
       AND d.created_by = _created_by;
+
+  END;;
+
+DELIMITER ;
+
+
+DELIMITER ;; -- desktop_join_persons
+
+  CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.q_desktop_join_persons(
+    IN _old_person CHAR(10), IN _new_person CHAR(10),
+    IN _task VARCHAR(50), IN _params VARCHAR(200), IN _created_by VARCHAR(50))
+  proc_label:BEGIN
+
+    UPDATE repis_desktop SET person = _new_person WHERE person = _old_person;
 
   END;;
 
