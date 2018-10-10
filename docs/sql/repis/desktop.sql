@@ -258,7 +258,7 @@ DELIMITER ;; -- desktop_BU
     --
     -- Prefill names'n'dates'n'kirje
     --
-    IF OLD.allikas IN ('EMI', 'TS')
+    IF OLD.allikas IN ('EMI')
        AND OLD.persoon = '' AND NEW.persoon != '' THEN
       IF NEW.perenimi = '' AND NEW.eesnimi  = ''
          AND NEW.isanimi  = '' AND NEW.emanimi  = ''
