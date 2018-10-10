@@ -97,6 +97,9 @@ DELIMITER ;;
       ELSEIF _task = 'add2emaisa' THEN
         CALL repis.q_emaisa_add(_kirjekood1, _kirjekood2, _task, _params, _created_by);
         -- DELETE FROM repis.z_queue WHERE id = _id;
+      ELSEIF _task = 'raamatupere2emaisa' THEN
+        CALL repis.q_emaisa_raamatupere(_kirjekood1, _kirjekood2, _task, _params, _created_by);
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'emaisalaud_replace' THEN
         CALL repis.q_emaisa_replace(_kirjekood1, _kirjekood2, _task, _params, _created_by);
         -- DELETE FROM repis.z_queue WHERE id = _id;
