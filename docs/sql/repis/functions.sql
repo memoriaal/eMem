@@ -155,3 +155,22 @@ DELIMITER ;; -- func_persoonikirjed()
   END;;
 
 DELIMITER ;
+
+DELIMITER ;; -- func_next_id()
+
+  CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.func_next_id(
+      _name VARCHAR(20)
+  ) RETURNS INT(10) UNSIGNED
+  func_label:BEGIN
+
+    DECLARE _ret_val INT(10) UNSIGNED;
+
+    INSERT INTO repis.counter (id, value) VALUES (_name, 1)
+    ON DUPLICATE KEY UPDATE value = value + 1;
+
+    SELECT value INTO _ret_val FROM repis.counter WHERE id = _name;
+
+    RETURN _ret_val;
+  END;;
+
+DELIMITER ;
