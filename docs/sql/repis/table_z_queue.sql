@@ -1,20 +1,21 @@
--- CREATE OR REPLACE TABLE repis.z_queue (
---   id INT(11) unsigned NOT NULL AUTO_INCREMENT,
---   kirjekood1 CHAR(10) NOT NULL DEFAULT '',
---   kirjekood2 CHAR(10) NOT NULL DEFAULT '',
---   task VARCHAR(50) NOT NULL DEFAULT '',
---   params VARCHAR(200) NOT NULL DEFAULT '',
---   created_at TIMESTAMP NOT NULL DEFAULT current_timestamp(),
---   created_by VARCHAR(50) NOT NULL DEFAULT '',
---   erred_at timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
---   msg VARCHAR(100) DEFAULT NULL,
---   PRIMARY KEY (id)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE OR REPLACE TABLE repis.z_queue (
+  id INT(11) unsigned NOT NULL AUTO_INCREMENT,
+  kirjekood1 CHAR(10) NOT NULL DEFAULT '',
+  kirjekood2 CHAR(10) NOT NULL DEFAULT '',
+  task VARCHAR(50) NOT NULL DEFAULT '',
+  params VARCHAR(200) NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL DEFAULT current_timestamp(),
+  created_by VARCHAR(50) NOT NULL DEFAULT '',
+  erred_at timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE current_timestamp(),
+  msg VARCHAR(100) DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY `kirjekood1` (`kirjekood1`,`kirjekood2`,`task`,`params`,`erred_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 DELIMITER ;;
   CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.process_queue()
-  proc_label:BEGIN
+  proc_label: BEGIN
     DECLARE _id INT(11) UNSIGNED;
     DECLARE _kirjekood1 CHAR(10);
     DECLARE _kirjekood2 CHAR(10);
@@ -31,7 +32,7 @@ DELIMITER ;;
 
     DECLARE cur1 CURSOR FOR
       SELECT id, kirjekood1, kirjekood2, task, params, created_by
-      FROM repis.z_queue WHERE erred_at IS NULL
+      FROM repis.z_queue WHERE erred_at = '0000-00-00 00:00:00'
       -- LIMIT 130
       ;
 
@@ -43,6 +44,7 @@ DELIMITER ;;
         INSERT INTO z_queue (task, params, erred_at) values (code, msg, now());
       END;
 
+    -- LEAVE proc_label;
 
     SELECT count(1) INTO @pcnt FROM INFORMATION_SCHEMA.PROCESSLIST
     WHERE User = 'queue';
@@ -93,16 +95,16 @@ DELIMITER ;;
         DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'emaisalaud_flush' THEN
         CALL repis.q_emaisalaud_flush(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        -- DELETE FROM repis.z_queue WHERE id = _id;
+        DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'add2emaisa' THEN
         CALL repis.q_emaisa_add(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        -- DELETE FROM repis.z_queue WHERE id = _id;
+        DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'raamatupere2emaisa' THEN
         CALL repis.q_emaisa_raamatupere(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        -- DELETE FROM repis.z_queue WHERE id = _id;
+        DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'emaisalaud_replace' THEN
         CALL repis.q_emaisa_replace(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        -- DELETE FROM repis.z_queue WHERE id = _id;
+        DELETE FROM repis.z_queue WHERE id = _id;
       END IF;
 
     END LOOP;

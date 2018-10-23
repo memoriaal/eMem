@@ -48,8 +48,11 @@ CREATE OR REPLACE TABLE `emaisalaud` (
 --
 -- alglähtestame emad-isad
 --
-  INSERT IGNORE INTO `emadisad` (`persoon`, `ema`, `isa`, `abikaasa`, `kasuema`, `kasuisa`, `updated_at`)
-  SELECT kirjekood, repis.emadisad_next_id('E'), repis.emadisad_next_id('I'), NULL, NULL, NULL, NULL FROM repis.kirjed
+  DELETE FROM repis.emadisad WHERE updated_by = '-';
+
+  INSERT IGNORE INTO repis.emadisad (`persoon`, `ema`, `isa`, `abikaasa`, `kasuema`, `kasuisa`, `updated_at`)
+  -- SELECT kirjekood, repis.emadisad_next_id('E'), repis.emadisad_next_id('I'), NULL, NULL, NULL, NULL FROM repis.kirjed
+  SELECT kirjekood, NULL, NULL, NULL, NULL, NULL, NULL FROM repis.kirjed
   WHERE persoon = kirjekood;
 
 -- R6
@@ -58,62 +61,126 @@ UPDATE repis.emadisad ei
   RIGHT JOIN (
     SELECT rk.persoon AS laps, k2.persoon AS vanem
     FROM repis.kirjed rk
-    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
     WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (poeg|tütar), ')
-    AND k2.sugu = 'N' -- EMA
+    AND RIGHT(k2.kirjekood, 2) = '00'  -- põhiküüditatu
+    AND k2.sugu = 'N'                  -- EMA
     AND rk.allikas like 'R6-%'
     AND RIGHT(rk.kirjekood, 2) != '00'
   ) AS k3 ON ei.persoon = k3.laps
   SET ei.ema=k3.vanem
+  WHERE ei.updated_by = '-'
+  ;
+  UPDATE repis.emadisad ei
+  RIGHT JOIN (
+    SELECT rk.persoon AS laps, k2.persoon AS vanem
+    FROM repis.kirjed rk
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
+    WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (kasupoeg|kasutütar), ')
+    AND RIGHT(k2.kirjekood, 2) = '00'  -- põhiküüditatu
+    AND k2.sugu = 'N'                  -- EMA
+    AND rk.allikas LIKE 'R6-%'
+    AND RIGHT(rk.kirjekood, 2) != '00'
+  ) AS k3 ON ei.persoon = k3.laps
+  SET ei.kasuema=k3.vanem
+  WHERE ei.updated_by = '-'
   ;
 
 UPDATE repis.emadisad ei
   RIGHT JOIN (
     SELECT rk.persoon AS laps, k2.persoon AS vanem
     FROM repis.kirjed rk
-    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
     WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (poeg|tütar), ')
+    AND RIGHT(k2.kirjekood, 2) = '00'  -- põhiküüditatu
     AND k2.sugu = 'M' -- ISA
     AND rk.allikas like 'R6-%'
     AND RIGHT(rk.kirjekood, 2) != '00'
   ) AS k3 ON ei.persoon = k3.laps
   SET ei.isa=k3.vanem
+  WHERE ei.updated_by = '-'
+  ;
+  UPDATE repis.emadisad ei
+  RIGHT JOIN (
+    SELECT rk.persoon AS laps, k2.persoon AS vanem
+    FROM repis.kirjed rk
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
+    WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (kasupoeg|kasutütar), ')
+    AND RIGHT(k2.kirjekood, 2) = '00'  -- põhiküüditatu
+    AND k2.sugu = 'M' -- ISA
+    AND rk.allikas like 'R6-%'
+    AND RIGHT(rk.kirjekood, 2) != '00'
+  ) AS k3 ON ei.persoon = k3.laps
+  SET ei.kasuisa=k3.vanem
+  WHERE ei.updated_by = '-'
   ;
 
 UPDATE repis.emadisad ei
   RIGHT JOIN (
     SELECT rk.persoon AS vanem, k2.persoon AS laps
     FROM repis.kirjed rk
-    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
     WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (ema), ')
+    AND RIGHT(k2.kirjekood, 2) = '00'  -- põhiküüditatu
     AND rk.allikas like 'R6-%'
     AND RIGHT(rk.kirjekood, 2) != '00'
   ) AS k3 ON ei.persoon = k3.laps
   SET ei.ema=k3.vanem
+  WHERE ei.updated_by = '-'
+  ;
+  UPDATE repis.emadisad ei
+  RIGHT JOIN (
+    SELECT rk.persoon AS vanem, k2.persoon AS laps
+    FROM repis.kirjed rk
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
+    WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (kasuema), ')
+    AND RIGHT(k2.kirjekood, 2) = '00'  -- põhiküüditatu
+    AND rk.allikas like 'R6-%'
+    AND RIGHT(rk.kirjekood, 2) != '00'
+  ) AS k3 ON ei.persoon = k3.laps
+  SET ei.kasuema=k3.vanem
+  WHERE ei.updated_by = '-'
   ;
 
 UPDATE repis.emadisad ei
   RIGHT JOIN (
     SELECT rk.persoon AS vanem, k2.persoon AS laps
     FROM repis.kirjed rk
-    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
     WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (isa), ')
+    AND RIGHT(k2.kirjekood, 2) = '00'  -- põhiküüditatu
     AND rk.allikas like 'R6-%'
     AND RIGHT(rk.kirjekood, 2) != '00'
   ) AS k3 ON ei.persoon = k3.laps
   SET ei.isa=k3.vanem
+  WHERE ei.updated_by = '-'
+  ;
+  UPDATE repis.emadisad ei
+  RIGHT JOIN (
+    SELECT rk.persoon AS vanem, k2.persoon AS laps
+    FROM repis.kirjed rk
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
+    WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (kasuisa), ')
+    AND RIGHT(k2.kirjekood, 2) = '00'  -- põhiküüditatu
+    AND rk.allikas like 'R6-%'
+    AND RIGHT(rk.kirjekood, 2) != '00'
+  ) AS k3 ON ei.persoon = k3.laps
+  SET ei.kasuisa=k3.vanem
+  WHERE ei.updated_by = '-'
   ;
 
 UPDATE repis.emadisad ei
   RIGHT JOIN (
     SELECT rk.persoon AS vanem, k2.persoon AS laps
     FROM repis.kirjed rk
-    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
     WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (abikaasa), ')
+    AND RIGHT(k2.kirjekood, 2) = '00'  -- põhiküüditatu
     AND rk.allikas like 'R6-%'
     AND RIGHT(rk.kirjekood, 2) != '00'
   ) AS k3 ON ei.persoon = k3.laps
   SET ei.abikaasa=k3.vanem
+  WHERE ei.updated_by = '-'
   ;
 
 -- R5
@@ -122,63 +189,130 @@ UPDATE repis.emadisad ei
   RIGHT JOIN (
     SELECT rk.persoon AS laps, k2.persoon AS vanem
     FROM repis.kirjed rk
-    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
     WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (poeg|tütar), ')
+    AND RIGHT(k2.kirjekood, 2) = '01'  -- põhiküüditatu
     AND k2.sugu = 'N' -- EMA
     AND rk.allikas like 'R5'
     AND RIGHT(rk.kirjekood, 2) != '01'
   ) AS k3 ON ei.persoon = k3.laps
   SET ei.ema=k3.vanem
+  WHERE ei.updated_by = '-'
+  ;
+  UPDATE repis.emadisad ei
+  RIGHT JOIN (
+    SELECT rk.persoon AS laps, k2.persoon AS vanem
+    FROM repis.kirjed rk
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
+    WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (kasupoeg|kasutütar), ')
+    AND RIGHT(k2.kirjekood, 2) = '01'  -- põhiküüditatu
+    AND k2.sugu = 'N' -- EMA
+    AND rk.allikas like 'R5'
+    AND RIGHT(rk.kirjekood, 2) != '01'
+  ) AS k3 ON ei.persoon = k3.laps
+  SET ei.kasuema=k3.vanem
+  WHERE ei.updated_by = '-'
   ;
 
 UPDATE repis.emadisad ei
   RIGHT JOIN (
     SELECT rk.persoon AS laps, k2.persoon AS vanem
     FROM repis.kirjed rk
-    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
     WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (poeg|tütar), ')
+    AND RIGHT(k2.kirjekood, 2) = '01'  -- põhiküüditatu
     AND k2.sugu = 'M' -- ISA
     AND rk.allikas like 'R5'
     AND RIGHT(rk.kirjekood, 2) != '01'
   ) AS k3 ON ei.persoon = k3.laps
   SET ei.isa=k3.vanem
+  WHERE ei.updated_by = '-'
+  ;
+  UPDATE repis.emadisad ei
+  RIGHT JOIN (
+    SELECT rk.persoon AS laps, k2.persoon AS vanem
+    FROM repis.kirjed rk
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
+    WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (kasupoeg|kasutütar), ')
+    AND RIGHT(k2.kirjekood, 2) = '01'  -- põhiküüditatu
+    AND k2.sugu = 'M' -- ISA
+    AND rk.allikas like 'R5'
+    AND RIGHT(rk.kirjekood, 2) != '01'
+  ) AS k3 ON ei.persoon = k3.laps
+  SET ei.kasuisa=k3.vanem
+  WHERE ei.updated_by = '-'
   ;
 
 UPDATE repis.emadisad ei
   RIGHT JOIN (
     SELECT rk.persoon AS vanem, k2.persoon AS laps
     FROM repis.kirjed rk
-    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
     WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (ema), ')
+    AND RIGHT(k2.kirjekood, 2) = '01'  -- põhiküüditatu
     AND rk.allikas like 'R5'
     AND RIGHT(rk.kirjekood, 2) != '01'
   ) AS k3 ON ei.persoon = k3.laps
   SET ei.ema=k3.vanem
+  WHERE ei.updated_by = '-'
+  ;
+  UPDATE repis.emadisad ei
+  RIGHT JOIN (
+    SELECT rk.persoon AS vanem, k2.persoon AS laps
+    FROM repis.kirjed rk
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
+    WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (kasuema), ')
+    AND RIGHT(k2.kirjekood, 2) = '01'  -- põhiküüditatu
+    AND rk.allikas like 'R5'
+    AND RIGHT(rk.kirjekood, 2) != '01'
+  ) AS k3 ON ei.persoon = k3.laps
+  SET ei.kasuema=k3.vanem
+  WHERE ei.updated_by = '-'
   ;
 
 UPDATE repis.emadisad ei
   RIGHT JOIN (
     SELECT rk.persoon AS vanem, k2.persoon AS laps
     FROM repis.kirjed rk
-    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
     WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (isa), ')
+    AND RIGHT(k2.kirjekood, 2) = '01'  -- põhiküüditatu
     AND rk.allikas like 'R5'
     AND RIGHT(rk.kirjekood, 2) != '01'
   ) AS k3 ON ei.persoon = k3.laps
   SET ei.isa=k3.vanem
+  WHERE ei.updated_by = '-'
+  ;
+  UPDATE repis.emadisad ei
+  RIGHT JOIN (
+    SELECT rk.persoon AS vanem, k2.persoon AS laps
+    FROM repis.kirjed rk
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
+    WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (kasuisa), ')
+    AND RIGHT(k2.kirjekood, 2) = '01'  -- põhiküüditatu
+    AND rk.allikas like 'R5'
+    AND RIGHT(rk.kirjekood, 2) != '01'
+  ) AS k3 ON ei.persoon = k3.laps
+  SET ei.kasuisa=k3.vanem
+  WHERE ei.updated_by = '-'
   ;
 
 UPDATE repis.emadisad ei
   RIGHT JOIN (
     SELECT rk.persoon AS vanem, k2.persoon AS laps
     FROM repis.kirjed rk
-    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere
+    LEFT JOIN repis.kirjed k2 ON rk.raamatupere = k2.raamatupere AND rk.allikas = k2.allikas
     WHERE rk.kirje REGEXP concat('^\\S* \\S* \\S* (abikaasa), ')
+    AND RIGHT(k2.kirjekood, 2) = '01'  -- põhiküüditatu
     AND rk.allikas like 'R5'
     AND RIGHT(rk.kirjekood, 2) != '01'
   ) AS k3 ON ei.persoon = k3.laps
   SET ei.abikaasa=k3.vanem
+  WHERE ei.updated_by = '-'
   ;
+
+DELETE FROM repis.counter WHERE id IN ('I', 'E');
+
 
 --
 -- Triggers
@@ -205,45 +339,64 @@ DELIMITER ;; -- emaisalaud_BI
     SET NEW.kirjed = repis.func_persoonikirjed(NEW.persoon);
 
     SELECT ema INTO @ema FROM repis.emadisad WHERE persoon = NEW.persoon;
-    SELECT isa INTO @isa FROM repis.emadisad WHERE persoon = NEW.persoon;
-    SELECT abikaasa INTO @abikaasa FROM repis.emadisad WHERE persoon = NEW.persoon;
-    SELECT kasuema INTO @kasuema FROM repis.emadisad WHERE persoon = NEW.persoon;
-    SELECT kasuisa INTO @kasuisa FROM repis.emadisad WHERE persoon = NEW.persoon;
     SET NEW.ema = IFNULL(@ema, '');
+    IF NEW.ema != '' THEN
+      SET NEW.emakirjed = repis.func_persoonikirjed(NEW.ema);
+    END IF;
+
+    SELECT isa INTO @isa FROM repis.emadisad WHERE persoon = NEW.persoon;
     SET NEW.isa = IFNULL(@isa, '');
+    IF NEW.isa != '' THEN
+      SET NEW.isakirjed = repis.func_persoonikirjed(NEW.isa);
+    END IF;
+
+    SELECT abikaasa INTO @abikaasa FROM repis.emadisad WHERE persoon = NEW.persoon;
     SET NEW.abikaasa = IFNULL(@abikaasa, '');
+    IF NEW.abikaasa != '' THEN
+      SET NEW.abikaasakirjed = repis.func_persoonikirjed(NEW.abikaasa);
+    END IF;
+
+    SELECT kasuema INTO @kasuema FROM repis.emadisad WHERE persoon = NEW.persoon;
     SET NEW.kasuema = IFNULL(@kasuema, '');
+    IF NEW.kasuema != '' THEN
+      SET NEW.kasuemakirjed = repis.func_persoonikirjed(NEW.kasuema);
+    END IF;
+
+    SELECT kasuisa INTO @kasuisa FROM repis.emadisad WHERE persoon = NEW.persoon;
     SET NEW.kasuisa = IFNULL(@kasuisa, '');
+    IF NEW.kasuisa != '' THEN
+      SET NEW.kasuisakirjed = repis.func_persoonikirjed(NEW.kasuisa);
+    END IF;
+
+  END;;
+
+DELIMITER ;
+
+DELIMITER ;; -- emaisalaud_AI
+
+  CREATE OR REPLACE DEFINER=queue@localhost TRIGGER repis.emaisalaud_AI AFTER INSERT ON repis.emaisalaud FOR EACH ROW
+  proc_label:BEGIN
 
     INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,                 params, created_by)
     VALUES                           (NEW.persoon, NULL,       'raamatupere2emaisa', '',     NEW.created_by);
 
-    IF NEW.ema != '' THEN
-      SET NEW.emakirjed = repis.func_persoonikirjed(NEW.ema);
-      if NEW.emakirjed IS NOT NULL THEN
-        INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,    task,         params, created_by)
-        VALUES                           (NEW.ema,     NULL,          'add2emaisa', 'ema',   NEW.created_by);
-      END IF;
+    if NEW.ema != '' THEN
+      INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,    task,         params, created_by)
+      VALUES                           (NEW.ema,     NULL,          'add2emaisa', 'ema',   NEW.created_by);
     END IF;
-    IF NEW.isa != '' THEN
-      SET NEW.isakirjed = repis.func_persoonikirjed(NEW.isa);
-      if NEW.isakirjed IS NOT NULL THEN
-        INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,    task,         params, created_by)
-        VALUES                           (NEW.isa,     NULL,          'add2emaisa', 'isa',   NEW.created_by);
-      END IF;
+    if NEW.isa != '' THEN
+      INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,    task,         params, created_by)
+      VALUES                           (NEW.isa,     NULL,          'add2emaisa', 'isa',   NEW.created_by);
     END IF;
-    IF NEW.abikaasa != '' THEN
-      SET NEW.abikaasakirjed = repis.func_persoonikirjed(NEW.abikaasa);
+    if NEW.abikaasa != '' THEN
       INSERT IGNORE INTO repis.z_queue (kirjekood1,   kirjekood2,    task,         params,     created_by)
       VALUES                           (NEW.abikaasa, NULL,          'add2emaisa', 'abikaasa', NEW.created_by);
     END IF;
     IF NEW.kasuema != '' THEN
-      SET NEW.kasuemakirjed = repis.func_persoonikirjed(NEW.kasuema);
       INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,    task,         params, created_by)
       VALUES                           (NEW.kasuema,     NULL,      'add2emaisa', 'kasuema',   NEW.created_by);
     END IF;
     IF NEW.kasuisa != '' THEN
-      SET NEW.kasuisakirjed = repis.func_persoonikirjed(NEW.kasuisa);
       INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,    task,         params, created_by)
       VALUES                           (NEW.kasuisa,     NULL,      'add2emaisa', 'kasuisa',   NEW.created_by);
     END IF;
@@ -281,6 +434,28 @@ DELIMITER ;; -- emaisalaud_BU
       SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
     END IF;
 
+    IF NEW.ema = 'E' THEN
+      SET NEW.ema = repis.emadisad_next_id('E');
+    END IF;
+    IF NEW.isa = 'I' THEN
+      SET NEW.isa = repis.emadisad_next_id('I');
+    END IF;
+
+    SET NEW.emakirjed = repis.func_persoonikirjed(NEW.ema);
+    SET NEW.isakirjed = repis.func_persoonikirjed(NEW.isa);
+    SET NEW.abikaasakirjed = repis.func_persoonikirjed(NEW.abikaasa);
+    SET NEW.kasuemakirjed = repis.func_persoonikirjed(NEW.kasuema);
+    SET NEW.kasuisakirjed = repis.func_persoonikirjed(NEW.kasuisa);
+
+  END;;
+
+DELIMITER ;
+
+DELIMITER ;; -- emaisalaud_AU
+
+  CREATE OR REPLACE DEFINER=queue@localhost TRIGGER repis.emaisalaud_AU AFTER UPDATE ON repis.emaisalaud FOR EACH ROW
+  proc_label:BEGIN
+
     IF NEW.ema != OLD.ema OR NEW.isa != OLD.isa OR NEW.abikaasa != OLD.abikaasa OR
        NEW.kasuema != OLD.kasuema OR NEW.kasuisa != OLD.kasuisa THEN
           INSERT INTO repis.emadisad (persoon, ema, isa, abikaasa, kasuema, kasuisa, updated_by)
@@ -303,11 +478,6 @@ DELIMITER ;; -- emaisalaud_BU
       INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2,    task,                 params,   created_by)
       VALUES                           (OLD.kasuisa, NEW.kasuisa,   'emaisalaud_replace', '',       NEW.created_by);
 
-      SET NEW.emakirjed = repis.func_persoonikirjed(NEW.ema);
-      SET NEW.isakirjed = repis.func_persoonikirjed(NEW.isa);
-      SET NEW.abikaasakirjed = repis.func_persoonikirjed(NEW.abikaasa);
-      SET NEW.kasuemakirjed = repis.func_persoonikirjed(NEW.kasuema);
-      SET NEW.kasuisakirjed = repis.func_persoonikirjed(NEW.kasuisa);
     END IF;
 
     IF NEW.A = 'Valmis' THEN

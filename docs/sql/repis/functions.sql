@@ -135,6 +135,37 @@ DELIMITER ;; -- func_kirje2persoon()
 DELIMITER ;
 
 
+DELIMITER ;; -- func_person_text()
+
+  CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.func_person_text(
+    _kirjekood CHAR(10)
+  ) RETURNS varchar(2000) CHARSET utf8 COLLATE utf8_estonian_ci
+  func_label:BEGIN
+
+    DECLARE person_text VARCHAR(2000);
+
+    SELECT concat_ws('. ',
+      concat_ws(', ',
+        if(perenimi = '', NULL, perenimi),
+        if(eesnimi  = '', NULL, eesnimi),
+        if(isanimi  = '', NULL, concat('isa ', isanimi)),
+        if(emanimi  = '', NULL, concat('ema ', emanimi))
+      ),
+      if(sünd       = '', NULL, concat('Sünd ', sünd)),
+      if(surm       = '', NULL, concat('Surm ', surm)),
+      if(sugu = '', NULL, sugu)
+    )
+    INTO person_text
+    FROM repis.kirjed
+    WHERE kirjekood = _kirjekood;
+
+    RETURN person_text;
+
+  END;;
+
+DELIMITER ;
+
+
 DELIMITER ;; -- func_persoonikirjed()
 
   CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.func_persoonikirjed(
