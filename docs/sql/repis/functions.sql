@@ -169,23 +169,38 @@ DELIMITER ;
 DELIMITER ;; -- func_persoonikirjed()
 
   CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.func_persoonikirjed(
-      _persoon CHAR(10)
+      _persoonid VARCHAR(1000)
   ) RETURNS VARCHAR(4000) CHARSET utf8 COLLATE utf8_estonian_ci
   func_label:BEGIN
 
-  DECLARE _ret_val VARCHAR(4000);
+    DECLARE _rval VARCHAR(4000) DEFAULT NULL;
+    DECLARE _ret_val VARCHAR(4000) DEFAULT NULL;
+    DECLARE _persoon CHAR(10) DEFAULT NULL;
 
-  SELECT group_concat(k0.kirjekood, ': ', k0.kirje SEPARATOR '\n') INTO _ret_val
-  FROM repis.kirjed k0
-  WHERE k0.persoon = _persoon
-    AND k0.kirje != ''
-    AND k0.persoon != k0.kirjekood
-  GROUP BY k0.persoon;
+    do_this: LOOP
+      SET _persoon = SUBSTRING_INDEX(_persoonid, ',', 1);
 
-  RETURN _ret_val;
+      SELECT group_concat(k0.kirjekood, ': ', k0.kirje SEPARATOR '\n') INTO _rval
+      FROM repis.kirjed k0
+      WHERE k0.persoon = _persoon
+        AND k0.kirje != ''
+        AND k0.persoon != k0.kirjekood
+      GROUP BY k0.persoon;
+
+      SET _ret_val = concat_ws('\n==\n', _ret_val, _rval);
+
+      SET _persoonid = SUBSTRING(_persoonid, 12);
+
+      IF _persoonid = '' THEN
+        LEAVE do_this;
+      END IF;
+    END LOOP do_this;
+
+    RETURN _ret_val;
   END;;
 
 DELIMITER ;
+
 
 DELIMITER ;; -- func_next_id()
 
