@@ -308,7 +308,7 @@ DELIMITER ;; -- desktop_BU
     --
     -- Recalculate current record
     --
-    IF OLD.allikas IN ('EMI', 'TS', 'Persoon') THEN
+    IF OLD.allikas IN ('EMI', 'Persoon') THEN
       SET NEW.kirje =
         concat_ws('. ',
           repis.desktop_person_text(
@@ -453,6 +453,23 @@ DELIMITER ;; -- desktop_BU
       WHERE d.created_by = user();
 
 
+      -- Update newly created "Tagasiside" records if any
+      UPDATE repis.kirjed k
+      RIGHT JOIN repis.desktop dts ON k.kirjekood = dts.kirjekood
+      RIGHT JOIN repis.desktop dp ON dts.persoon = dp.kirjekood
+        SET k.kirje =
+        concat_ws('. ',
+          repis.desktop_person_text(
+            dp.perenimi, dp.eesnimi,
+            dp.isanimi, dp.emanimi,
+            dp.sünd, dp.surm
+          ) COLLATE utf8_estonian_ci,
+          dts.jutt
+        )
+      WHERE dts.allikas = 'TS'
+        AND dts.kirje = '';
+
+
       -- Remove deleted records
       UPDATE repis.kirjed k
       RIGHT JOIN repis.desktop d ON d.kirjekood = k.kirjekood
@@ -566,7 +583,7 @@ DELIMITER ;; -- desktop_collect
         -- , repis.func_kirjelipikud(kirjekood)
         -- , repis.func_kirjesildid(kirjekood)
         , kirje, legend, allikas, välisviide, EkslikKanne, Peatatud, EiArvesta, _created_by
-        , IF(allikas IN ('TS','EMI'),
+        , IF(allikas = 'EMI',
             IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') COLLATE utf8_estonian_ci,
               REPLACE(
                 kirje,
@@ -576,7 +593,7 @@ DELIMITER ;; -- desktop_collect
               kirje
             ),
             ' - - - '
-          )
+          ) jutt
       FROM repis.kirjed k
       WHERE k.persoon = @p_id;
 
