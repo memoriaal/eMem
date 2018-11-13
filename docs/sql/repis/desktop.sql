@@ -345,10 +345,17 @@ DELIMITER ;; -- desktop_BU
         SET @refresh_requested = 1;
       END IF;
 
-      IF NEW.kirje != OLD.kirje AND NEW.allikas != 'Persoon' AND @refresh_requested = 0 THEN
-        INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,            params, created_by)
-        VALUES                           (NEW.persoon, NULL,       'desktop_NK_refresh', '2.2',   user());
-        SET @refresh_requested = 1;
+      IF (  NEW.eesnimi != OLD.eesnimi
+         OR NEW.perenimi != OLD.perenimi
+         OR NEW.isanimi != OLD.isanimi
+         OR NEW.emanimi != OLD.emanimi
+         OR NEW.sünd != OLD.sünd
+         OR NEW.surm != OLD.surm
+         )
+         AND NEW.allikas != 'Persoon' AND @refresh_requested = 0 THEN
+            INSERT IGNORE INTO repis.z_queue (kirjekood1,  kirjekood2, task,            params, created_by)
+            VALUES                           (NEW.persoon, NULL,       'desktop_NK_refresh', '2.2',   user());
+            SET @refresh_requested = 1;
       END IF;
 
     END IF;
