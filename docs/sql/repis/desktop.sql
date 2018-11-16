@@ -256,7 +256,7 @@ DELIMITER ;; -- desktop_BU
 
 
     --
-    -- Prefill names'n'dates'n'kirje
+    -- Prefill names'n'dates'n'kirje of new EMI
     --
     IF OLD.allikas IN ('EMI')
        AND OLD.persoon = '' AND NEW.persoon != '' THEN
@@ -278,29 +278,10 @@ DELIMITER ;; -- desktop_BU
               FROM repis.desktop k
              WHERE k.kirjekood = NEW.persoon;
 
-            SET @nimekirje = concat(
-              repis.desktop_person_text(
-                @perenimi, @eesnimi, @isanimi, @emanimi, @sünd, @surm
-              ) COLLATE utf8_estonian_ci,
-              '. '
-            );
-
-            SET @match = @kirje LIKE concat(@nimekirje, '%') COLLATE utf8_estonian_ci;
-
             SET NEW.perenimi = @perenimi, NEW.eesnimi = @eesnimi,
                 NEW.isanimi = @isanimi, NEW.emanimi = @emanimi,
                 NEW.sünd = @sünd, NEW.surm = @surm;
-                -- NEW.jutt = IF(@allikas IN ('TS','EMI'),
-                --   IF(@match,
-                --     REPLACE(
-                --       @kirje,
-                --       @nimekirje,
-                --       ''
-                --     ),
-                --     @kirje
-                --   ),
-                --   ' - - - '
-                -- );
+
       END IF;
     END IF;
 
@@ -317,7 +298,6 @@ DELIMITER ;; -- desktop_BU
               NEW.sünd, NEW.surm
             ) COLLATE utf8_estonian_ci,
           if(NEW.jutt IN('', ' - - - '), NULL, NEW.jutt)
-          -- , if(NEW.välisviide = '', NULL, NEW.välisviide)
         )
       ;
     END IF;
@@ -391,11 +371,17 @@ DELIMITER ;; -- desktop_BU
         persoon, kirjekood, kirje, legend, perenimi, eesnimi,
         isanimi, emanimi, sünd, surm, allikas,
         välisviide, EkslikKanne, Peatatud, EiArvesta,
-        created_at, created_by)
+        created_at, created_by,
+        KirjePersoon)
       SELECT d.persoon, d.kirjekood, d.kirje, d.legend, d.perenimi, d.eesnimi,
              d.isanimi, d.emanimi, d.sünd, d.surm, d.allikas,
              d.välisviide, d.EkslikKanne, d.Peatatud, d.EiArvesta,
-             now(), SUBSTRING_INDEX(user(), '@', 1)
+             now(), SUBSTRING_INDEX(user(), '@', 1),
+             repis.desktop_person_text(
+                d.perenimi, d.eesnimi,
+                d.isanimi, d.emanimi,
+                d.sünd, d.surm
+              )
       FROM repis.desktop d
       LEFT JOIN repis.kirjed k ON k.kirjekood = d.kirjekood
       WHERE k.persoon IS NULL
@@ -407,13 +393,25 @@ DELIMITER ;; -- desktop_BU
         persoon, kirjekood, kirje, legend, perenimi, eesnimi,
         isanimi, emanimi, sünd, surm, allikas,
         välisviide, EkslikKanne, Peatatud, EiArvesta,
-        created_at, created_by)
+        created_at, created_by,
+        KirjePersoon,
+        kirjeJutt)
       SELECT d.persoon, d.kirjekood, d.kirje, d.legend, d.perenimi, d.eesnimi,
              d.isanimi, d.emanimi, d.sünd, d.surm, d.allikas,
              d.välisviide, d.EkslikKanne, d.Peatatud, d.EiArvesta,
-             now(), SUBSTRING_INDEX(user(), '@', 1)
+             now(), SUBSTRING_INDEX(user(), '@', 1),
+             if(d.allikas IN ('EMI', 'TS'),
+                  repis.desktop_person_text(
+                    d2.perenimi, d2.eesnimi,
+                    d2.isanimi, d2.emanimi,
+                    d2.sünd, d2.surm
+                  ),
+                  NULL
+               ),
+             if(d.allikas IN ('EMI', 'TS'), d.jutt, NULL)
       FROM repis.desktop d
       LEFT JOIN repis.kirjed k ON k.kirjekood = d.kirjekood
+      LEFT JOIN repis.desktop d2 ON d2.kirjekood = d.persoon
       WHERE k.kirjekood IS NULL
       AND d.persoon != d.kirjekood
       AND d.created_by = user();
@@ -446,6 +444,7 @@ DELIMITER ;; -- desktop_BU
       -- Update changed persons
       UPDATE repis.kirjed k
       RIGHT JOIN repis.desktop d ON d.kirjekood = k.kirjekood
+      LEFT JOIN repis.desktop d2 ON d2.kirjekood = d.persoon
       SET k.persoon = d.persoon,
           k.lipikud = repis.func_kirjelipikud(k.kirjekood),
           k.sildid = repis.func_kirjesildid(k.kirjekood),
@@ -456,25 +455,17 @@ DELIMITER ;; -- desktop_BU
           k.välisviide = d.välisviide, k.EkslikKanne = d.EkslikKanne,
           k.Peatatud = d.Peatatud,
           k.EiArvesta = d.EiArvesta,
-          k.updated_at = now(), updated_by = SUBSTRING_INDEX(user(), '@', 1)
+          k.updated_at = now(), updated_by = SUBSTRING_INDEX(user(), '@', 1),
+          k.KirjePersoon = if(d.allikas IN ('EMI', 'TS'),
+               repis.desktop_person_text(
+                 d2.perenimi, d2.eesnimi,
+                 d2.isanimi, d2.emanimi,
+                 d2.sünd, d2.surm
+               ),
+               NULL
+            ),
+          k.kirjeJutt = if(d.allikas IN ('EMI', 'TS'), d.jutt, NULL)
       WHERE d.created_by = user();
-
-
-      -- Update newly created "Tagasiside" records if any
-      UPDATE repis.kirjed k
-      RIGHT JOIN repis.desktop dts ON k.kirjekood = dts.kirjekood
-      RIGHT JOIN repis.desktop dp ON dts.persoon = dp.kirjekood
-        SET k.kirje =
-        concat_ws('. ',
-          repis.desktop_person_text(
-            dp.perenimi, dp.eesnimi,
-            dp.isanimi, dp.emanimi,
-            dp.sünd, dp.surm
-          ) COLLATE utf8_estonian_ci,
-          dts.jutt
-        )
-      WHERE dts.allikas = 'TS'
-        AND dts.kirje = '';
 
 
       -- Remove deleted records
@@ -590,15 +581,8 @@ DELIMITER ;; -- desktop_collect
         -- , repis.func_kirjelipikud(kirjekood)
         -- , repis.func_kirjesildid(kirjekood)
         , kirje, legend, allikas, välisviide, EkslikKanne, Peatatud, EiArvesta, _created_by
-        , IF(allikas = 'EMI',
-            IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') COLLATE utf8_estonian_ci,
-              REPLACE(
-                kirje,
-                concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. ') COLLATE utf8_estonian_ci,
-                ''
-              ),
-              kirje
-            ),
+        , IF(allikas IN ('EMI', 'TS'),
+            kirjeJutt,
             ' - - - '
           ) jutt
       FROM repis.kirjed k
@@ -896,6 +880,29 @@ DELIMITER ;; -- desktop_join_persons
   proc_label:BEGIN
 
     UPDATE repis_desktop SET person = _new_person WHERE person = _old_person;
+
+  END;;
+
+DELIMITER ;
+
+
+
+
+
+
+
+DELIMITER ;; -- desktop_BU
+
+  CREATE OR REPLACE DEFINER=queue@localhost  TRIGGER repis.kirjed_BU BEFORE UPDATE ON repis.kirjed FOR EACH ROW
+  proc_label:BEGIN
+
+    IF NEW.allikas = 'EMI' THEN
+      SET NEW.kirje = concat_ws('. ', if(NEW.KirjePersoon = '', NULL, NEW.KirjePersoon), if(NEW.kirjeJutt = '', NULL, NEW.kirjeJutt));
+    END IF;
+
+    IF NEW.allikas = 'TS' THEN
+      SET NEW.kirje = concat_ws('. ', if(NEW.KirjePersoon = '', NULL, NEW.KirjePersoon), if(NEW.kirjeJutt = '', NULL, NEW.kirjeJutt));
+    END IF;
 
   END;;
 
