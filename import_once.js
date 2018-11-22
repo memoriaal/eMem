@@ -102,11 +102,16 @@ async.series({
         if (isik.id === '') {
           return
         }
-        isik['kirjed'] = isik['kirjed'].split(';_\n')
+        try {
+          isik['kirjed'] = isik['kirjed'].split(';_\n')
           .filter((kirje) => kirje !== '')
           .map((kirje) => {
             return kirje2obj(kirje)
           })
+        } catch (e) {
+          console.log(e)
+          console.log(isik)
+        }
         if (isik['pereseos'] !== undefined) {
           let pereseosed = isik['pereseos'].split(';_\n')
             .filter((kirje) => kirje !== '')
