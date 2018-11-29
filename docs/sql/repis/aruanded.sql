@@ -11,6 +11,7 @@ FROM (repis.kirjed k
   left join repis.v_kirjesildid s on(s.kirjekood = k.persoon and s.silt = 'x - kivi' AND s.deleted_at = '0000-00-00 00:00:00'))
   where k.Allikas = 'KIVI' and s.silt is null;
 
+
 CREATE OR REPLACE VIEW aruanded.muutunud_kivikirjed
 AS SELECT
    k.kirjekood AS K_kirjekood,
@@ -23,11 +24,21 @@ AS SELECT
    nk.Eesnimi AS eesnimi,
    left(nk.Sünd, 4) AS sünd,
    left(nk.Surm, 4) AS surm,
-   k.kommentaar AS kommentaar
-FROM ((repis.v_kirjesildid s
-  left join repis.kirjed k on(s.kirjekood = k.persoon))
-  left join repis.kirjed nk on(nk.persoon = k.persoon and nk.kirjekood = nk.persoon))
-  where s.silt = 'x - kivi' AND s.deleted_at = '0000-00-00 00:00:00' and k.Allikas = 'KIVI' and (replace(nk.Perenimi,'-',' ') <> k.Perenimi or replace(nk.Eesnimi,'-',' ') <> k.Eesnimi or nk.Isanimi <> k.Isanimi and k.Isanimi <> '' or left(nk.Sünd,4) <> k.Sünd or left(nk.Surm,4) <> k.Surm);
+   k.kommentaar AS kommentaar,
+   kts.kirjekood AS Tagasiside
+FROM repis.v_kirjesildid s
+  left join repis.kirjed k on s.kirjekood = k.persoon
+  left join repis.kirjed nk on nk.persoon = k.persoon and nk.kirjekood = nk.persoon
+  left join `repis`.`kirjed` `kts` on `k`.`persoon` = `kts`.`persoon` and `kts`.`Allikas` = 'ts'
+  where s.silt = 'x - kivi' AND s.deleted_at = '0000-00-00 00:00:00'
+    and k.Allikas = 'KIVI'
+    and (replace(nk.Perenimi,'-',' ') <> k.Perenimi
+      or replace(nk.Eesnimi,'-',' ') <> k.Eesnimi
+      or nk.Isanimi <> k.Isanimi and k.Isanimi <> ''
+      or left(nk.Sünd,4) <> k.Sünd
+      or left(nk.Surm,4) <> k.Surm
+    );
+
 
 CREATE OR REPLACE VIEW aruanded.uued_kivikirjed
 AS SELECT
