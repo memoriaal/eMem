@@ -24,12 +24,12 @@ AS SELECT
    nk.Eesnimi AS eesnimi,
    left(nk.Sünd, 4) AS sünd,
    left(nk.Surm, 4) AS surm,
-   k.kommentaar AS kommentaar,
-   kts.kirjekood AS Tagasiside
+   k.kommentaar AS kommentaar
+   , kts.kirjekood AS Tagasiside
 FROM repis.v_kirjesildid s
   left join repis.kirjed k on s.kirjekood = k.persoon
   left join repis.kirjed nk on nk.persoon = k.persoon and nk.kirjekood = nk.persoon
-  left join `repis`.`kirjed` `kts` on `k`.`persoon` = `kts`.`persoon` and `kts`.`Allikas` = 'ts'
+  left join repis.kirjed kts on k1.persoon = kts.persoon and kts.Allikas = 'ts'
   where s.silt = 'x - kivi' AND s.deleted_at = '0000-00-00 00:00:00'
     and k.Allikas = 'KIVI'
     and (replace(nk.Perenimi,'-',' ') <> k.Perenimi
@@ -50,9 +50,11 @@ AS SELECT
    k1.Sünd AS sünd,
    k1.Surm AS surm,
    k1.kommentaar AS kommentaar
-FROM ((repis.v_kirjesildid s
-  left join repis.kirjed k on(s.kirjekood = k.persoon and s.silt = 'x - kivi' AND s.deleted_at = '0000-00-00 00:00:00' and k.Allikas = 'KIVI'))
-  left join repis.kirjed k1 on(k1.kirjekood = s.kirjekood))
+   , kts.kirjekood AS Tagasiside
+FROM repis.v_kirjesildid s
+  left join repis.kirjed k on s.kirjekood = k.persoon and s.silt = 'x - kivi' AND s.deleted_at = '0000-00-00 00:00:00' and k.Allikas = 'KIVI'
+  left join repis.kirjed k1 on k1.kirjekood = s.kirjekood
+  left join repis.kirjed kts on k1.persoon = kts.persoon and kts.Allikas = 'ts'
   where s.silt = 'x - kivi' AND s.deleted_at = '0000-00-00 00:00:00' and k.kirjekood is null and k1.Perenimi <> '' and k1.Eesnimi <> '';
 
 
@@ -82,10 +84,12 @@ FROM ((repis.v_kirjesildid s
      k2.created_by AS created_by,
      k2.updated_at AS updated_at,
      k2.updated_by AS updated_by
+     , kts.kirjekood AS Tagasiside
   FROM repis.kirjed k2
   right join repis.kirjed k1 on k2.persoon = k1.persoon
                             and k2.kirjekood <> k1.kirjekood
   right join repis.kirjed k0 on k1.persoon = k0.persoon
+  left join repis.kirjed kts on k2.persoon = kts.persoon and kts.Allikas = 'ts'
   where k0.Allikas = 'KIVI'
     and k1.Allikas = 'KIVI'
     and k2.Allikas = 'KIVI'
@@ -119,9 +123,11 @@ FROM ((repis.v_kirjesildid s
      k.created_by AS created_by,
      k.updated_at AS updated_at,
      k.updated_by AS updated_by
+     , kts.kirjekood AS Tagasiside
   FROM repis.kirjed k1
   LEFT JOIN repis.kirjed k2 ON k2.persoon = k1.persoon AND k2.allikas = 'kivi' AND k2.kirjekood != k1.kirjekood
   LEFT JOIN repis.kirjed k ON k.persoon = k2.persoon
+  left join repis.kirjed kts on k.persoon = kts.persoon and kts.Allikas = 'ts'
   WHERE k1.allikas = 'kivi'
   AND k2.persoon IS NOT NULL
   ;
@@ -130,20 +136,28 @@ FROM ((repis.v_kirjesildid s
 --
 -- Kiviraamat
 --
-CREATE or REPLACE VIEW aruanded.kiviraamat as
-SELECT k0.persoon, repis.func_proper(k0.eesnimi) AS eesnimi,
-k0.perenimi,
-repis.func_proper(k0.isanimi) AS isanimi,
-repis.func_proper(k0.emanimi) AS emanimi,
-LEFT(k0.sünd, 4) AS sünd, LEFT(k0.surm, 4) AS surm
--- k0.*, ks.*
-FROM repis.kirjed k0
-RIGHT JOIN repis.v_kirjesildid ks ON ks.kirjekood = k0.kirjekood
+CREATE OR replace ALGORITHM=UNDEFINED DEFINER=`michelek`@`localhost` SQL SECURITY DEFINER VIEW `kiviraamat`
+AS SELECT
+   k0.persoon AS persoon,
+   repis.func_proper(k0.Eesnimi) AS eesnimi,
+   k0.Perenimi AS perenimi,
+   repis.func_proper(k0.Isanimi) AS isanimi,
+   repis.func_proper(k0.Emanimi) AS emanimi,
+   left(k0.Sünd,4) AS sünd,left(k0.Surm,4) AS surm,
+   if (kt.persoon IS NULL,
+       'lisatahvel',
+       concat_ws('-', replace(kt.tahvel,' ','-'), kt.tulp, kt.rida)
+      ) AS aadress
+      , kts.kirjekood AS Tagasiside
+FROM repis.v_kirjesildid ks
+LEFT JOIN repis.kirjed k0 ON ks.kirjekood = k0.kirjekood
+LEFT JOIN import.memoriaal_kivitahvlid kt ON kt.persoon = k0.persoon
+left join repis.kirjed kts on k0.persoon = kts.persoon and kts.Allikas = 'ts'
 WHERE ks.silt = 'x - kivi'
   AND ks.deleted_at = '0000-00-00 00:00:00'
-  AND k0.perenimi != ''
-ORDER BY k0.perenimi, k0.eesnimi, k0.sünd, k0.surm, k0.isanimi, k0.emanimi
-;
+  AND k0.Perenimi <> ''
+GROUP BY k0.persoon
+ORDER BY k0.Perenimi, k0.Eesnimi, k0.Sünd, k0.Surm, k0.Isanimi, k0.Emanimi;
 
 
 -- 16.augusti päringud
