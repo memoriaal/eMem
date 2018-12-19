@@ -122,8 +122,8 @@ FROM repis.v_kirjesildid s
      k.created_at AS created_at,
      k.created_by AS created_by,
      k.updated_at AS updated_at,
-     k.updated_by AS updated_by
-     , kts.kirjekood AS Tagasiside
+     k.updated_by AS updated_by,
+     group_concat(';',kts.kirjekood) AS Tagasiside
   FROM repis.kirjed k1
   LEFT JOIN repis.kirjed k2 ON k2.persoon = k1.persoon AND k2.allikas = 'kivi' AND k2.kirjekood != k1.kirjekood
   LEFT JOIN repis.kirjed k ON k.persoon = k2.persoon
