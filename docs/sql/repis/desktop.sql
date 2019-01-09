@@ -668,7 +668,7 @@ DELIMITER ;; -- desktop_PR_import
           if(pr.isik_eesnimi_endine1='',NULL,pr.isik_eesnimi_endine1),
           if(pr.isik_eesnimi_endine2='',NULL,pr.isik_eesnimi_endine2)
         ),
-        if(pr.isa_eesnimi='',NULL,pr.isa_eesnimi),
+        if(pr.isa_eesnimi='',NULL,concat('isa eesnimi ',pr.isa_eesnimi)),
         if(pr.ema_eesnimi='',NULL,concat('ema eesnimi ',pr.ema_eesnimi)),
         if(pr.isik_sugu='',NULL,pr.isik_sugu)
       ),
