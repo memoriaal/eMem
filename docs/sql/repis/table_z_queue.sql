@@ -81,6 +81,10 @@ DELIMITER ;;
         UPDATE repis.z_queue SET msg = concat('CALL repis.q_desktop_RK_import(\'',_kirjekood1,'\', \'',_kirjekood2,'\', \'',_task,'\', \'',_params,'\', \'',_created_by,'\');') WHERE id = _id;
         CALL repis.q_desktop_RK_import(_kirjekood1, _kirjekood2, _task, _params, _created_by);
         DELETE FROM repis.z_queue WHERE id = _id;
+      ELSEIF _task = 'desktop_RR_import' THEN
+        UPDATE repis.z_queue SET msg = concat('CALL repis.q_desktop_RR_import(\'',_kirjekood1,'\', \'',_kirjekood2,'\', \'',_task,'\', \'',_params,'\', \'',_created_by,'\');') WHERE id = _id;
+        CALL repis.q_desktop_RR_import(_kirjekood1, _kirjekood2, _task, _params, _created_by);
+        DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'desktop_join_persons' THEN
         CALL repis.q_desktop_join_persons(_kirjekood1, _kirjekood2, _task, _params, _created_by);
         DELETE FROM repis.z_queue WHERE id = _id;

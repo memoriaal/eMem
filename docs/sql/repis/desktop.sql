@@ -128,6 +128,12 @@ DELIMITER ;; -- desktop_BI
         SET NEW.allikas = 'RK';
         INSERT IGNORE INTO repis.z_queue (kirjekood1, kirjekood2,   task,                        params, created_by)
         VALUES                           (NULL,       @new_code,    'desktop_RK_import', NULL,   NEW.created_by);
+      ELSEIF @new_code LIKE 'RR-%' THEN
+        SET NEW.persoon = '';
+        SET NEW.kirjekood = @new_code;
+        SET NEW.allikas = 'RR';
+        INSERT IGNORE INTO repis.z_queue (kirjekood1, kirjekood2,   task,                        params, created_by)
+        VALUES                           (NULL,       @new_code,    'desktop_RR_import', NULL,   NEW.created_by);
       END IF;
 
     END IF;
@@ -751,6 +757,46 @@ DELIMITER ;; -- desktop_RK_import
       d.legend = rk.otmetki,
       d.created_by = _created_by
     WHERE rk.isikukood = _kirjekood2 COLLATE utf8_estonian_ci
+      AND d.persoon = '';
+
+  END;;
+DELIMITER ;
+
+
+DELIMITER ;; -- desktop_RR_import
+
+  CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.q_desktop_RR_import(
+    IN _kirjekood1 CHAR(10), IN _kirjekood2 CHAR(10),
+    IN _task VARCHAR(50), IN _params VARCHAR(200), IN _created_by VARCHAR(50))
+  proc_label:BEGIN
+
+    SELECT concat_ws('. ',
+      concat_ws(', ',
+        concat_ws(';', rr.PERENIMI),
+        concat_ws(';', rr.EESNIMI),
+        if(rr.isanimi='',NULL,concat('isa eesnimi ',rr.isanimi))
+      ),
+      if(rr.sünd='',NULL,concat('Sünd: ',rr.sünd)),
+      if(rr.surm='',NULL,concat('Surm: ',rr.surm))
+    ) INTO @_kirje
+    FROM import.rahvastikuregister rr
+    WHERE rr.kirjekood = _kirjekood2 COLLATE utf8_estonian_ci;
+
+    UPDATE repis.desktop d
+    LEFT JOIN import.rahvastikuregister rr on rr.kirjekood = d.kirjekood
+    SET
+      d.kirje = @_kirje,
+      d.perenimi = rr.perenimi,
+      d.eesnimi = rr.eesnimi,
+      d.sünd = rr.sünd,
+      d.surm = rr.surm,
+      d.legend = concat_ws('; '
+        , if(rr.sünnikoht='',NULL,concat('Sünnikoht: ',rr.sünnikoht))
+        , if(rr.surmakoht='',NULL,concat('Surmakoht: ',rr.surmakoht))
+        , if(rr.allika_id='',NULL,concat('Isikukood: ',rr.allika_id))
+      ),
+      d.created_by = _created_by
+    WHERE rr.kirjekood = _kirjekood2 COLLATE utf8_estonian_ci
       AND d.persoon = '';
 
   END;;
