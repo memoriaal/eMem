@@ -85,9 +85,7 @@ AS SELECT
    desktop.Kustuta AS Kustuta,
    desktop.created_at AS created_at,
    desktop.created_by AS created_by
-FROM desktop where desktop.created_by = user();
-
-
+FROM repis.desktop where desktop.created_by = user();
 
 
 --
