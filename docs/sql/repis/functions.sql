@@ -33,6 +33,40 @@ DELIMITER ;; -- func_kirjelipikud()
 DELIMITER ;
 
 
+DELIMITER ;; -- proc_add_lipik()
+
+  CREATE OR REPLACE DEFINER=queue@localhost PROCEDURE repis.proc_add_lipik(
+    IN _kirjekood1 CHAR(10),
+    IN _lipik VARCHAR(50))
+  proc_label:BEGIN
+
+    SET @omad_lipikud = NULL, @teiste_lipikud = NULL;
+
+    SELECT GROUP_CONCAT(kl.lipik SEPARATOR '; ') INTO @omad_lipikud
+    FROM repis.v_kirjelipikud kl
+    RIGHT JOIN repis.kirjed k ON k.kirjekood = kl.kirjekood
+    RIGHT JOIN repis.kirjed k0 ON k0.persoon = k.persoon
+    WHERE k0.kirjekood = _kirjekood
+    AND kl.deleted_at = '0000-00-00 00:00:00'
+    AND kl.kirjekood = k0.kirjekood
+    GROUP BY kl.kirjekood;
+
+    SELECT GROUP_CONCAT(concat_ws(':', k.kirjekood, kl.lipik) SEPARATOR '; ') INTO @teiste_lipikud
+    FROM repis.v_kirjelipikud kl
+    RIGHT JOIN repis.kirjed k ON k.kirjekood = kl.kirjekood
+    RIGHT JOIN repis.kirjed k0 ON k0.persoon = k.persoon
+    WHERE k0.kirjekood = _kirjekood
+    AND kl.deleted_at = '0000-00-00 00:00:00'
+    AND kl.kirjekood != k0.kirjekood
+    GROUP BY k0.persoon;
+
+    RETURN concat_ws('\n', @omad_lipikud, @teiste_lipikud);
+
+  END;;
+
+DELIMITER ;
+
+
 DELIMITER ;; -- func_kirjesildid()
 
   CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.func_kirjesildid(

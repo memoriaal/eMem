@@ -102,7 +102,7 @@ DELIMITER ;; -- desktop_BI
 
     SET @new_code = UPPER(IF(NEW.kirjekood = '', NEW.persoon, NEW.kirjekood));
 
-    IF @new_code IN ('EMI', 'TS') THEN
+    IF @new_code IN ('EMI', 'TS', 'R4-1') THEN
       SET NEW.persoon = '',
           NEW.kirjekood = repis.desktop_next_id(@new_code),
           NEW.allikas = @new_code;
