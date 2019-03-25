@@ -9,7 +9,7 @@ const ES_CREDENTIALS = process.env.ES_CREDENTIALS
 const INDEX = process.env.INDEX
 const SOURCE = process.env.SOURCE
 // const BULK_SIZE = 507
-const BULK_SIZE = 5000
+const BULK_SIZE = 2000
 const START_TIME = Date.now()
 
 
@@ -20,7 +20,7 @@ var labels = []
 const elasticsearch = require('elasticsearch')
 const esClient = new elasticsearch.Client({
   host: 'https://' + ES_CREDENTIALS + '@94abc9318c712977e8c684628aa5ea0f.us-east-1.aws.found.io:9243',
-  requestTimeout: 5*60e3, // 5 minutes
+  requestTimeout: 1*60e3, // 5 minutes
   // log: 'trace'
 })
 
@@ -191,6 +191,11 @@ async.series({
                   }
                 },
                 'surm': { type: 'text',
+                  fields: {
+                    raw: { type: 'keyword' }
+                  }
+                },
+                'tiib': { type: 'text',
                   fields: {
                     raw: { type: 'keyword' }
                   }
