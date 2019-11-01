@@ -65,50 +65,50 @@ DELIMITER ;;
 
       IF _task = 'desktop_flush' THEN
         CALL repis.q_desktop_flush(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        DELETE FROM repis.z_queue WHERE id = _id;
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'desktop_collect' THEN
         CALL repis.q_desktop_collect(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        DELETE FROM repis.z_queue WHERE id = _id;
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'desktop_NK_refresh' THEN
         UPDATE repis.z_queue SET msg = concat('CALL repis.q_desktop_NK_refresh(\'',_kirjekood1,'\', \'',_kirjekood2,'\', \'',_task,'\', \'',_params,'\', \'',_created_by,'\');') WHERE id = _id;
         CALL repis.q_desktop_NK_refresh(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        DELETE FROM repis.z_queue WHERE id = _id;
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'desktop_PR_import' THEN
         UPDATE repis.z_queue SET msg = concat('CALL repis.q_desktop_PR_import(\'',_kirjekood1,'\', \'',_kirjekood2,'\', \'',_task,'\', \'',_params,'\', \'',_created_by,'\');') WHERE id = _id;
         CALL repis.q_desktop_PR_import(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        DELETE FROM repis.z_queue WHERE id = _id;
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'desktop_RK_import' THEN
         UPDATE repis.z_queue SET msg = concat('CALL repis.q_desktop_RK_import(\'',_kirjekood1,'\', \'',_kirjekood2,'\', \'',_task,'\', \'',_params,'\', \'',_created_by,'\');') WHERE id = _id;
         CALL repis.q_desktop_RK_import(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        DELETE FROM repis.z_queue WHERE id = _id;
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'desktop_RR_import' THEN
         UPDATE repis.z_queue SET msg = concat('CALL repis.q_desktop_RR_import(\'',_kirjekood1,'\', \'',_kirjekood2,'\', \'',_task,'\', \'',_params,'\', \'',_created_by,'\');') WHERE id = _id;
         CALL repis.q_desktop_RR_import(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        DELETE FROM repis.z_queue WHERE id = _id;
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'desktop_join_persons' THEN
         CALL repis.q_desktop_join_persons(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        DELETE FROM repis.z_queue WHERE id = _id;
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'leidperelaud_collect' THEN
         CALL repis.q_leidperelaud_collect(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        DELETE FROM repis.z_queue WHERE id = _id;
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'leidperelaud_flush' THEN
         CALL repis.q_leidperelaud_flush(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        DELETE FROM repis.z_queue WHERE id = _id;
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'perelaud_flush' THEN
         CALL repis.q_perelaud_flush(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        DELETE FROM repis.z_queue WHERE id = _id;
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'emaisalaud_flush' THEN
         CALL repis.q_emaisalaud_flush(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        DELETE FROM repis.z_queue WHERE id = _id;
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'add2emaisa' THEN
         CALL repis.q_emaisa_add(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        DELETE FROM repis.z_queue WHERE id = _id;
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'raamatupere2emaisa' THEN
         CALL repis.q_emaisa_raamatupere(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        DELETE FROM repis.z_queue WHERE id = _id;
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       ELSEIF _task = 'emaisalaud_replace' THEN
         CALL repis.q_emaisa_replace(_kirjekood1, _kirjekood2, _task, _params, _created_by);
-        DELETE FROM repis.z_queue WHERE id = _id;
+        -- DELETE FROM repis.z_queue WHERE id = _id;
       END IF;
 
     END LOOP;

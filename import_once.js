@@ -38,6 +38,7 @@ const kirje2obj = function(kirje) {
   // o_kirje.allikakood = o_kirje.kirjekood.split('-')[0]
   o_kirje.allikas = ksplit.shift()
   ksplit.shift() // o_kirje.allikasTxt = ksplit.shift()
+  // console.log(o_kirje.persoon)
   _labels_str = ksplit.shift().split("'").join('"')
   // console.log(o_kirje.kirjekood, _labels_str);
   _labels_o = JSON.parse(_labels_str)

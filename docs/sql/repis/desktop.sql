@@ -569,6 +569,8 @@ DELIMITER ;; -- desktop_collect
     IN _task VARCHAR(50), IN _params VARCHAR(200), IN _created_by VARCHAR(50))
   proc_label:BEGIN
 
+    INSERT INTO z_queue (task, params) values ('log', 'foo');
+
 
     IF _persoon != '' THEN
       SET @p_id = '' COLLATE utf8_estonian_ci;
@@ -593,6 +595,12 @@ DELIMITER ;; -- desktop_collect
       WHERE k.persoon = @p_id;
 
     ELSEIF _kirjekood2 != '' THEN
+
+      SELECT repis.desktop_person_text(k.perenimi, k.eesnimi, k.isanimi, k.emanimi, k.sünd, k.surm)
+        INTO @jutt
+        FROM repis.kirjed k
+       WHERE k.kirjekood = _kirjekood2;
+
       DELETE FROM repis.desktop WHERE kirjekood = _kirjekood2 AND allikas IS NULL AND created_by = _created_by;
       INSERT IGNORE INTO repis.desktop
       (persoon, kirjekood, perenimi, eesnimi, isanimi, emanimi, sünd, surm
@@ -605,10 +613,10 @@ DELIMITER ;; -- desktop_collect
         -- , repis.func_kirjesildid(kirjekood)
         , kirje, legend, allikas, välisviide, EkslikKanne, Peatatud, EiArvesta, _created_by
         , IF(allikas IN ('TS','EMI'),
-            IF(kirje LIKE concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. %') COLLATE utf8_estonian_ci,
+            IF(kirje LIKE concat(@jutt, '. %') , -- COLLATE utf8_estonian_ci,
               REPLACE(
                 kirje,
-                concat(repis.desktop_person_text(perenimi, eesnimi, isanimi, emanimi, sünd, surm), '. ') COLLATE utf8_estonian_ci,
+                concat(@jutt, '. ') , -- COLLATE utf8_estonian_ci,
                 ''
               ),
               kirje
@@ -647,6 +655,8 @@ DELIMITER ;; -- desktop_collect
     SET d.lipikud = dl.lipikud
       , d.sildid  = ds.sildid
     WHERE d.created_by = _created_by;
+
+    INSERT INTO z_queue (task, params) values ('log', 'foo2');
 
   END;;
 
@@ -833,7 +843,7 @@ DELIMITER ;; -- desktop_NK_refresh
       BEGIN
         GET DIAGNOSTICS CONDITION 1
           code = RETURNED_SQLSTATE, msg = MESSAGE_TEXT;
-        INSERT INTO z_queue (task, params) values (code, msg);
+        INSERT INTO z_queue (task, params) values (code, concat_ws('; ', 'desktop_NK_refresh', msg));
       END;
 
     -- INSERT INTO z_queue (task, params, erred_at) values (_created_by, user(), now());
@@ -923,7 +933,7 @@ DELIMITER ;; -- desktop_join_persons
     IN _task VARCHAR(50), IN _params VARCHAR(200), IN _created_by VARCHAR(50))
   proc_label:BEGIN
 
-    UPDATE repis_desktop SET person = _new_person WHERE person = _old_person;
+    UPDATE repis.desktop SET person = _new_person WHERE person = _old_person;
 
   END;;
 
