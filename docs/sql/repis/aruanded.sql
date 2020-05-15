@@ -42,20 +42,35 @@ FROM repis.v_kirjesildid s
 
 CREATE OR REPLACE VIEW aruanded.uued_kivikirjed
 AS SELECT
-   k1.persoon AS persoon,
-   k1.Perenimi AS perenimi,
-   k1.Eesnimi AS eesnimi,
-   k1.Isanimi AS isanimi,
-   k1.Emanimi AS emanimi,
-   k1.Sünd AS sünd,
-   k1.Surm AS surm,
-   k1.kommentaar AS kommentaar
-   , kts.kirjekood AS Tagasiside
-FROM repis.v_kirjesildid s
-  left join repis.kirjed k on s.kirjekood = k.persoon and s.silt = 'x - kivi' AND s.deleted_at = '0000-00-00 00:00:00' and k.Allikas = 'KIVI'
-  left join repis.kirjed k1 on k1.kirjekood = s.kirjekood
-  left join repis.kirjed kts on k1.persoon = kts.persoon and kts.Allikas = 'ts'
-  where s.silt = 'x - kivi' AND s.deleted_at = '0000-00-00 00:00:00' and k.kirjekood is null and k1.Perenimi <> '' and k1.Eesnimi <> '';
+   nk.kirjekood AS persoon,
+   nk.Perenimi AS perenimi,
+   nk.Eesnimi AS eesnimi,
+   nk.Isanimi AS isanimi,
+   nk.Emanimi AS emanimi,left(nk.Sünd,4) AS sünd,left(nk.Surm,4) AS surm,
+   kts.kirjekood AS Tagasiside,
+   kvs.kirjekood AS Vanglasurm,
+   kpr.kirjekood AS Pereregister,
+   krk.kirjekood AS ReprKart
+FROM repis.kirjed k
+  left join repis.allikad a on a.Kood = k.Allikas
+  left join repis.kirjed nk on nk.persoon = k.persoon and nk.Allikas = 'Persoon' and nk.persoon = nk.kirjekood
+  left join repis.v_kirjesildid ks_k on ks_k.kirjekood = nk.persoon and ks_k.silt = 'x - kivi' and ks_k.deleted_at = '0000-00-00 00:00:00'
+  left join import.memoriaal_kivitahvlid kt on kt.persoon = k.persoon
+  LEFT JOIN repis.v_kirjesildid ks_pk ON ks_pk.kirjekood = kt.kirjekood AND ks_pk.silt = 'Pime kivi' AND ks_pk.deleted_at = '0000-00-00 00:00:00'
+  left join repis.kirjed kts on k.persoon = kts.persoon and kts.Allikas = 'ts'
+  left join repis.kirjed kvs on k.persoon = kvs.persoon and kvs.Allikas = 'vanglasurm'
+  left join repis.kirjed kpr on k.persoon = kpr.persoon and kpr.Allikas = 'pr'
+  left join repis.kirjed krk on k.persoon = krk.persoon and krk.Allikas = 'rk'
+WHERE k.EkslikKanne = ''
+  and k.Puudulik = ''
+  and ks_k.silt = 'x - kivi'
+  and k.Allikas <> 'KIVI'
+  and k.Peatatud = ''
+  and ifnull(a.nonPerson,'') <> '!'
+  AND (kt.persoon IS NULL OR ks_pk.kirjekood IS NOT NULL)
+GROUP BY k.persoon
+HAVING nk.perenimi <> '';
+
 
 
   CREATE OR REPLACE VIEW aruanded.topelt_kivikirjed
@@ -317,3 +332,21 @@ DELIMITER ;
 -- FIELDS TERMINATED BY ','
 -- ENCLOSED BY '"'
 -- LINES TERMINATED BY '\n';
+
+
+
+CREATE OR REPLACE VIEW `persoonikirjed`
+AS SELECT
+   pk.persoon AS persoon,
+   r0.Perenimi AS perenimi,
+   r0.Eesnimi AS eesnimi,
+   r0.Isanimi AS isanimi,
+   r0.Emanimi AS emanimi,
+   r0.Sünd AS sünd,
+   r0.Surm AS surm,group_concat(rk.kirjekood,' ',rk.Kirje SEPARATOR '\n') AS kirjed,
+   group_concat(ks_k.kirjekood,' ',ks_k.silt SEPARATOR '\n') AS sildid
+FROM aruanded.persoonikoodid pk
+  LEFT JOIN repis.kirjed rk ON rk.persoon = pk.persoon AND rk.Allikas <> 'persoon'
+  LEFT JOIN repis.kirjed r0 ON r0.kirjekood = pk.persoon
+  LEFT JOIN repis.v_kirjesildid ks_k ON ks_k.kirjekood = rk.kirjekood AND ks_k.deleted_at = '0000-00-00 00:00:00'
+GROUP BY pk.persoon;
