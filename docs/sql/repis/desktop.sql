@@ -497,38 +497,7 @@ DELIMITER ;
 --
 -- functions
 --
-DELIMITER ;; -- desktop_next_id()
 
-  CREATE OR REPLACE DEFINER=queue@localhost FUNCTION repis.desktop_next_id(
-      _allikas VARCHAR(50)
-  ) RETURNS CHAR(10) CHARSET utf8
-  func_label:BEGIN
-
-    SELECT lühend INTO @c FROM repis.allikad WHERE kood = _allikas;
-
-    SET @max_k = NULL;
-    SELECT ifnull(max(kirjekood), 0) INTO @max_k
-    FROM repis.kirjed
-    WHERE allikas = _allikas;
-
-    SET @max_d = NULL;
-    SELECT ifnull(max(kirjekood), 0) INTO @max_d
-    FROM repis.desktop
-    WHERE allikas = _allikas;
-
-    SET @id = lpad(
-      RIGHT(IF(@max_k >= @max_d, @max_k, @max_d), 9-length(@c)) + 1,
-      10,
-      if(_allikas = 'Persoon',
-        rpad('0', 10, '0'),
-        concat_ws('-', @c, rpad('0', 9-length(@c), '0'))
-      )
-    );
-
-    RETURN @id;
-  END;;
-
-DELIMITER ;
 
 
 DELIMITER ;; -- desktop_person_text()
@@ -934,53 +903,6 @@ DELIMITER ;; -- desktop_join_persons
   proc_label:BEGIN
 
     UPDATE repis.desktop SET person = _new_person WHERE person = _old_person;
-
-  END;;
-
-DELIMITER ;
-
-
-
-DELIMITER ;; -- kirjed_BI
-
-  CREATE OR REPLACE DEFINER=queue@localhost  TRIGGER repis.kirjed_BI BEFORE INSERT ON repis.kirjed FOR EACH ROW
-  proc_label:BEGIN
-
-    DECLARE msg VARCHAR(2000);
-
-    IF NEW.created_by != SUBSTRING_INDEX(user(), '@', 1) THEN
-      SELECT concat_ws(user(), '\n'
-        , 'Kirjeid saab lisada ainult töölaualt.'
-      ) INTO msg;
-      SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
-    END IF;
-
-  END;;
-
-DELIMITER ;
-
-
-DELIMITER ;; -- kirjed_BU
-
-  CREATE OR REPLACE DEFINER=queue@localhost  TRIGGER repis.kirjed_BU BEFORE UPDATE ON repis.kirjed FOR EACH ROW
-  proc_label:BEGIN
-
-    DECLARE msg VARCHAR(2000);
-
-    IF current_user() NOT IN ('kylli@localhost', 'michelek@localhost', 'queue@localhost') THEN
-      SELECT concat_ws(current_user(), '\n'
-        , 'Kirjeid saab muuta ainult töölaual.'
-      ) INTO msg;
-      SIGNAL SQLSTATE '03100' SET MESSAGE_TEXT = msg;
-    END IF;
-
-    IF NEW.allikas = 'EMI' THEN
-      SET NEW.kirje = concat_ws('. ', if(NEW.KirjePersoon = '', NULL, NEW.KirjePersoon), if(NEW.kirjeJutt = '', NULL, NEW.kirjeJutt));
-    END IF;
-
-    IF NEW.allikas = 'TS' THEN
-      SET NEW.kirje = concat_ws('. ', if(NEW.KirjePersoon = '', NULL, NEW.KirjePersoon), if(NEW.kirjeJutt = '', NULL, NEW.kirjeJutt));
-    END IF;
 
   END;;
 
