@@ -14,6 +14,11 @@ CREATE OR REPLACE TABLE repis.desktop (
   emanimi varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   sünd varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   surm varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  matmisaeg varchar(10) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  sünnikoht varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  elukoht varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  matmiskoht varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
+  `surma põhjus` varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   lipik varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
   lipikud text COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   silt varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
@@ -28,7 +33,7 @@ CREATE OR REPLACE TABLE repis.desktop (
   allikas varchar(50) COLLATE utf8_estonian_ci DEFAULT NULL,
   id int(10) unsigned NOT NULL AUTO_INCREMENT,
   created_at timestamp NOT NULL DEFAULT current_timestamp(),
-  created_by varchar(50) NOT NULL DEFAULT '',
+  created_by varchar(50) COLLATE utf8_estonian_ci NOT NULL DEFAULT '',
   PRIMARY KEY (kirjekood,created_by),
   UNIQUE KEY id (id),
   KEY lipik (lipik),
@@ -102,7 +107,7 @@ DELIMITER ;; -- desktop_BI
 
     SET @new_code = UPPER(IF(NEW.kirjekood = '', NEW.persoon, NEW.kirjekood));
 
-    IF @new_code IN ('EMI', 'TS', 'R4-1') THEN
+    IF @new_code IN ('EMI', 'TS', 'R4-1', 'KR') THEN
       SET NEW.persoon = '',
           NEW.kirjekood = repis.desktop_next_id(@new_code),
           NEW.allikas = @new_code;
@@ -145,7 +150,7 @@ DELIMITER ;
 DELIMITER ;; -- desktop_BU
 
   CREATE OR REPLACE DEFINER=queue@localhost TRIGGER repis.desktop_BU BEFORE UPDATE ON repis.desktop FOR EACH ROW
-  proc_label:BEGIN
+proc_label:BEGIN
 
     DECLARE msg TEXT;
 
@@ -215,6 +220,11 @@ DELIMITER ;; -- desktop_BU
               NEW.emanimi != OLD.emanimi OR
               NEW.sünd != OLD.sünd OR
               NEW.surm != OLD.surm OR
+              NEW.matmisaeg != OLD.matmisaeg OR
+              NEW.sünnikoht != OLD.sünnikoht OR
+              NEW.elukoht != OLD.elukoht OR
+              NEW.matmiskoht != OLD.matmiskoht OR
+              NEW.`surma põhjus` != OLD.`surma põhjus` OR
               NEW.jutt != OLD.jutt OR
               NEW.välisviide != OLD.välisviide OR
               NEW.kirje != OLD.kirje) THEN
@@ -374,11 +384,13 @@ DELIMITER ;; -- desktop_BU
       INSERT INTO repis.kirjed (
         persoon, kirjekood, kirje, legend, perenimi, eesnimi,
         isanimi, emanimi, sünd, surm, allikas,
+        matmisaeg, sünnikoht, elukoht, matmiskoht, `surma põhjus`,
         välisviide, EkslikKanne, Peatatud, EiArvesta,
         created_at, created_by,
         KirjePersoon)
       SELECT d.persoon, d.kirjekood, d.kirje, d.legend, d.perenimi, d.eesnimi,
              d.isanimi, d.emanimi, d.sünd, d.surm, d.allikas,
+             d.matmisaeg, d.sünnikoht, d.elukoht, d.matmiskoht, d.`surma põhjus`,
              d.välisviide, d.EkslikKanne, d.Peatatud, d.EiArvesta,
              now(), SUBSTRING_INDEX(user(), '@', 1),
              repis.desktop_person_text(
@@ -396,12 +408,14 @@ DELIMITER ;; -- desktop_BU
       INSERT INTO repis.kirjed (
         persoon, kirjekood, kirje, legend, perenimi, eesnimi,
         isanimi, emanimi, sünd, surm, allikas,
+        matmisaeg, sünnikoht, elukoht, matmiskoht, `surma põhjus`,
         välisviide, EkslikKanne, Peatatud, EiArvesta,
         created_at, created_by,
         KirjePersoon,
         kirjeJutt)
       SELECT d.persoon, d.kirjekood, d.kirje, d.legend, d.perenimi, d.eesnimi,
              d.isanimi, d.emanimi, d.sünd, d.surm, d.allikas,
+             d.matmisaeg, d.sünnikoht, d.elukoht, d.matmiskoht, d.`surma põhjus`,
              d.välisviide, d.EkslikKanne, d.Peatatud, d.EiArvesta,
              now(), SUBSTRING_INDEX(user(), '@', 1),
              if(d.allikas IN ('EMI', 'TS'),
@@ -456,6 +470,9 @@ DELIMITER ;; -- desktop_BU
           k.perenimi = d.perenimi, k.eesnimi = d.eesnimi,
           k.isanimi = d.isanimi, k.emanimi = d.emanimi,
           k.sünd = d.sünd, k.surm = d.surm, k.allikas = d.allikas,
+          k.matmisaeg = d.matmisaeg, k.sünnikoht = d.sünnikoht, 
+          k.elukoht = d.elukoht, k.matmiskoht = d.matmiskoht, 
+          k.`surma põhjus` = d.`surma põhjus`,
           k.välisviide = d.välisviide, k.EkslikKanne = d.EkslikKanne,
           k.Peatatud = d.Peatatud,
           k.EiArvesta = d.EiArvesta,
@@ -498,6 +515,40 @@ DELIMITER ;
 -- functions
 --
 
+DELIMITER ;; -- desktop_next_id()
+  CREATE DEFINER=queue@localhost FUNCTION desktop_next_id(
+        _allikas VARCHAR(50)
+    ) RETURNS char(10) CHARSET utf8
+  func_label:BEGIN
+
+    SELECT lühend INTO @c FROM repis.allikad WHERE kood = _allikas;
+
+    -- CALL log_msg('@c', @c);
+    SET @max_k = NULL;
+    SELECT ifnull(max(kirjekood), 0) INTO @max_k
+    FROM repis.kirjed
+    WHERE allikas = _allikas;
+    -- CALL log_msg('@max_k', @max_k);
+
+    SET @max_d = NULL;
+    SELECT ifnull(max(kirjekood), 0) INTO @max_d
+    FROM repis.desktop
+    WHERE allikas = _allikas;
+    -- CALL log_msg('@max_d', @max_d);
+
+    SET @id = lpad(
+      RIGHT(IF(@max_k >= @max_d, @max_k, @max_d), 9-length(@c)) + 1,
+      10,
+      if(_allikas = 'Persoon',
+        rpad('0', 10, '0'),
+        concat_ws('-', @c, rpad('0', 9-length(@c), '0'))
+      )
+    );
+    -- CALL log_msg('@id', @id);
+
+    RETURN @id;
+  END;
+DELIMITER ;
 
 
 DELIMITER ;; -- desktop_person_text()
@@ -509,21 +560,21 @@ DELIMITER ;; -- desktop_person_text()
       _emanimi VARCHAR(50),
       _sünd VARCHAR(50),
       _surm VARCHAR(50)
-  ) RETURNS varchar(2000) CHARSET utf8 COLLATE  utf8_estonian_ci
+    ) RETURNS varchar(2000) CHARSET utf8 COLLATE utf8_estonian_ci
   func_label:BEGIN
 
-    RETURN concat_ws('. ',
-      concat_ws(', ',
-        if(_perenimi = '', NULL, _perenimi),
-        if(_eesnimi  = '', NULL, _eesnimi),
-        if(_isanimi  = '', NULL, concat('isa ', _isanimi)),
-        if(_emanimi  = '', NULL, concat('ema ', _emanimi))
-      ),
-      if(_sünd       = '', NULL, concat('Sünd ', _sünd)),
-      if(_surm       = '', NULL, concat('Surm ', _surm))
-    );
+      RETURN concat_ws('. ',
+        concat_ws(', ',
+          if(_perenimi = '', NULL, _perenimi),
+          if(_eesnimi  = '', NULL, _eesnimi),
+          if(_isanimi  = '', NULL, concat('isa ', _isanimi)),
+          if(_emanimi  = '', NULL, concat('ema ', _emanimi))
+        ),
+        if(_sünd       = '', NULL, concat('Sünd ', _sünd)),
+        if(_surm       = '', NULL, concat('Surm ', _surm))
+      );
 
-  END;;
+    END;;
 
 DELIMITER ;
 

@@ -43,3 +43,21 @@ LEFT JOIN repis.kirjed kk1 ON kk1.persoon = kk0.persoon AND kk1.allikas = 'perso
 WHERE k0.Allikas IN ('ERAF.12SM','ERAF.12BSM')
 GROUP BY k1.persoon
 HAVING count(1) = 2;
+
+
+
+
+CREATE OR REPLACE VIEW aruanded.pensionitoimikud AS 
+SELECT
+   pk.persoon AS persoon,
+   r0.Perenimi AS perenimi,
+   r0.Eesnimi AS eesnimi,
+   r0.Isanimi AS isanimi,
+   r0.Emanimi AS emanimi,
+   r0.Sünd AS sünd,
+   r0.Surm AS surm,group_concat(rk.kirjekood,' ',rk.Kirje separator '\n') AS kirjed
+FROM repis.kirjed pk
+left join repis.kirjed rk on rk.persoon = pk.persoon and rk.Allikas <> 'persoon'
+left join repis.kirjed r0 on r0.kirjekood = pk.persoon
+where pk.allikas = 'RPT'
+group by pk.persoon;
