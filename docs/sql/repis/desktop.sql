@@ -76,6 +76,11 @@ AS SELECT
    desktop.emanimi AS emanimi,
    desktop.sünd AS sünd,
    desktop.surm AS surm,
+   desktop.matmisaeg AS matmisaeg,
+   desktop.sünnikoht AS sünnikoht,
+   desktop.elukoht AS elukoht,
+   desktop.matmiskoht AS matmiskoht,
+   desktop.`surma põhjus` AS `surma põhjus`,
    desktop.Peatatud AS Peatatud,
    desktop.EiArvesta AS EiArvesta,
    desktop.lipik AS lipik,
@@ -91,7 +96,6 @@ AS SELECT
    desktop.created_at AS created_at,
    desktop.created_by AS created_by
 FROM repis.desktop where desktop.created_by = user();
-
 
 --
 -- Triggers
