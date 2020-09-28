@@ -60,7 +60,7 @@ DELIMITER ;; -- desktop_BU
       END IF;
 
     -- cant change almost anything but person for original records
-      IF OLD.allikas NOT IN ('EMI', 'TS', 'Persoon')
+      IF OLD.allikas NOT IN ('EMI', 'TS', 'Persoon', 'KR')
         AND user() != 'michelek@localhost'
         AND user() != 'queue@localhost'
         AND user() != 'event_scheduler@localhost'
