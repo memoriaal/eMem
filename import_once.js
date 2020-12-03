@@ -28,7 +28,7 @@ const kirje2obj = function(kirje) {
   let o_kirje = {}
   let ksplit = kirje.split('#|')
   if (ksplit.length != 6) {
-    console.log('---\n' + kirje)
+    console.log('---\n' + ksplit.length + ' --- ' + kirje)
   }
   o_kirje.persoon = ksplit.shift()
   o_kirje.kirjekood = ksplit.shift()
@@ -39,7 +39,12 @@ const kirje2obj = function(kirje) {
   o_kirje.allikas = ksplit.shift()
   ksplit.shift() // o_kirje.allikasTxt = ksplit.shift()
   // console.log(o_kirje.persoon)
-  _labels_str = ksplit.shift().split("'").join('"')
+  try {
+    _labels_str = ksplit.shift().split("'").join('"')
+  } catch (error) {
+    console.log({kirje});
+    throw error
+  }
   // console.log(o_kirje.kirjekood, _labels_str);
   _labels_o = JSON.parse(_labels_str)
   // console.log(_labels_o);

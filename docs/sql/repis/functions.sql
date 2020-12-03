@@ -186,8 +186,8 @@ DELIMITER ;; -- func_person_text()
         if(emanimi  = '', NULL, concat('ema ', emanimi))
       ),
       if(sünd       = '', NULL, concat('Sünd ', sünd)),
-      if(surm       = '', NULL, concat('Surm ', surm)),
-      if(sugu = '', NULL, sugu)
+      if(surm       = '', NULL, concat('Surm ', surm))
+      -- , if(sugu = '', NULL, sugu)
     )
     INTO person_text
     FROM repis.kirjed
