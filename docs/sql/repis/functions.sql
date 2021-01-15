@@ -101,7 +101,7 @@ DELIMITER ;; -- func_kirjesildid()
 DELIMITER ;
 
 
-DELIMITER ;;  -- unrepeat
+DELIMITER ;;  -- func_unrepeat()
 
   CREATE OR REPLACE FUNCTION repis.func_unrepeat(
       _word VARCHAR(100),
@@ -113,6 +113,10 @@ DELIMITER ;;  -- unrepeat
       DECLARE _out VARCHAR(100);
       SET i = 0;
       SET _out = '';
+
+      IF _level = 'hard' THEN
+        SET _word = UPPER(_word);
+      END IF;
 
       SET _word = REPLACE(_word, 'TH', 'T');
       SET _word = REPLACE(_word, 'SH', 'Š');
@@ -143,6 +147,21 @@ DELIMITER ;;  -- unrepeat
       END WHILE;
 
       RETURN(_out);
+
+  END;;
+
+DELIMITER ;
+
+
+DELIMITER ;;  -- unrepeat_kirjed()
+
+  CREATE OR REPLACE PROCEDURE repis.unrepeat_kirjed()
+  BEGIN
+
+    UPDATE repis.kirjed SET eesnimiC = repis.func_unrepeat(upper(eesnimi), 'hard');
+    UPDATE repis.kirjed SET perenimiC = repis.func_unrepeat(upper(perenimi), 'hard');
+    UPDATE repis.kirjed SET isanimiC = repis.func_unrepeat(upper(isanimi), 'hard');
+    UPDATE repis.kirjed SET emanimiC = repis.func_unrepeat(upper(emanimi), 'hard');
 
   END;;
 
@@ -253,4 +272,45 @@ DELIMITER ;; -- func_next_id()
     RETURN _ret_val;
   END;;
 
+DELIMITER ;
+
+
+DELIMITER ;; -- RK_import()
+
+  CREATE OR REPLACE PROCEDURE import.RK_import(
+    IN _persoon CHAR(10), IN _kirjekood CHAR(10))
+  proc_label:BEGIN
+
+    SELECT CASE WHEN rk.Sünniaeg = '' THEN rk.SA else rk.Sünniaeg END INTO @_sünd
+    FROM import.repr_kart rk
+    WHERE rk.isikukood = _kirjekood COLLATE utf8_estonian_ci;
+
+    SELECT repis.desktop_person_text(
+      rk.PERENIMI, rk.EESNIMI, rk.ISANIMI, rk.EMANIMI,
+      @_sünd, rk.Surm
+    ) INTO @_kirje_persoon
+    FROM import.repr_kart rk
+    WHERE rk.isikukood = _kirjekood COLLATE utf8_estonian_ci;
+
+    UPDATE import.repr_kart rk
+       SET rk.persoon = _persoon
+     WHERE rk.isikukood = _kirjekood COLLATE utf8_estonian_ci;
+
+    INSERT INTO repis.kirjed (persoon, kirjekood, Kirje, Perenimi, Eesnimi, Isanimi, Emanimi,
+            Sünd, Surm, Allikas, legend,
+            KirjePersoon,
+            EesnimiC, PerenimiC, IsanimiC)
+    SELECT _persoon, _kirjekood, @_kirje_persoon,
+            ifnull(rk.PERENIMI, ''),
+            ifnull(rk.EESNIMI, ''),
+            ifnull(rk.ISANIMI, ''),
+            ifnull(rk.EMANIMI, ''),
+            CASE WHEN rk.Sünniaeg = '' THEN rk.SA else rk.Sünniaeg END, rk.Surm, 'RK', rk.otmetki,
+            @_kirje_persoon,
+            ifnull(repis.func_unrepeat(upper(rk.EESNIMI), 'hard'), ''),
+            ifnull(repis.func_unrepeat(upper(rk.PERENIMI), 'hard'), ''),
+            ifnull(repis.func_unrepeat(upper(rk.ISANIMI), 'hard'), '')
+    FROM import.repr_kart rk
+    WHERE rk.isikukood = @kirjekood COLLATE utf8_estonian_ci;
+  END;;
 DELIMITER ;
