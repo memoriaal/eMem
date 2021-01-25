@@ -275,13 +275,12 @@ DELIMITER ;; -- func_next_id()
 DELIMITER ;
 
 
-DELIMITER ;; -- RK_import()
-
-  CREATE OR REPLACE PROCEDURE import.RK_import(
+DELIMITER ;;
+CREATE OR REPLACE PROCEDURE `RK_import`(
     IN _persoon CHAR(10), IN _kirjekood CHAR(10))
-  proc_label:BEGIN
+proc_label:BEGIN
 
-    SELECT CASE WHEN rk.Sünniaeg = '' THEN rk.SA else rk.Sünniaeg END INTO @_sünd
+    SELECT CASE WHEN rk.Sünniaeg = '' THEN rk.SA ELSE rk.Sünniaeg END INTO @_sünd
     FROM import.repr_kart rk
     WHERE rk.isikukood = _kirjekood COLLATE utf8_estonian_ci;
 
@@ -305,12 +304,12 @@ DELIMITER ;; -- RK_import()
             ifnull(rk.EESNIMI, ''),
             ifnull(rk.ISANIMI, ''),
             ifnull(rk.EMANIMI, ''),
-            CASE WHEN rk.Sünniaeg = '' THEN rk.SA else rk.Sünniaeg END, rk.Surm, 'RK', rk.otmetki,
+            CASE WHEN length(rk.Sünniaeg) = 0 THEN rk.SA ELSE rk.Sünniaeg END, rk.Surm, 'RK', rk.otmetki,
             @_kirje_persoon,
             ifnull(repis.func_unrepeat(upper(rk.EESNIMI), 'hard'), ''),
             ifnull(repis.func_unrepeat(upper(rk.PERENIMI), 'hard'), ''),
             ifnull(repis.func_unrepeat(upper(rk.ISANIMI), 'hard'), '')
     FROM import.repr_kart rk
-    WHERE rk.isikukood = @kirjekood COLLATE utf8_estonian_ci;
+    WHERE rk.isikukood = _kirjekood;  
   END;;
 DELIMITER ;
