@@ -313,3 +313,28 @@ proc_label:BEGIN
     WHERE rk.isikukood = _kirjekood;  
   END;;
 DELIMITER ;
+
+
+DELIMITER ;;
+CREATE OR replace FUNCTION repis.`func_kivitekst`(
+    _persoon CHAR(10)
+  ) RETURNS VARCHAR(2000) CHARSET utf8 COLLATE utf8_estonian_ci
+func_label:BEGIN
+
+    DECLARE person_text VARCHAR(2000);
+
+    SELECT concat_ws(' ',
+        IF(eesnimi  = '', NULL, trim(eesnimi)),
+        IF(perenimi = '', NULL, trim(perenimi)),
+        concat_ws('–',
+            LEFT(sünd, 4),
+            if(surm='', '†', LEFT(surm, 4))
+        )
+    )
+    INTO person_text
+    FROM repis.kirjed
+    WHERE persoon = _persoon AND kirjekood = persoon;
+
+    RETURN person_text;
+  END;;
+DELIMITER ;
