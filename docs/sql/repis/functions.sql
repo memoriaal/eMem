@@ -118,26 +118,28 @@ DELIMITER ;;  -- func_unrepeat()
         SET _word = UPPER(_word);
       END IF;
 
+      SET _word = REPLACE(_word, ' ', '');
+      SET _word = REPLACE(_word, '-', '');
       SET _word = REPLACE(_word, 'TH', 'T');
-      SET _word = REPLACE(_word, 'SH', 'Š');
-      SET _word = REPLACE(_word, 'CH', 'Š');
+      SET _word = REPLACE(_word, 'SH', 'S');
+      SET _word = REPLACE(_word, 'CH', 'S');
       SET _word = REPLACE(_word, 'ZH', 'Z');
       SET _word = REPLACE(_word, 'TZ', 'Z');
-      IF _level = 'hard' THEN
-        SET _word = REPLACE(_word, 'S' , 'Š');
-        SET _word = REPLACE(_word, 'Z' , 'Š');
-        SET _word = REPLACE(_word, 'Ž' , 'Š');
-        SET _word = REPLACE(_word, 'C' , 'Š');
-        SET _word = REPLACE(_word, 'A', 'Ẵ');
-        SET _word = REPLACE(_word, 'E', 'Ẵ');
-        SET _word = REPLACE(_word, 'I', 'Ẵ');
-        SET _word = REPLACE(_word, 'O', 'Ẵ');
-        SET _word = REPLACE(_word, 'U', 'Ẵ');
-        SET _word = REPLACE(_word, 'Õ', 'Ẵ');
-        SET _word = REPLACE(_word, 'Ä', 'Ẵ');
-        SET _word = REPLACE(_word, 'Ö', 'Ẵ');
-        SET _word = REPLACE(_word, 'Ü', 'Ẵ');
-      END IF;
+      -- IF _level = 'hard' THEN
+        SET _word = REPLACE(_word, 'S' , 'S');
+        SET _word = REPLACE(_word, 'Z' , 'S');
+        SET _word = REPLACE(_word, 'Ž' , 'S');
+        SET _word = REPLACE(_word, 'C' , 'S');
+        SET _word = REPLACE(_word, 'A', 'A');
+        SET _word = REPLACE(_word, 'E', 'A');
+        SET _word = REPLACE(_word, 'I', 'A');
+        SET _word = REPLACE(_word, 'O', 'A');
+        SET _word = REPLACE(_word, 'U', 'A');
+        SET _word = REPLACE(_word, 'Õ', 'A');
+        SET _word = REPLACE(_word, 'Ä', 'A');
+        SET _word = REPLACE(_word, 'Ö', 'A');
+        SET _word = REPLACE(_word, 'Ü', 'A');
+      -- END IF;
 
       myloop: WHILE (i <= LENGTH(_word)) DO
           IF SUBSTRING(_word, i, 1) != SUBSTRING(_word, i+1, 1) THEN
@@ -249,7 +251,7 @@ DELIMITER ;; -- func_persoonikirjed()
       END IF;
     END LOOP do_this;
 
-    RETURN _ret_val;
+    RETURN replace(_ret_val, '\r', '');
   END;;
 
 DELIMITER ;
