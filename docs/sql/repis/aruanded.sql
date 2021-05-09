@@ -41,111 +41,36 @@ FROM repis.v_kirjesildid s
 
 
 CREATE OR REPLACE VIEW aruanded.uued_kivikirjed
-AS SELECT
-   nk.kirjekood AS persoon,
-   nk.Perenimi AS perenimi,
-   nk.Eesnimi AS eesnimi,
-   nk.Isanimi AS isanimi,
-   nk.Emanimi AS emanimi,left(nk.Sünd,4) AS sünd,left(nk.Surm,4) AS surm,
-   kts.kirjekood AS Tagasiside,
-   kvs.kirjekood AS Vanglasurm,
-   kpr.kirjekood AS Pereregister,
-   krk.kirjekood AS ReprKart
-FROM repis.kirjed k
-  left join repis.allikad a on a.Kood = k.Allikas
-  left join repis.kirjed nk on nk.persoon = k.persoon and nk.Allikas = 'Persoon' and nk.persoon = nk.kirjekood
-  left join repis.v_kirjesildid ks_k on ks_k.kirjekood = nk.persoon and ks_k.silt = 'x - kivi' and ks_k.deleted_at = '0000-00-00 00:00:00'
-  left join import.memoriaal_kivitahvlid kt on kt.persoon = k.persoon
-  LEFT JOIN repis.v_kirjesildid ks_pk ON ks_pk.kirjekood = kt.kirjekood AND ks_pk.silt = 'Pime kivi' AND ks_pk.deleted_at = '0000-00-00 00:00:00'
-  left join repis.kirjed kts on k.persoon = kts.persoon and kts.Allikas = 'ts'
-  left join repis.kirjed kvs on k.persoon = kvs.persoon and kvs.Allikas = 'vanglasurm'
-  left join repis.kirjed kpr on k.persoon = kpr.persoon and kpr.Allikas = 'pr'
-  left join repis.kirjed krk on k.persoon = krk.persoon and krk.Allikas = 'rk'
-WHERE k.EkslikKanne = ''
-  and k.Puudulik = ''
-  and ks_k.silt = 'x - kivi'
-  and k.Allikas <> 'KIVI'
-  and k.Peatatud = ''
-  and ifnull(a.nonPerson,'') <> '!'
-  AND (kt.persoon IS NULL OR ks_pk.kirjekood IS NOT NULL)
-GROUP BY k.persoon
-HAVING nk.perenimi <> '';
+AS
+SELECT ks_k.kirjekood AS persoon, k2.kirje, k2.sünd, k2.surm, repis.func_persoonikirjed(ks_k.kirjekood) AS kirjed,  IF (ks_k.kirjekood != k2.persoon , 'vaata töölaual üle' , 'ok') AS test
+FROM repis.v_kirjesildid ks_k 
+LEFT JOIN repis.kirjed k1 ON k1.kirjekood = ks_k.kirjekood
+LEFT JOIN repis.kirjed k2 ON k2.persoon = k1.persoon AND k2.persoon = k2.kirjekood
+WHERE ks_k.silt = 'x - kivi' AND ks_k.deleted_at = '0000-00-00 00:00:00'
+AND ks_k.kirjekood NOT IN 
+(
+  SELECT k0.persoon
+  FROM repis.kirjed k0
+  LEFT JOIN repis.v_kirjesildid ks_pk ON ks_pk.kirjekood = k0.kirjekood AND ks_pk.silt = 'Pime kivi' AND ks_pk.deleted_at = '0000-00-00 00:00:00'
+  WHERE k0.allikas = 'KIVI'
+    AND ks_pk.kirjekood IS NULL
+  GROUP BY k0.persoon
+);
 
 
-
-  CREATE OR REPLACE VIEW aruanded.topelt_kivikirjed
-  AS SELECT
-     k2.persoon AS persoon,
-     k2.kirjekood AS kirjekood,
-     k2.Kirje AS Kirje,
-     k2.Kommentaar AS Kommentaar,
-     k2.Perenimi AS Perenimi,
-     k2.Eesnimi AS Eesnimi,
-     k2.Isanimi AS Isanimi,
-     k2.Emanimi AS Emanimi,
-     k2.Sünd AS Sünd,
-     k2.Surm AS Surm,
-     k2.RaamatuPere AS RaamatuPere,
-     k2.Sugu AS Sugu,
-     k2.Rahvus AS Rahvus,
-     k2.Välisviide AS Välisviide,
-     k2.Allikas AS Allikas,
-     k2.Nimekiri AS Nimekiri,
-     k2.Puudulik AS Puudulik,
-     k2.EkslikKanne AS EkslikKanne,
-     k2.Peatatud AS Peatatud,
-     k2.kustuta AS kustuta,
-     k2.created_at AS created_at,
-     k2.created_by AS created_by,
-     k2.updated_at AS updated_at,
-     k2.updated_by AS updated_by
-     , kts.kirjekood AS Tagasiside
-  FROM repis.kirjed k2
-  right join repis.kirjed k1 on k2.persoon = k1.persoon
-                            and k2.kirjekood <> k1.kirjekood
-  right join repis.kirjed k0 on k1.persoon = k0.persoon
-  left join repis.kirjed kts on k2.persoon = kts.persoon and kts.Allikas = 'ts'
-  where k0.Allikas = 'KIVI'
-    and k1.Allikas = 'KIVI'
-    and k2.Allikas = 'KIVI'
-    and k1.persoon is not NULL
-  -- GROUP BY k1.kirjekood;
-  ;
-
-  CREATE OR REPLACE VIEW aruanded.topelt_kivikirjed_b
-  AS SELECT
-     k.persoon AS persoon,
-     k.kirjekood AS kirjekood,
-     k.Kirje AS Kirje,
-     k.Kommentaar AS Kommentaar,
-     k.Perenimi AS Perenimi,
-     k.Eesnimi AS Eesnimi,
-     k.Isanimi AS Isanimi,
-     k.Emanimi AS Emanimi,
-     k.Sünd AS Sünd,
-     k.Surm AS Surm,
-     k.RaamatuPere AS RaamatuPere,
-     k.Sugu AS Sugu,
-     k.Rahvus AS Rahvus,
-     k.Välisviide AS Välisviide,
-     k.Allikas AS Allikas,
-     k.Nimekiri AS Nimekiri,
-     k.Puudulik AS Puudulik,
-     k.EkslikKanne AS EkslikKanne,
-     k.Peatatud AS Peatatud,
-     k.kustuta AS kustuta,
-     k.created_at AS created_at,
-     k.created_by AS created_by,
-     k.updated_at AS updated_at,
-     k.updated_by AS updated_by,
-     group_concat(';',kts.kirjekood) AS Tagasiside
-  FROM repis.kirjed k1
-  LEFT JOIN repis.kirjed k2 ON k2.persoon = k1.persoon AND k2.allikas = 'kivi' AND k2.kirjekood != k1.kirjekood
-  LEFT JOIN repis.kirjed k ON k.persoon = k2.persoon
-  left join repis.kirjed kts on k.persoon = kts.persoon and kts.Allikas = 'ts'
-  WHERE k1.allikas = 'kivi'
-  AND k2.persoon IS NOT NULL
-  ;
+CREATE OR REPLACE VIEW `topelt_kivikirjed`
+AS 
+SELECT k0.persoon, repis.func_persoonikirjed(k0.persoon)
+FROM repis.kirjed k0 
+RIGHT JOIN
+(
+SELECT k0.persoon, count(1) cnt
+FROM repis.kirjed k0
+LEFT JOIN repis.v_kirjesildid ks_pk ON ks_pk.kirjekood = k0.kirjekood AND ks_pk.silt = 'Pime kivi' AND ks_pk.deleted_at = '0000-00-00 00:00:00'
+WHERE k0.allikas = 'KIVI'
+  AND ks_pk.kirjekood IS NULL
+GROUP BY k0.persoon
+HAVING cnt > 1) p ON p.persoon = k0.kirjekood;
 
 
 --
