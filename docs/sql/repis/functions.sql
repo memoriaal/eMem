@@ -308,12 +308,54 @@ proc_label:BEGIN
             ifnull(rk.EMANIMI, ''),
             CASE WHEN length(rk.Sünniaeg) = 0 THEN rk.SA ELSE rk.Sünniaeg END, rk.Surm, 'RK', rk.otmetki,
             @_kirje_persoon,
-            ifnull(repis.func_unrepeat(upper(rk.EESNIMI), 'hard'), ''),
-            ifnull(repis.func_unrepeat(upper(rk.PERENIMI), 'hard'), ''),
-            ifnull(repis.func_unrepeat(upper(rk.ISANIMI), 'hard'), '')
+            ifnull(repis.func_unrepeat(upper(rk.EESNIMI)), ''),
+            ifnull(repis.func_unrepeat(upper(rk.PERENIMI)), ''),
+            ifnull(repis.func_unrepeat(upper(rk.ISANIMI)), '')
     FROM import.repr_kart rk
-    WHERE rk.isikukood = _kirjekood;  
+    WHERE rk.isikukood = _kirjekood;
   END;;
+
+DELIMITER ;
+
+
+DELIMITER ;;
+CREATE OR REPLACE PROCEDURE `PT_import`(
+    IN _persoon CHAR(10), IN _kirjekood CHAR(10))
+proc_label:BEGIN
+
+    SELECT CASE WHEN rk.Sünniaeg = '' THEN rk.SA ELSE rk.Sünniaeg END INTO @_sünd
+    FROM import.repr_kart rk
+    WHERE rk.isikukood = _kirjekood COLLATE utf8_estonian_ci;
+
+    SELECT repis.desktop_person_text(
+      rk.PERENIMI, rk.EESNIMI, rk.ISANIMI, rk.EMANIMI,
+      @_sünd, rk.Surm
+    ) INTO @_kirje_persoon
+    FROM import.repr_kart rk
+    WHERE rk.isikukood = _kirjekood COLLATE utf8_estonian_ci;
+
+    UPDATE import.repr_kart rk
+       SET rk.persoon = _persoon
+     WHERE rk.isikukood = _kirjekood COLLATE utf8_estonian_ci;
+
+    INSERT INTO repis.kirjed (persoon, kirjekood, Kirje, Perenimi, Eesnimi, Isanimi, Emanimi,
+            Sünd, Surm, Allikas, legend,
+            KirjePersoon,
+            EesnimiC, PerenimiC, IsanimiC)
+    SELECT _persoon, _kirjekood, @_kirje_persoon,
+            ifnull(rk.PERENIMI, ''),
+            ifnull(rk.EESNIMI, ''),
+            ifnull(rk.ISANIMI, ''),
+            ifnull(rk.EMANIMI, ''),
+            CASE WHEN length(rk.Sünniaeg) = 0 THEN rk.SA ELSE rk.Sünniaeg END, rk.Surm, 'RK', rk.otmetki,
+            @_kirje_persoon,
+            ifnull(repis.func_unrepeat(upper(rk.EESNIMI)), ''),
+            ifnull(repis.func_unrepeat(upper(rk.PERENIMI)), ''),
+            ifnull(repis.func_unrepeat(upper(rk.ISANIMI)), '')
+    FROM import.repr_kart rk
+    WHERE rk.isikukood = _kirjekood;
+  END;;
+
 DELIMITER ;
 
 
@@ -340,3 +382,25 @@ func_label:BEGIN
     RETURN person_text;
   END;;
 DELIMITER ;
+
+
+delimiter ;;
+
+CREATE OR replace FUNCTION `func_rr_aadress`(
+	`_aadress` VARCHAR(500)
+)
+RETURNS VARCHAR(500) CHARSET utf8 COLLATE utf8_estonian_ci
+LANGUAGE SQL
+NOT DETERMINISTIC
+CONTAINS SQL
+SQL SECURITY DEFINER
+COMMENT ''
+func_label:BEGIN
+
+   RETURN REGEXP_REPLACE(
+				  REGEXP_REPLACE(_aadress, '\\|+', ', ')
+				, ', $', '');
+
+END;;
+  
+delimiter ;
