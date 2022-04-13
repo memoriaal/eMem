@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "angular": "^1.8.0",
-    "async": "^2.6.3",
+    "async": "^3.2.2",
     "bootstrap": "^3.4.1",
     "elasticsearch": "^16.7.1",
     "elasticsearch-browser": "^12.0.0-rc2",
