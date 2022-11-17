@@ -42,7 +42,17 @@ FROM repis.v_kirjesildid s
 
 CREATE OR REPLACE VIEW aruanded.uued_kivikirjed
 AS
-SELECT ks_k.kirjekood AS persoon, k2.kirje, k2.sünd, k2.surm, repis.func_persoonikirjed(ks_k.kirjekood) AS kirjed,  IF (ks_k.kirjekood != k2.persoon , 'vaata töölaual üle' , 'ok') AS test
+SELECT ks_k.kirjekood AS persoon
+     , repis.func_kivitekst(k2.persoon) AS kivitekst
+     , k2.Perenimi AS perenimi
+     , k2.Eesnimi AS eesnimi
+     , k2.Isanimi AS isanimi
+     , k2.Emanimi AS emanimi
+     , k2.Sünd AS sünd
+     , k2.Surm AS surm
+     , repis.func_persoonikirjed(ks_k.kirjekood) AS kirjed
+     , if(ks_k.kirjekood <> k2.persoon or k2.Kirje = '','vaata töölaual üle','ok') AS test
+     , k1.Sildid AS Sildid
 FROM repis.v_kirjesildid ks_k 
 LEFT JOIN repis.kirjed k1 ON k1.kirjekood = ks_k.kirjekood
 LEFT JOIN repis.kirjed k2 ON k2.persoon = k1.persoon AND k2.persoon = k2.kirjekood
@@ -51,10 +61,14 @@ AND ks_k.kirjekood NOT IN
 (
   SELECT k0.persoon
   FROM repis.kirjed k0
-  LEFT JOIN repis.v_kirjesildid ks_pk ON ks_pk.kirjekood = k0.kirjekood AND ks_pk.silt = 'Pime kivi' AND ks_pk.deleted_at = '0000-00-00 00:00:00'
+  LEFT JOIN repis.v_kirjesildid ks_pk 
+         ON ks_pk.kirjekood = k0.kirjekood 
+        AND ks_pk.silt = 'Pime kivi' 
+        AND ks_pk.deleted_at = '0000-00-00 00:00:00'
   WHERE k0.allikas = 'KIVI'
     AND ks_pk.kirjekood IS NULL
   GROUP BY k0.persoon
+  ORDER BY repis.func_order_est(concat_ws(' ', k2.perenimi, k2.eesnimi))
 );
 
 
