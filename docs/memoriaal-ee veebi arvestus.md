@@ -28,16 +28,16 @@ Kokku on tööd hinnanguliselt 450 tundi, rahas on seda 20250€ + KM 4050€ = 
 
 Tegevused nädalate kaupa
 
-   | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | Tarne
----+---+---+---+---+---+---+---+---+------
-T1 |   | x | x |   |   |   |   |   |
-T2 |   |   | x |   |   |   |   |   |
-T3 | x | x | x |   |   |   |   |   |
-K1 | x | x |   |   | x |   |   |   |
-K2 |   | x | x |   |   |   |   |   |
-K3 |   |   | x | x |   |   |   |   |
-K4 |   |   |   | x | x |   |   |   |
-K5 | x |   |   | x | x |   |   |   |
+|   | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | Tarne  
+|---|---|---|---|---|---|---|---|---|------  
+|T1 |   | x | x |   |   |   |   |   |  
+|T2 |   |   | x |   |   |   |   |   |  
+|T3 | x | x | x |   |   |   |   |   |  
+|K1 | x | x |   |   | x |   |   |   |  
+|K2 |   | x | x |   |   |   |   |   |  
+|K3 |   |   | x | x |   |   |   |   |  
+|K4 |   |   |   | x | x |   |   |   |  
+|K5 | x |   |   | x | x |   |   |   |  
 
 6. nädal on varuks,
 7.-8. nädal on klienditestiks ja parandusteks/täiendusteks
